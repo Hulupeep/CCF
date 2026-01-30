@@ -72,6 +72,9 @@ pub struct MotorCommand {
     pub buzzer_hz: u16,
 }
 
+/// ArtBot - Drawing and artistic expression
+pub mod artbot;
+
 /// Reflex modes based on DAG tension levels
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ReflexMode {
@@ -402,6 +405,12 @@ impl Default for MBotBrain {
         Self::new()
     }
 }
+
+// === PERSONALITY MODULE ===
+pub mod personality;
+
+// === LEARNINGLAB MODULE ===
+pub mod learninglab;
 
 // === DRAWING HELPERS ===
 

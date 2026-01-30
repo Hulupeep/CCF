@@ -179,6 +179,22 @@ pub fn read_quad_rgb_cmd() -> Vec<u8> {
     ]
 }
 
+/// Parse quad RGB sensor response
+/// Returns (r, g, b) values (0-255 per channel)
+pub fn parse_quad_rgb_response(data: &[u8]) -> Option<(u8, u8, u8)> {
+    // Response format: [0xff, 0x55, index, type, r, g, b, ...]
+    if data.len() < 7 {
+        return None;
+    }
+
+    if data[0] != 0xff || data[1] != 0x55 {
+        return None;
+    }
+
+    // Extract RGB values (bytes 4, 5, 6)
+    Some((data[4], data[5], data[6]))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -215,6 +231,64 @@ mod tests {
     }
 
     #[test]
+    fn test_servo_cmd_pen_up() {
+        // ART-001: Pen up position at 45°
+        let cmd = servo_cmd(1, 45);
+        assert_eq!(cmd.len(), 8);
+        assert_eq!(cmd[0], 0xff);
+        assert_eq!(cmd[1], 0x55);
+        assert_eq!(cmd[2], 0x05);        // Length
+        assert_eq!(cmd[3], 0x00);        // Index
+        assert_eq!(cmd[4], action::RUN); // Action
+        assert_eq!(cmd[5], device::SERVO); // Device
+        assert_eq!(cmd[6], 1);           // Port
+        assert_eq!(cmd[7], 45);          // Angle (pen up)
+    }
+
+    #[test]
+    fn test_servo_cmd_pen_down() {
+        // ART-001: Pen down position at 90°
+        let cmd = servo_cmd(1, 90);
+        assert_eq!(cmd.len(), 8);
+        assert_eq!(cmd[7], 90);          // Angle (pen down)
+    }
+
+    #[test]
+    fn test_servo_cmd_all_valid_angles() {
+        // ART-001: Verify servo accuracy - test range of angles
+        for angle in (0..=180).step_by(5) {
+            let cmd = servo_cmd(1, angle);
+            assert_eq!(cmd.len(), 8);
+            assert_eq!(cmd[7], angle);
+        }
+    }
+
+    #[test]
+    fn test_servo_cmd_different_ports() {
+        // Test servo on different ports
+        for port in 1..=4 {
+            let cmd = servo_cmd(port, 90);
+            assert_eq!(cmd[6], port);
+            assert_eq!(cmd[7], 90);
+        }
+    }
+
+    #[test]
+    fn test_servo_cmd_header() {
+        // Verify protocol header is always correct
+        let cmd = servo_cmd(1, 90);
+        assert_eq!(cmd[0], 0xff);
+        assert_eq!(cmd[1], 0x55);
+    }
+
+    #[test]
+    fn test_servo_cmd_length() {
+        // Verify command length field (byte 2)
+        let cmd = servo_cmd(1, 90);
+        assert_eq!(cmd[2], 0x05); // Length is always 5 bytes
+    }
+
+    #[test]
     fn test_parse_ultrasonic() {
         // Simulate response: 25.5 cm
         let distance: f32 = 25.5;
@@ -224,5 +298,40 @@ mod tests {
         let parsed = parse_ultrasonic_response(&response);
         assert!(parsed.is_some());
         assert!((parsed.unwrap() - 25.5).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_read_quad_rgb_cmd() {
+        let cmd = read_quad_rgb_cmd();
+        assert_eq!(cmd[0], 0xff);
+        assert_eq!(cmd[1], 0x55);
+        assert_eq!(cmd[2], 0x04); // Length
+        assert_eq!(cmd[4], action::GET);
+        assert_eq!(cmd[5], device::QUAD_RGB);
+        assert_eq!(cmd[6], 0x01); // Port 1
+    }
+
+    #[test]
+    fn test_parse_quad_rgb_response() {
+        // Simulate RGB response: R=200, G=100, B=50
+        let response = vec![0xff, 0x55, 0x00, 0x03, 200, 100, 50];
+
+        let parsed = parse_quad_rgb_response(&response);
+        assert!(parsed.is_some());
+        let (r, g, b) = parsed.unwrap();
+        assert_eq!(r, 200);
+        assert_eq!(g, 100);
+        assert_eq!(b, 50);
+    }
+
+    #[test]
+    fn test_parse_quad_rgb_invalid() {
+        // Too short
+        let short = vec![0xff, 0x55, 0x00];
+        assert!(parse_quad_rgb_response(&short).is_none());
+
+        // Invalid header
+        let bad_header = vec![0xaa, 0xbb, 0x00, 0x03, 200, 100, 50];
+        assert!(parse_quad_rgb_response(&bad_header).is_none());
     }
 }
