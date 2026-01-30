@@ -1,13 +1,99 @@
-# 🤖 mBot2 RuVector - AI at the Edge
+# 🤖 mBot RuVector
 
-**Give your mBot2 a nervous system!** This project integrates [RuVector's](https://github.com/ruvnet/ruvector) DAG-based AI with the Makeblock mBot2 robot, enabling:
+**Give your robot a nervous system. Watch it come alive.**
 
-- 🧠 **Emotional AI** - The robot develops "moods" based on sensor input
-- 🎨 **Artistic Drawing** - Attach a pen and watch it create mood-based art
-- 🎮 **Interactive Games** - Play tic-tac-toe against your robot
-- 📊 **Real-time Dashboard** - Visualize the robot's neural state
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+[![Built with Love](https://img.shields.io/badge/Built%20With-❤️-red.svg)](https://github.com/Hulupeep/mbot_ruvector)
 
-## Architecture
+---
+
+## What If Your Robot Could *Feel*?
+
+Not fake feelings. Not scripted responses. Real emergent emotions that arise from how it experiences the world.
+
+**mBot RuVector** takes a $100 educational robot and gives it a nervous system powered by [RuVector](https://github.com/ruvnet/ruvector) - the same architecture used for AI at the edge. The result? A robot that gets nervous when you move too fast. That gets curious about new objects. That has a *personality*.
+
+```
+Traditional Robot:  IF distance < 10cm THEN reverse()
+RuVector Robot:     Sensor → Nervous System → Emergent Behavior
+```
+
+The difference? **Surprise.** The robot will do things you didn't program. That's the magic.
+
+---
+
+## ✨ The Magic "What If?"
+
+- **What if** your robot got bored and started doodling?
+- **What if** it had a personality that emerged, not a personality you coded?
+- **What if** it actually *tried* to win at tic-tac-toe (and got upset when it lost)?
+- **What if** sorting LEGOs was fun because your robot had opinions about rare pieces?
+- **What if** you could understand AI by watching a robot's "feelings" in real-time?
+
+**That's what we're building.**
+
+---
+
+## 🎮 What Can It Do?
+
+### 🎨 ArtBot - It Draws What It Feels
+Attach a pen. The robot draws art based on its emotional state. Calm = spirals. Startled = jagged lines. Every drawing is a record of its inner experience.
+
+### 🧠 Personality Pets - Same Robot, Different Soul
+Five distinct personalities out of the box. **Curious Cleo** investigates everything. **Nervous Nellie** is scared of sudden movements. **Grumpy Gus** does NOT want to play (but secretly does).
+
+### 🎯 GameBot - Finally, Real Play
+Tic-tac-toe where the robot *thinks*. Chase where it *tries to catch you*. Simon Says where it judges you. Games with actual emotional stakes.
+
+### 🧹 HelperBot - Chores With Character
+LEGO sorter that gets excited about rare pieces. Desk patrol that judges your mess. Tasks become entertainment.
+
+### 📚 LearningLab - Touch AI
+Watch the nervous system fire in real-time. Adjust parameters, see behavior change. AI education you can feel.
+
+---
+
+## 🚀 Quick Start
+
+### What You Need
+- Makeblock mBot2 (~$100)
+- Laptop with Bluetooth
+- Optionally: Servo + pen for drawing
+
+### Run in Simulation (No Hardware)
+```bash
+git clone https://github.com/Hulupeep/mbot_ruvector.git
+cd mbot_ruvector
+cargo run --bin mbot-companion -- --simulate
+```
+
+Watch the robot's "brain" in your terminal. It's thinking. It's feeling. It's alive (sort of).
+
+### Run with Real Robot
+```bash
+# Install dependencies (Ubuntu/Debian)
+sudo apt install libdbus-1-dev libudev-dev pkg-config
+
+# Connect via Bluetooth
+cargo run --features bluetooth --bin mbot-companion -- --bluetooth
+
+# Or via USB Serial
+cargo run --features serial --bin mbot-companion -- --serial /dev/ttyUSB0
+```
+
+### Start the Dashboard
+```bash
+cd web
+npm install
+npm start
+```
+
+Open `http://localhost:3000` - see the nervous system in real-time.
+
+---
+
+## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -27,80 +113,160 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Quick Start
-
-### 1. Clone and Build
-
-```bash
-git clone https://github.com/Hulupeep/mbot_ruvector.git
-cd mbot_ruvector
-
-# Build Rust companion app
-cargo build --release
-```
-
-### 2. Run in Simulation (No Hardware)
-
-```bash
-# Test the AI without mBot2 connected
-cargo run --bin mbot-companion -- --simulate
-```
-
-### 3. Connect to Real mBot2
-
-```bash
-# Via Bluetooth
-cargo run --bin mbot-companion -- --bluetooth
-
-# Via USB Serial
-cargo run --bin mbot-companion -- --serial /dev/ttyUSB0
-```
-
-### 4. Start the Web Dashboard
-
-```bash
-cd web
-npm install
-npm start
-# Open http://localhost:3000
-```
-
-## Project Structure
+### Project Structure
 
 ```
 mbot_ruvector/
 ├── crates/
-│   ├── mbot-core/          # Core AI logic (works on laptop and ESP32)
-│   ├── mbot-companion/     # Laptop companion app
-│   │   └── src/bin/
-│   │       ├── tictactoe.rs  # Tic-tac-toe game
-│   │       └── draw.rs       # Emotional art drawing
-│   └── mbot-embedded/      # Direct ESP32 deployment (advanced)
-├── web/                    # Real-time dashboard
-└── docs/                   # Additional documentation
+│   ├── mbot-core/        # The brain (no_std, runs on ESP32)
+│   ├── mbot-companion/   # Laptop control app
+│   └── mbot-embedded/    # Direct ESP32 deployment (WIP)
+├── web/                  # Real-time dashboard
+├── docs/
+│   ├── PRD.md           # Full product vision
+│   ├── specs/           # Epic specifications (Specflow compliant)
+│   └── contracts/       # Architectural contracts
+└── examples/            # Fun demos
 ```
 
-## The AI: RuVector Nervous System
+---
 
-The robot uses RuVector's DAG-based "nervous system" with these key concepts:
+## 🧪 The Four Reflex Modes
 
-### Reflex Modes
+The robot's nervous system has four modes that emerge from experience:
 
-| Mode | Tension | Behavior |
-|------|---------|----------|
-| 😌 **Calm** | < 0.20 | Gentle wandering, learning enabled |
-| 🔍 **Active** | 0.20 - 0.55 | Curious exploration |
-| ⚡ **Spike** | 0.55 - 0.85 | Excited, fast movements |
-| 🛡️ **Protect** | > 0.85 | Back away from danger |
+| Mode | Icon | What Triggers It | How It Behaves |
+|------|------|------------------|----------------|
+| **Calm** | 😌 | Low tension, stability | Gentle, flowing, content |
+| **Active** | 🔍 | Curiosity, novelty | Exploring, seeking, alert |
+| **Spike** | ⚡ | Sudden change | Quick reactions, startled |
+| **Protect** | 🛡️ | Threat detected | Defensive, cautious, retreating |
 
-### Key Metrics
+These aren't programmed states. They **emerge** from the homeostasis system balancing tension, coherence, and energy.
 
-- **Tension**: Deviation from equilibrium (0-1). High tension = stressed
-- **Coherence**: Internal consistency (0-1). High coherence = stable
-- **Energy**: Depletes with high tension, recovers when calm
-- **Curiosity**: Peaks when something interesting (but not threatening) is detected
+---
 
-## Drawing Mode 🖊️
+## 🎭 Personalities
+
+Same robot. Wildly different behaviors.
+
+| Personality | Vibe | Key Trait |
+|-------------|------|-----------|
+| 🔍 **Curious Cleo** | "What's THAT?!" | High curiosity drive |
+| 😰 **Nervous Nellie** | "Is that safe?" | High tension baseline |
+| 😎 **Chill Charlie** | "Whatever." | Low reactivity |
+| 🎉 **Bouncy Betty** | "LET'S GO!" | High energy baseline |
+| 😤 **Grumpy Gus** | "Ugh, fine." | Low coherence, reluctant |
+
+Create your own with the Personality Mixer!
+
+---
+
+## 📜 The No Bad Stuff Manifesto
+
+This project exists for **joy**. Period.
+
+### We Build For:
+- ✅ Wonder and surprise
+- ✅ Learning through play
+- ✅ Connection and companionship
+- ✅ Creative expression
+- ✅ All ages, all backgrounds
+
+### We Never Build:
+- ❌ Weapons or harm
+- ❌ Surveillance or tracking
+- ❌ Manipulation or deception
+- ❌ Anything that would scare a kid
+- ❌ "Creepy" behaviors
+
+**The Kitchen Table Test:** Would you be happy if your 7-year-old played with this while grandma watched? If no, we don't build it.
+
+---
+
+## 🗺️ Roadmap
+
+### ✅ Phase 0: Foundation (Done!)
+- Core nervous system
+- Companion app
+- Simulation mode
+- Basic drawing and tic-tac-toe
+
+### 🚧 Phase 1: ArtBot MVP
+- Pen servo control
+- Mood-to-movement mapping
+- Basic shape drawing
+- Emotional art sessions
+
+### 📋 Phase 2: Personality System
+- Configurable parameters
+- 5 preset personalities
+- Persistence
+- Quirks system
+
+### 📋 Phase 3: Games & Interaction
+- Chase game
+- Sound-reactive dancing
+- Simon Says
+- Follow-the-leader
+
+### 📋 Phase 4: Helper Functions
+- LEGO color sorting
+- Desk patrol
+- Follow mode
+
+### 📋 Phase 5: Learning & Education
+- Real-time visualizer
+- Parameter mixer
+- Lesson plans
+
+---
+
+## 🤝 Want to Help?
+
+**YES! We want you!**
+
+This is a community project. Whether you're a:
+- **Roboticist** who knows motor control
+- **AI nerd** who gets excited about neural architectures
+- **Designer** who can make things beautiful
+- **Teacher** who wants to use this in classrooms
+- **Kid** who just wants to play with robots
+- **Parent** looking for screen-free tech time
+
+**There's a place for you here.**
+
+### How to Contribute
+
+1. **Check the Issues** - We label things `good first issue` for newcomers
+2. **Join the Conversation** - Open an issue with your idea
+3. **Send a PR** - All contributions welcome
+4. **Share Your Creations** - Built something cool? Show us!
+
+### Contact
+
+📧 **robots@floutlabs.com**
+
+Got ideas? Questions? Want to collaborate? Hit us up!
+
+---
+
+## 🎉 Share Your Ideas!
+
+We're building this together. Open an issue with:
+
+- 🎮 **Game Ideas** - What should the robot play?
+- 🎨 **Art Modes** - How should it draw?
+- 🧠 **Personalities** - What characters should exist?
+- 🔧 **Features** - What would make this more fun?
+- 🐛 **Bugs** - What's broken?
+- 📚 **Education** - How should this be taught?
+
+**No idea is too wild.** We're here to explore.
+
+---
+
+## 🖊️ Drawing Mode
 
 Attach a servo-controlled pen to the back of your mBot2!
 
@@ -120,66 +286,37 @@ Attach a servo-controlled pen to the back of your mBot2!
 
 ```bash
 # Emotional spirograph art
-cargo run --bin mbot-draw
+cargo run --features serial --bin mbot-draw -- --serial /dev/ttyUSB0 --draw
 
 # Tic-tac-toe (attach pen first!)
-cargo run --bin mbot-tictactoe
+cargo run --features serial --bin mbot-tictactoe -- --serial /dev/ttyUSB0
 ```
 
-## Games
+---
 
-### Tic-Tac-Toe
+## 🏛️ Built With
 
-Play against the robot! It draws X's and O's on paper.
+- **[RuVector](https://github.com/ruvnet/ruvector)** - The nervous system architecture
+- **[Makeblock mBot2](https://www.makeblock.com/steam-kits/mbot2)** - The robot platform
+- **Rust** - Because we care about performance
+- **Love** - Because robots deserve feelings too
 
-```bash
-cargo run --bin mbot-tictactoe
-```
+---
 
-- You are X, Robot is O
-- Robot uses minimax + learned patterns
-- Gets smarter over time with SONA learning
+## 📄 License
 
-## Web Dashboard
+MIT - Do whatever you want with it. Just be nice.
 
-Real-time visualization of the robot's neural state.
+---
 
-```bash
-cd web && npm start
-```
+## ⭐ Star Us!
 
-Features:
-- Live tension/coherence meters
-- Reflex mode indicator
-- Sensor readings
-- Robot visualization
+If you think robots with feelings are cool, give us a star! It helps others find us.
 
-## Dependencies
+---
 
-- [RuVector](https://github.com/ruvnet/ruvector) - AI nervous system
-- [btleplug](https://crates.io/crates/btleplug) - Bluetooth LE
-- [serialport](https://crates.io/crates/serialport) - USB Serial
-
-## Hardware
-
-- **Robot**: [Makeblock mBot2](https://www.makeblock.com/pages/mbot2)
-- **Controller**: CyberPi (ESP32-based)
-- **Sensors**: Ultrasonic, Quad RGB, Gyroscope, Accelerometer
-- **Optional**: Servo + pen holder for drawing
-
-## Future Plans
-
-- [ ] Direct ESP32 deployment (no laptop needed)
-- [ ] Voice control integration
-- [ ] Multi-robot swarms
-- [ ] Camera-based object tracking
-- [ ] SONA learning persistence
-
-## License
-
-MIT OR Apache-2.0
-
-## Credits
-
-- RuVector by [ruvnet](https://github.com/ruvnet)
-- mBot2 by [Makeblock](https://www.makeblock.com)
+<p align="center">
+  <b>Let's make robots feel. Together.</b>
+  <br><br>
+  🤖❤️🧠
+</p>

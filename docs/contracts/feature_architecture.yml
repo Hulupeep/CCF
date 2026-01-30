@@ -1,0 +1,123 @@
+# Architecture Contract - mBot RuVector
+# Structural invariants that ALL code must follow
+
+contract_meta:
+  id: feature_architecture
+  version: 1
+  created_from_spec: "docs/PRD.md"
+  covers_reqs:
+    - ARCH-001
+    - ARCH-002
+    - ARCH-003
+    - ARCH-004
+    - ARCH-005
+  owner: "mbot-ruvector-team"
+
+llm_policy:
+  enforce: true
+  llm_may_modify_non_negotiables: false
+  override_phrase: "override_contract: feature_architecture"
+
+rules:
+  non_negotiable:
+    - id: ARCH-001
+      title: "Core must be no_std compatible"
+      rationale: "mbot-core runs on ESP32 (CyberPi) which requires no_std"
+      scope:
+        - "crates/mbot-core/src/**/*.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /use std::/
+            message: "mbot-core must use no_std - use core:: or alloc:: instead"
+          - pattern: /println!/
+            message: "println! not available in no_std - use tracing or custom logging"
+        required_patterns:
+          - pattern: /#!\[no_std\]|#\[cfg\(feature = "no_std"\)\]/
+            message: "Must have no_std configuration"
+        example_violation: |
+          use std::collections::HashMap;
+        example_compliant: |
+          #[cfg(feature = "no_std")]
+          use hashbrown::HashMap;
+          #[cfg(not(feature = "no_std"))]
+          use std::collections::HashMap;
+
+    - id: ARCH-002
+      title: "Nervous system must be deterministic for same inputs"
+      rationale: "Reproducible behavior for testing and debugging"
+      scope:
+        - "crates/mbot-core/src/**/*.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /rand::thread_rng|SystemTime::now/
+            message: "Use seeded RNG and passed timestamps for determinism"
+        required_patterns:
+          - pattern: /tick.*&.*Sensors|process.*&.*Frame/
+            message: "Processing must take inputs as parameters, not global state"
+
+    - id: ARCH-003
+      title: "No harmful behaviors - Kitchen Table Test"
+      rationale: "Safe for unsupervised play by children"
+      scope:
+        - "crates/**/*.rs"
+        - "examples/**/*.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /weapon|attack|hurt|kill|destroy|violence/i
+            message: "No harmful behavior terminology allowed"
+          - pattern: /speed.*>.*200|motor.*255/
+            message: "Motor speeds must be limited for safety"
+        example_violation: |
+          cmd.left = 255; // Full speed attack mode
+        example_compliant: |
+          cmd.left = cmd.left.clamp(-100, 100); // Safe speed limits
+
+    - id: ARCH-004
+      title: "Personality parameters must be bounded"
+      rationale: "Prevent extreme behaviors that could be scary or harmful"
+      scope:
+        - "crates/mbot-core/src/**/*.rs"
+      behavior:
+        required_patterns:
+          - pattern: /\.clamp\(|\.min\(|\.max\(/
+            message: "All personality parameters must be bounded"
+          - pattern: /tension.*0\.0.*1\.0|coherence.*0\.0.*1\.0/
+            message: "Homeostasis values must be normalized 0-1"
+
+    - id: ARCH-005
+      title: "Transport layer must be abstracted"
+      rationale: "Support Bluetooth, Serial, and Simulation without code changes"
+      scope:
+        - "crates/mbot-companion/src/**/*.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /btleplug|serialport/
+            message: "Direct transport imports only in transport.rs"
+        required_patterns:
+          - pattern: /MBotTransport|TransportType/
+            message: "Must use transport abstraction"
+
+  soft:
+    - id: ARCH-010
+      title: "Prefer composition over inheritance"
+      suggestion: "Use trait objects and composition patterns"
+
+    - id: ARCH-011
+      title: "Document emergent behaviors"
+      suggestion: "Add comments explaining non-obvious behavior emergence"
+
+compliance_checklist:
+  before_editing_files:
+    - question: "Adding code to mbot-core?"
+      if_yes: "Ensure no_std compatibility (ARCH-001)"
+    - question: "Adding motor control?"
+      if_yes: "Verify speed limits for safety (ARCH-003)"
+    - question: "Adding personality parameter?"
+      if_yes: "Ensure bounded with clamp() (ARCH-004)"
+    - question: "Adding transport code?"
+      if_yes: "Keep in transport.rs only (ARCH-005)"
+
+test_hooks:
+  tests:
+    - file: "src/__tests__/contracts/architecture.test.ts"
+      description: "Scans for architectural violations"
