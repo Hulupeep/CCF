@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Projects - mBot2 RuVector</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-panel: #12122a;
+            --border: #2a2a4a;
+            --text: #e0e0ff;
+            --text-dim: #8080a0;
+            --accent: #00ff88;
+            --calm: #00aaff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .nav a {
+            color: var(--accent);
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+        }
+
+        .nav a:hover {
+            text-decoration: underline;
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .project-card {
+            background: var(--bg-panel);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 25px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .project-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 255, 136, 0.2);
+        }
+
+        .project-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .project-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .project-desc {
+            color: var(--text-dim);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .project-stories {
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-bottom: 15px;
+        }
+
+        .story-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background: var(--bg-dark);
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .project-status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 15px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .status-complete {
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--accent);
+        }
+
+        .status-progress {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+
+        .status-planned {
+            background: rgba(0, 170, 255, 0.2);
+            color: var(--calm);
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            background: var(--accent);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+        }
+
+        .action-btn:disabled {
+            background: var(--border);
+            color: var(--text-dim);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 mBot2 RuVector Projects</h1>
+            <p class="subtitle">Select a project to deploy to your mBot2</p>
+        </div>
+
+        <div class="nav">
+            <a href="index.html">🧠 Visualizer</a>
+            <a href="personality-mixer.html">🎨 Mixer</a>
+            <a href="projects.html" style="color: var(--text); font-weight: bold;">🚀 Projects</a>
+            <a href="download.html">📥 Download</a>
+        </div>
+
+        <div class="project-grid">
+            <!-- ArtBot Project -->
+            <div class="project-card" onclick="selectProject('artbot')">
+                <div class="project-icon">🎨</div>
+                <div class="project-title">ArtBot - Drawing Companion</div>
+                <div class="project-desc">
+                    Transform mBot2 into an expressive artist! Draws based on mood, personality, and environment.
+                </div>
+                <div class="project-stories">
+                    <span class="story-tag">Pen Servo Control ✓</span>
+                    <span class="story-tag">Mood-Line Mapping ✓</span>
+                    <span class="story-tag">Drawing Session ✓</span>
+                    <span class="story-tag">Basic Shapes</span>
+                    <span class="story-tag">First Drawing Test</span>
+                </div>
+                <div class="project-status">
+                    <span class="status-badge status-progress">In Progress (60%)</span>
+                    <button class="action-btn">Deploy →</button>
+                </div>
+            </div>
+
+            <!-- Personality System -->
+            <div class="project-card" onclick="selectProject('personality')">
+                <div class="project-icon">🧠</div>
+                <div class="project-title">Personality System</div>
+                <div class="project-desc">
+                    Give mBot2 unique personalities! 15 presets from Zen to Excitable, with custom parameter mixing.
+                </div>
+                <div class="project-stories">
+                    <span class="story-tag">Core Data Structure ✓</span>
+                    <span class="story-tag">Behavior Mapping ✓</span>
+                    <span class="story-tag">15 Presets ✓</span>
+                    <span class="story-tag">Persistence ✓</span>
+                    <span class="story-tag">Quirks System ✓</span>
+                </div>
+                <div class="project-status">
+                    <span class="status-badge status-complete">Complete (100%)</span>
+                    <button class="action-btn">Deploy →</button>
+                </div>
+            </div>
+
+            <!-- GameBot Project -->
+            <div class="project-card" onclick="selectProject('gamebot')">
+                <div class="project-icon">🎯</div>
+                <div class="project-title">GameBot - Play Partner</div>
+                <div class="project-desc">
+                    Interactive games including Tic-Tac-Toe, Chase, Simon Says, and more with emotion responses.
+                </div>
+                <div class="project-stories">
+                    <span class="story-tag">Tic-Tac-Toe Logic ✓</span>
+                    <span class="story-tag">Chase Mechanics ✓</span>
+                    <span class="story-tag">Simon Says ✓</span>
+                    <span class="story-tag">Turn Detection ✓</span>
+                    <span class="story-tag">Emotions ✓</span>
+                </div>
+                <div class="project-status">
+                    <span class="status-badge status-complete">Complete (100%)</span>
+                    <button class="action-btn">Deploy →</button>
+                </div>
+            </div>
+
+            <!-- LEGOSorter Project -->
+            <div class="project-card" onclick="selectProject('sorter')">
+                <div class="project-icon">🔨</div>
+                <div class="project-title">LEGOSorter - Organization Helper</div>
+                <div class="project-desc">
+                    Sort LEGO pieces by color using vision system, carousel stations, and smart pick-drop logic.
+                </div>
+                <div class="project-stories">
+                    <span class="story-tag">Servo Calibration ✓</span>
+                    <span class="story-tag">Carousel Config ✓</span>
+                    <span class="story-tag">Color Detection ✓</span>
+                    <span class="story-tag">Sorting Algorithm ✓</span>
+                    <span class="story-tag">Pick-Drop Loop ✓</span>
+                </div>
+                <div class="project-status">
+                    <span class="status-badge status-progress">In Progress (70%)</span>
+                    <button class="action-btn">Deploy →</button>
+                </div>
+            </div>
+
+            <!-- LearningLab Project -->
+            <div class="project-card" onclick="selectProject('learninglab')">
+                <div class="project-icon">📚</div>
+                <div class="project-title">LearningLab - Education Kit</div>
+                <div class="project-desc">
+                    Teach AI concepts through experiments! Real-time visualizer, personality mixer, and guided lessons.
+                </div>
+                <div class="project-stories">
+                    <span class="story-tag">Real-Time Visualizer</span>
+                    <span class="story-tag">Personality Mixer ✓</span>
+                    <span class="story-tag">Reflex Experiments ✓</span>
+                    <span class="story-tag">Emotion Timeline</span>
+                    <span class="story-tag">Lesson Plans</span>
+                </div>
+                <div class="project-status">
+                    <span class="status-badge status-progress">In Progress (40%)</span>
+                    <button class="action-btn">Deploy →</button>
+                </div>
+            </div>
+
+            <!-- HelperBot Project -->
+            <div class="project-card" onclick="selectProject('helperbot')">
+                <div class="project-icon">🧹</div>
+                <div class="project-title">HelperBot - Useful Friend</div>
+                <div class="project-desc">
+                    Practical assistance modes including color detection, follow mode, and household helpers.
+                </div>
+                <div class="project-stories">
+                    <span class="story-tag">Color Detection ✓</span>
+                    <span class="story-tag">Follow Mode</span>
+                    <span class="story-tag">LEGO Sort ✓</span>
+                </div>
+                <div class="project-status">
+                    <span class="status-badge status-planned">Planned (30%)</span>
+                    <button class="action-btn" disabled>Coming Soon</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function selectProject(projectId) {
+            console.log(`Selected project: ${projectId}`);
+            // Navigate to download page with project selected
+            window.location.href = `download.html?project=${projectId}`;
+        }
+    </script>
+</body>
+</html>

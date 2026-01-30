@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📥 Download to mBot2 - RuVector</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-panel: #12122a;
+            --border: #2a2a4a;
+            --text: #e0e0ff;
+            --text-dim: #8080a0;
+            --accent: #00ff88;
+            --warning: #ffaa00;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            background: var(--bg-dark);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        .nav {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .nav a {
+            color: var(--accent);
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+        }
+
+        .nav a:hover {
+            text-decoration: underline;
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .panel h2 {
+            font-size: 20px;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .panel h3 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .step {
+            margin-bottom: 25px;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: var(--accent);
+            color: var(--bg-dark);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            color: var(--text-dim);
+            line-height: 1.6;
+            margin-left: 40px;
+        }
+
+        .code-block {
+            background: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-family: 'SF Mono', monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .code-block code {
+            color: var(--accent);
+        }
+
+        .warning-box {
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .warning-title {
+            color: var(--warning);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .info-box {
+            background: rgba(0, 170, 255, 0.1);
+            border: 1px solid var(--calm);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .info-title {
+            color: var(--calm);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--warning);
+        }
+
+        .status-dot.connected {
+            background: var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg-dark);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+        }
+
+        .btn:disabled {
+            background: var(--border);
+            color: var(--text-dim);
+            cursor: not-allowed;
+        }
+
+        .project-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: var(--bg-dark);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .project-info-item {
+            text-align: center;
+        }
+
+        .project-info-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .project-info-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📥 Download to mBot2</h1>
+            <p class="subtitle">Build and flash your RuVector AI to CyberPi</p>
+        </div>
+
+        <div class="nav">
+            <a href="index.html">🧠 Visualizer</a>
+            <a href="personality-mixer.html">🎨 Mixer</a>
+            <a href="projects.html">🚀 Projects</a>
+            <a href="download.html" style="color: var(--text); font-weight: bold;">📥 Download</a>
+        </div>
+
+        <!-- Current Project -->
+        <div class="panel">
+            <h2>Selected Project</h2>
+            <div class="project-info">
+                <div class="project-info-item">
+                    <div class="project-info-label">Project</div>
+                    <div class="project-info-value" id="project-name">All Features</div>
+                </div>
+                <div class="project-info-item">
+                    <div class="project-info-label">Build Target</div>
+                    <div class="project-info-value">mBot2 (CyberPi)</div>
+                </div>
+                <div class="project-info-item">
+                    <div class="project-info-label">Status</div>
+                    <div class="project-info-value">Ready</div>
+                </div>
+            </div>
+
+            <div class="connection-status">
+                <div class="status-indicator">
+                    <div class="status-dot" id="cyberpi-status"></div>
+                    <span id="cyberpi-text">CyberPi not detected</span>
+                </div>
+                <button class="btn btn-primary" id="connect-btn" onclick="detectCyberPi()">
+                    🔍 Detect CyberPi
+                </button>
+            </div>
+        </div>
+
+        <!-- Build Instructions -->
+        <div class="panel">
+            <h2>🛠️ Build Instructions</h2>
+
+            <div class="warning-box">
+                <div class="warning-title">⚠️ Prerequisites Required</div>
+                <div>You must have Rust toolchain installed and configured for mBot2 development.</div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    Install Rust Toolchain
+                </div>
+                <div class="step-desc">
+                    Install Rust and the embedded target for CyberPi (ARM Cortex-M4):
+                    <div class="code-block">
+<code>curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+rustup target add thumbv7em-none-eabihf</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    Build the Project
+                </div>
+                <div class="step-desc">
+                    Build the RuVector firmware for your selected project:
+                    <div class="code-block">
+<code># Full build with all features
+cargo build --release --target thumbv7em-none-eabihf
+
+# Or build specific crate
+cargo build -p mbot-companion --release --target thumbv7em-none-eabihf</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    Connect CyberPi
+                </div>
+                <div class="step-desc">
+                    Connect your mBot2's CyberPi to your computer via USB-C cable. The device should appear as a serial port.
+                    <div class="info-box">
+                        <div class="info-title">💡 Connection Tips</div>
+                        <ul style="margin-left: 20px; line-height: 1.8;">
+                            <li>Make sure CyberPi is powered on</li>
+                            <li>Use a data-capable USB-C cable (not charge-only)</li>
+                            <li>On Linux: Grant serial port permissions with <code style="color: var(--accent);">sudo usermod -a -G dialout $USER</code></li>
+                            <li>On macOS: Install CH340 driver if needed</li>
+                            <li>On Windows: Install CH340 driver from mBot2 website</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    Flash to CyberPi
+                </div>
+                <div class="step-desc">
+                    Use <code>probe-rs</code> or the CyberPi flash tool to upload the firmware:
+                    <div class="code-block">
+<code># Install probe-rs
+cargo install probe-rs --features cli
+
+# Flash the firmware
+probe-rs run --chip STM32F405RGT6 target/thumbv7em-none-eabihf/release/mbot-companion
+
+# Or use makeblock upload tool
+makeblock-upload -p /dev/ttyUSB0 target/thumbv7em-none-eabihf/release/mbot-companion.bin</code>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="step-title">
+                    <span class="step-number">5</span>
+                    Verify & Test
+                </div>
+                <div class="step-desc">
+                    After flashing, the robot should boot with RuVector AI active. Test connection:
+                    <ul style="margin-left: 60px; margin-top: 10px; line-height: 1.8;">
+                        <li>Open the <a href="index.html">🧠 Visualizer</a> to see real-time brain activity</li>
+                        <li>Try the <a href="personality-mixer.html">🎨 Personality Mixer</a> to adjust parameters</li>
+                        <li>Check serial output for boot messages: <code style="color: var(--accent);">screen /dev/ttyUSB0 115200</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="panel">
+            <h2>🔧 Troubleshooting</h2>
+
+            <h3>Build Errors</h3>
+            <div class="step-desc">
+                <strong>Error: linker not found</strong><br>
+                Install ARM GCC toolchain: <code>sudo apt install gcc-arm-none-eabi</code>
+            </div>
+            <div class="step-desc">
+                <strong>Error: can't find crate</strong><br>
+                Update dependencies: <code>cargo update</code>
+            </div>
+
+            <h3>Connection Issues</h3>
+            <div class="step-desc">
+                <strong>CyberPi not detected</strong><br>
+                1. Check USB cable is data-capable<br>
+                2. Try different USB port<br>
+                3. Restart CyberPi<br>
+                4. Check device manager / dmesg for serial device
+            </div>
+
+            <h3>Flash Errors</h3>
+            <div class="step-desc">
+                <strong>Permission denied</strong><br>
+                Add your user to dialout group: <code>sudo usermod -a -G dialout $USER</code> (logout required)
+            </div>
+            <div class="step-desc">
+                <strong>Timeout during flash</strong><br>
+                1. Hold BOOT button on CyberPi while connecting USB<br>
+                2. Try lower baud rate: <code>--baud 115200</code><br>
+                3. Reset CyberPi and try again
+            </div>
+
+            <h3>Runtime Issues</h3>
+            <div class="step-desc">
+                <strong>Robot not responding</strong><br>
+                1. Check serial output for panic messages<br>
+                2. Verify correct firmware binary was flashed<br>
+                3. Try reflashing with <code>--erase-all</code> option<br>
+                4. Check battery level on mBot2
+            </div>
+
+            <div class="info-box" style="margin-top: 25px;">
+                <div class="info-title">📚 Additional Resources</div>
+                <ul style="margin-left: 20px; line-height: 1.8;">
+                    <li><a href="https://github.com/Hulupeep/mbot_ruvector">GitHub Repository</a> - Source code and issues</li>
+                    <li><a href="https://github.com/Hulupeep/mbot-help">mBot Help Docs</a> - Tutorials and guides</li>
+                    <li><a href="https://www.makeblock.com/pages/mbot2-support">Official mBot2 Support</a> - Hardware documentation</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get project from URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const projectId = urlParams.get('project') || 'all';
+
+        const projectNames = {
+            'all': 'All Features',
+            'artbot': 'ArtBot - Drawing Companion',
+            'personality': 'Personality System',
+            'gamebot': 'GameBot - Play Partner',
+            'sorter': 'LEGOSorter',
+            'learninglab': 'LearningLab - Education Kit',
+            'helperbot': 'HelperBot'
+        };
+
+        document.getElementById('project-name').textContent = projectNames[projectId] || projectNames['all'];
+
+        // Simulate CyberPi detection
+        function detectCyberPi() {
+            const statusDot = document.getElementById('cyberpi-status');
+            const statusText = document.getElementById('cyberpi-text');
+            const btn = document.getElementById('connect-btn');
+
+            btn.disabled = true;
+            statusText.textContent = 'Detecting...';
+
+            setTimeout(() => {
+                // Simulate detection (in real implementation, check serial ports)
+                const detected = Math.random() > 0.5;
+
+                if (detected) {
+                    statusDot.classList.add('connected');
+                    statusText.textContent = 'CyberPi detected on /dev/ttyUSB0';
+                    btn.textContent = '✓ Connected';
+                    btn.style.background = 'var(--accent)';
+                } else {
+                    statusText.textContent = 'CyberPi not found - Check connection';
+                    btn.disabled = false;
+                    btn.textContent = '🔄 Try Again';
+                }
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

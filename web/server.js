@@ -126,7 +126,22 @@ wss.on('connection', (ws) => {
         try {
             const msg = JSON.parse(data);
             console.log('Received:', msg);
-            // Handle commands from dashboard (future: manual control)
+
+            // Handle personality parameter updates from mixer
+            if (msg.type === 'personality_update') {
+                console.log('🎨 Personality update:', msg.params);
+                // In real implementation, send to CyberPi via serial
+                // For now, broadcast confirmation to all clients
+                wss.clients.forEach(client => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            type: 'personality_applied',
+                            params: msg.params,
+                            timestamp: Date.now()
+                        }));
+                    }
+                });
+            }
         } catch (e) {
             console.error('Invalid message:', data);
         }
