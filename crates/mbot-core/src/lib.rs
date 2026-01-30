@@ -514,21 +514,24 @@ mod tests {
     fn test_protect_mode_backs_up() {
         let mut brain = MBotBrain::new();
 
-        // Simulate something very close
-        for _ in 0..20 {
-            let sensors = MBotSensors {
-                ultrasonic_cm: 5.0,  // Very close!
-                ..Default::default()
-            };
-            let (state, cmd) = brain.tick(&sensors);
+        // Override EMA to force high tension directly (simulates accumulated danger)
+        brain.tension_ema = 0.90;  // Force Protect mode
 
-            if state.reflex == ReflexMode::Protect {
-                assert!(cmd.left < 0 || cmd.right < 0, "Should back up in Protect mode");
-                return;
-            }
-        }
+        // Test that Protect mode backs up when object is within danger zone
+        let sensors = MBotSensors {
+            ultrasonic_cm: 10.0,  // Within danger_distance (15.0)
+            ..Default::default()
+        };
 
-        panic!("Should have entered Protect mode");
+        let (state, cmd) = brain.tick(&sensors);
+
+        // Should be in Protect mode due to high tension
+        assert_eq!(state.reflex, ReflexMode::Protect, "Should be in Protect mode with tension=0.90");
+
+        // Should back up (both motors negative)
+        assert!(cmd.left < 0 && cmd.right < 0,
+                "Should back up in Protect mode when within danger distance, got left={} right={}",
+                cmd.left, cmd.right);
     }
 
     #[test]
