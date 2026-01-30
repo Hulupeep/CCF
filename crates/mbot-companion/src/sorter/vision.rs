@@ -13,7 +13,7 @@ use std::collections::HashMap;
 
 /// LEGO piece colors supported by the vision system
 /// Contract: SORT-003 LegoColor enum
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[repr(u8)]
 pub enum LegoColor {
     Red = 0,
@@ -68,7 +68,7 @@ impl LegoColor {
 }
 
 /// Estimated piece size category
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum PieceSize {
     Small,  // 1x1, 1x2 pieces
     Medium, // 2x2, 2x3, 1x4 pieces
@@ -124,7 +124,7 @@ pub enum VisionWarning {
 
 /// 2D position in millimeters from tray origin
 /// Contract: SORT-003 Position2D
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
 pub struct Position2D {
     /// X coordinate in millimeters
     pub x: f32,
@@ -147,7 +147,7 @@ impl Position2D {
 
 /// Bounding box for piece detection
 /// Contract: SORT-003 BoundingBox
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy, Default, serde::Serialize, serde::Deserialize)]
 pub struct BoundingBox {
     /// Top-left X coordinate in pixels
     pub x: u32,
@@ -450,7 +450,7 @@ impl Default for VisionConfig {
 
 /// Detected piece observation
 /// Contract: SORT-003 PieceObservation
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PieceObservation {
     /// Unique identifier for this observation
     pub observation_id: String,

@@ -463,7 +463,7 @@ mod tests {
     #[test]
     fn test_emotion_behavior_thinking() {
         let behavior = EmotionBehavior::thinking(2000, 0.5);
-        assert_eq!(behavior.duration_ms, 3000); // 2000 * (1 + 0.5 * 0.5)
+        assert_eq!(behavior.duration_ms, 2500); // 2000 * (1 + 0.5 * 0.5) = 2000 * 1.25
         assert_eq!(behavior.movement, MovementType::Wiggle);
         assert_eq!(behavior.sound, Some(EmotionSound::Hum));
     }

@@ -222,7 +222,7 @@ impl Default for LineStyle {
 ///
 /// # Example
 /// ```
-/// use mbot_core::artbot::styles::LineStyle;
+/// use mbot_core::artbot::styles::{LineStyle, interpolate_styles};
 ///
 /// let calm = LineStyle::from_tension(0.2).unwrap();
 /// let active = LineStyle::from_tension(0.5).unwrap();

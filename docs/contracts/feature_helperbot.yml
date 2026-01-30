@@ -1,0 +1,319 @@
+# HelperBot Feature Contract - Color Detection System
+# Implements STORY-HELP-001: Color Detection System
+# GitHub Issue: #13
+
+contract_meta:
+  id: feature_helperbot
+  version: 1
+  created_from_spec: "docs/epics/EPIC-004-helperbot.md"
+  covers_reqs:
+    - HELP-001
+    - HELP-002
+    - HELP-003
+    - HELP-004
+  owner: "mbot-ruvector-team"
+  github_issue: 13
+
+llm_policy:
+  enforce: true
+  llm_may_modify_non_negotiables: false
+  override_phrase: "override_contract: feature_helperbot"
+
+# ============================================
+# Data Contracts (from Issue #13)
+# ============================================
+
+data_contracts:
+  ColorReading:
+    description: "RGB reading with confidence score"
+    fields:
+      r: { type: u8, description: "Red channel (0-255)" }
+      g: { type: u8, description: "Green channel (0-255)" }
+      b: { type: u8, description: "Blue channel (0-255)" }
+      confidence: { type: f32, range: [0.0, 1.0], description: "Detection confidence" }
+    rust_path: "crates/mbot-core/src/helperbot/color_detection.rs"
+
+  ColorDetection:
+    description: "Complete color detection result"
+    fields:
+      detected_color: { type: String, description: "Color name or 'unknown'" }
+      rgb_values: { type: ColorReading, description: "Raw RGB values" }
+      confidence: { type: f32, range: [0.0, 1.0], description: "Match confidence" }
+      is_rare: { type: bool, description: "True for special colors (gold, silver, etc)" }
+      timestamp_us: { type: u64, description: "Detection timestamp in microseconds" }
+    rust_path: "crates/mbot-core/src/helperbot/color_detection.rs"
+
+  ColorEntry:
+    description: "Entry in color lookup table"
+    fields:
+      name: { type: String, description: "Color name" }
+      rgb_min: { type: "[u8; 3]", description: "Minimum RGB values" }
+      rgb_max: { type: "[u8; 3]", description: "Maximum RGB values" }
+      is_rare: { type: bool, description: "Special color flag" }
+    rust_path: "crates/mbot-core/src/helperbot/color_detection.rs"
+
+  CalibrationResult:
+    description: "Sensor calibration data"
+    fields:
+      surface_baseline: { type: "[u8; 3]", description: "White surface baseline RGB" }
+      ambient_light_factor: { type: f32, range: [0.0, 2.0], description: "Ambient light compensation" }
+      calibration_timestamp: { type: u64, description: "When calibration was performed" }
+      accuracy_estimate: { type: f32, range: [0.0, 1.0], description: "Estimated accuracy after calibration" }
+    rust_path: "crates/mbot-core/src/helperbot/color_detection.rs"
+
+# ============================================
+# Invariants (I-HELP-*)
+# ============================================
+
+rules:
+  non_negotiable:
+    - id: I-HELP-001
+      title: "Color detection must return confidence score"
+      rationale: "All detections need confidence for decision making"
+      scope:
+        - "crates/mbot-core/src/helperbot/**/*.rs"
+      behavior:
+        required_patterns:
+          - pattern: /confidence.*f32|confidence:\s*f32/
+            message: "ColorDetection must include confidence field"
+          - pattern: /confidence.*0\.0.*1\.0|confidence\.clamp\(0\.0,\s*1\.0\)/
+            message: "Confidence must be normalized to 0.0-1.0"
+        example_violation: |
+          pub fn detect_color(rgb: [u8; 3]) -> String {
+              // No confidence returned - VIOLATION
+              "red".to_string()
+          }
+        example_compliant: |
+          pub fn detect_color(rgb: &ColorReading) -> ColorDetection {
+              ColorDetection {
+                  detected_color: "red".to_string(),
+                  confidence: 0.95,
+                  ..Default::default()
+              }
+          }
+
+    - id: I-HELP-002
+      title: "RGB sensor requires white surface calibration"
+      rationale: "Calibration needed for accurate readings under varying light"
+      scope:
+        - "crates/mbot-core/src/helperbot/**/*.rs"
+      behavior:
+        required_patterns:
+          - pattern: /calibrate|Calibration|CalibrationResult/
+            message: "Must provide calibration support"
+          - pattern: /surface_baseline|ambient_light_factor/
+            message: "Calibration must track baseline and ambient light"
+        example_violation: |
+          impl ColorSensor {
+              fn detect(&self, rgb: [u8; 3]) -> Color {
+                  // No calibration - readings will be inaccurate
+              }
+          }
+        example_compliant: |
+          impl ColorSensor {
+              fn calibrate(&mut self, white_rgb: [u8; 3]) -> CalibrationResult { ... }
+              fn detect(&self, rgb: [u8; 3]) -> ColorDetection { ... }
+          }
+
+    - id: I-HELP-003
+      title: "Unknown colors must not crash system"
+      rationale: "Graceful handling prevents sorting failures"
+      scope:
+        - "crates/mbot-core/src/helperbot/**/*.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /unwrap\(\)|expect\(/
+            message: "Color detection must not panic on unknown colors"
+          - pattern: /panic!|unreachable!/
+            message: "No panics allowed in color detection"
+        required_patterns:
+          - pattern: /"unknown"|Unknown|UNKNOWN/
+            message: "Must have fallback to 'unknown' category"
+        example_violation: |
+          fn classify(rgb: [u8; 3]) -> String {
+              COLORS.iter().find(|c| c.matches(rgb)).unwrap().name  // Will panic!
+          }
+        example_compliant: |
+          fn classify(rgb: [u8; 3]) -> ColorDetection {
+              match find_best_match(rgb) {
+                  Some(color) => color,
+                  None => ColorDetection::unknown(rgb),
+              }
+          }
+
+    - id: I-HELP-004
+      title: "Rare colors must be flagged"
+      rationale: "Special finds (gold, silver) need distinct handling"
+      scope:
+        - "crates/mbot-core/src/helperbot/**/*.rs"
+      behavior:
+        required_patterns:
+          - pattern: /is_rare.*bool|is_rare:\s*bool/
+            message: "ColorDetection must include is_rare field"
+          - pattern: /gold|silver|transparent|Gold|Silver|Transparent/
+            message: "Must recognize rare color types"
+        example_violation: |
+          pub struct ColorDetection {
+              name: String,
+              confidence: f32,
+              // Missing is_rare - VIOLATION
+          }
+        example_compliant: |
+          pub struct ColorDetection {
+              name: String,
+              confidence: f32,
+              is_rare: bool,
+          }
+
+  soft:
+    - id: S-HELP-001
+      title: "Prefer const lookup tables over runtime construction"
+      suggestion: "Use const arrays for color definitions to enable no_std"
+
+    - id: S-HELP-002
+      title: "Document color ranges with comments"
+      suggestion: "Include notes about LEGO color variations"
+
+    - id: S-HELP-003
+      title: "Log confidence warnings for uncertain detections"
+      suggestion: "When confidence < 0.5, consider logging for debugging"
+
+# ============================================
+# Standard LEGO Colors (Lookup Table Spec)
+# ============================================
+
+color_specifications:
+  standard_colors:
+    - name: "red"
+      rgb_typical: [180, 30, 30]
+      rgb_range: [[150, 0, 0], [255, 80, 80]]
+      is_rare: false
+
+    - name: "blue"
+      rgb_typical: [30, 60, 180]
+      rgb_range: [[0, 20, 120], [80, 120, 255]]
+      is_rare: false
+
+    - name: "green"
+      rgb_typical: [30, 150, 50]
+      rgb_range: [[0, 100, 0], [80, 255, 100]]
+      is_rare: false
+
+    - name: "yellow"
+      rgb_typical: [230, 200, 30]
+      rgb_range: [[180, 150, 0], [255, 255, 100]]
+      is_rare: false
+
+    - name: "orange"
+      rgb_typical: [230, 100, 30]
+      rgb_range: [[180, 60, 0], [255, 150, 80]]
+      is_rare: false
+
+    - name: "white"
+      rgb_typical: [240, 240, 240]
+      rgb_range: [[200, 200, 200], [255, 255, 255]]
+      is_rare: false
+
+    - name: "black"
+      rgb_typical: [20, 20, 20]
+      rgb_range: [[0, 0, 0], [50, 50, 50]]
+      is_rare: false
+
+    - name: "gray"
+      rgb_typical: [120, 120, 120]
+      rgb_range: [[70, 70, 70], [180, 180, 180]]
+      is_rare: false
+
+  rare_colors:
+    - name: "gold"
+      rgb_typical: [200, 170, 50]
+      rgb_range: [[160, 130, 20], [240, 210, 100]]
+      is_rare: true
+
+    - name: "silver"
+      rgb_typical: [190, 190, 200]
+      rgb_range: [[150, 150, 160], [230, 230, 240]]
+      is_rare: true
+
+    - name: "clear"
+      rgb_typical: [200, 200, 200]
+      rgb_range: [[180, 180, 180], [255, 255, 255]]
+      is_rare: true
+      notes: "Transparent - distinguished by low sensor intensity"
+
+# ============================================
+# Acceptance Criteria (from Issue #13)
+# ============================================
+
+acceptance_criteria:
+  - id: AC-HELP-001-1
+    description: "RGB sensor can be calibrated against white paper baseline"
+    test: "tests/contracts/helperbot.test.ts::calibration"
+    gherkin: "@HELP-001-calibration"
+
+  - id: AC-HELP-001-2
+    description: "Color lookup table covers standard LEGO colors"
+    test: "tests/contracts/helperbot.test.ts::standard_colors"
+    gherkin: "@HELP-001-basic"
+
+  - id: AC-HELP-001-3
+    description: "System detects colors with >= 85% accuracy"
+    test: "tests/contracts/helperbot.test.ts::accuracy"
+    gherkin: "@HELP-001-basic"
+
+  - id: AC-HELP-001-4
+    description: "Edge cases (black, white, clear) handled without false positives"
+    test: "tests/contracts/helperbot.test.ts::edge_cases"
+    gherkin: "@HELP-001-edge-cases"
+
+  - id: AC-HELP-001-5
+    description: "Rare colors (gold, silver, transparent) correctly identified"
+    test: "tests/contracts/helperbot.test.ts::rare_colors"
+    gherkin: "@HELP-001-rare"
+
+  - id: AC-HELP-001-6
+    description: "Detection returns confidence score for each reading"
+    test: "tests/contracts/helperbot.test.ts::confidence"
+    gherkin: "@HELP-001-basic"
+
+  - id: AC-HELP-001-7
+    description: "Unknown colors gracefully handled"
+    test: "tests/contracts/helperbot.test.ts::unknown_handling"
+    gherkin: "@HELP-001-unknown"
+
+  - id: AC-HELP-001-8
+    description: "Ambient light compensation implemented"
+    test: "tests/contracts/helperbot.test.ts::ambient_compensation"
+    gherkin: "@HELP-001-ambient"
+
+# ============================================
+# Compliance Checklist
+# ============================================
+
+compliance_checklist:
+  before_editing_files:
+    - question: "Adding color detection logic?"
+      if_yes: "Ensure confidence score is returned (I-HELP-001)"
+    - question: "Modifying sensor reading?"
+      if_yes: "Verify calibration support exists (I-HELP-002)"
+    - question: "Adding color classification?"
+      if_yes: "Ensure unknown fallback exists (I-HELP-003)"
+    - question: "Adding new color to lookup table?"
+      if_yes: "Set is_rare flag appropriately (I-HELP-004)"
+
+# ============================================
+# Test Hooks
+# ============================================
+
+test_hooks:
+  unit_tests:
+    - file: "crates/mbot-core/src/helperbot/color_detection.rs"
+      description: "Rust unit tests for color detection"
+
+  contract_tests:
+    - file: "tests/contracts/helperbot.test.ts"
+      description: "TypeScript contract tests verifying invariants"
+
+  e2e_tests:
+    - file: "tests/e2e/helperbot/color-detection.spec.ts"
+      description: "End-to-end hardware integration tests"

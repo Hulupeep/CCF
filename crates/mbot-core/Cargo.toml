@@ -13,3 +13,6 @@ no_std = ["libm"]
 [dependencies]
 # Math functions for no_std
 libm = { version = "0.2", optional = true }
+# Serialization for persistence (#23)
+serde = { version = "1.0", features = ["derive"], default-features = false }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }

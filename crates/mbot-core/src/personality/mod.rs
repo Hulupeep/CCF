@@ -4,12 +4,28 @@
 //! behaves, reacts, and expresses itself. All parameters are bounded to [0.0, 1.0]
 //! to ensure safe and predictable behavior.
 //!
+//! # Modules
+//! - `behavior_mapping`: Maps personality parameters to nervous system behaviors
+//! - `presets`: Extended library of 20 preset personalities (#18)
+//! - `quirks`: Quirks system for unique behaviors (#26)
+//! - `persistence`: Save/load personalities to disk (#23)
+//!
 //! # Invariants
 //! - **I-PERS-001:** All personality parameters must be within bounds [0.0, 1.0]
 //! - **I-PERS-002:** Personality must be serializable to JSON
 //! - **I-PERS-003:** Default personality must have safe, neutral values (0.5)
+//! - **I-PERS-004:** Personality parameters must smoothly influence nervous system, not override it
+//! - **I-PERS-005:** Behavior must emerge from personality + nervous system, not be scripted
+//! - **I-PERS-006:** Transitions must be gradual, never jarring
 
 #![cfg_attr(feature = "no_std", allow(unused_imports))]
+
+// Export submodules
+pub mod presets;
+pub mod quirks;
+
+#[cfg(feature = "std")]
+pub mod persistence;
 
 #[cfg(feature = "no_std")]
 extern crate alloc;
@@ -21,6 +37,9 @@ use alloc::{string::{String, ToString}, vec::Vec, format};
 use std::{string::String, vec::Vec};
 
 use core::fmt;
+
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 
 /// Error type for personality validation failures
 #[derive(Debug, Clone, PartialEq)]
@@ -96,6 +115,7 @@ fn clamp_bounded(value: f32) -> f32 {
 /// let json = personality.to_json().unwrap();
 /// ```
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub struct Personality {
     // === Identity ===
     /// Unique identifier for this personality
@@ -853,10 +873,20 @@ impl Default for PersonalityBuilder {
     }
 }
 
+// === Behavior Mapping ===
+pub mod behavior_mapping;
+pub use behavior_mapping::{
+    PersonalityInfluence, PersonalityMapper,
+    apply_tension_influence, apply_coherence_influence,
+    apply_energy_influence, apply_curiosity_influence,
+    scale_motor_output, scale_sound_output, scale_light_output,
+};
+
 // === Preset Personalities ===
 
 /// Preset personality types that can be loaded
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum PersonalityPreset {
     /// Calm, slow to react, quick to recover
     Mellow,
@@ -868,6 +898,26 @@ pub enum PersonalityPreset {
     Excitable,
     /// Cautious, high startle sensitivity, slow recovery
     Timid,
+    /// Bold and exploring, loves new experiences
+    Adventurous,
+    /// Reserved, low expressiveness, observes from distance
+    Shy,
+    /// Irritable, high tension, low patience
+    Grumpy,
+    /// Upbeat, high energy, quick to engage
+    Cheerful,
+    /// Careful and deliberate, double-checks everything
+    Cautious,
+    /// Playful and spontaneous, loves games
+    Playful,
+    /// Focused and methodical, task-oriented
+    Serious,
+    /// High energy, never sits still
+    Energetic,
+    /// Peaceful and steady, hard to disturb
+    Calm,
+    /// Nervous and vigilant, high alertness
+    Anxious,
 }
 
 impl PersonalityPreset {
@@ -953,18 +1003,167 @@ impl PersonalityPreset {
                 .light_expressiveness(0.4)
                 .build()
                 .expect("Timid preset should be valid"),
-        }
-    }
 
-    /// Returns all available presets
-    pub fn all() -> &'static [PersonalityPreset] {
-        &[
-            PersonalityPreset::Mellow,
-            PersonalityPreset::Curious,
-            PersonalityPreset::Zen,
-            PersonalityPreset::Excitable,
-            PersonalityPreset::Timid,
-        ]
+            PersonalityPreset::Adventurous => Personality::builder()
+                .id("preset-adventurous")
+                .name("Adventurous")
+                .icon('+')
+                .tension_baseline(0.3)
+                .coherence_baseline(0.7)
+                .energy_baseline(0.8)
+                .startle_sensitivity(0.3)
+                .recovery_speed(0.7)
+                .curiosity_drive(0.9)
+                .movement_expressiveness(0.8)
+                .sound_expressiveness(0.7)
+                .light_expressiveness(0.8)
+                .build()
+                .expect("Adventurous preset should be valid"),
+
+            PersonalityPreset::Shy => Personality::builder()
+                .id("preset-shy")
+                .name("Shy")
+                .icon('-')
+                .tension_baseline(0.6)
+                .coherence_baseline(0.5)
+                .energy_baseline(0.3)
+                .startle_sensitivity(0.8)
+                .recovery_speed(0.3)
+                .curiosity_drive(0.5)
+                .movement_expressiveness(0.2)
+                .sound_expressiveness(0.1)
+                .light_expressiveness(0.3)
+                .build()
+                .expect("Shy preset should be valid"),
+
+            PersonalityPreset::Grumpy => Personality::builder()
+                .id("preset-grumpy")
+                .name("Grumpy")
+                .icon('#')
+                .tension_baseline(0.7)
+                .coherence_baseline(0.3)
+                .energy_baseline(0.4)
+                .startle_sensitivity(0.7)
+                .recovery_speed(0.3)
+                .curiosity_drive(0.2)
+                .movement_expressiveness(0.5)
+                .sound_expressiveness(0.4)
+                .light_expressiveness(0.4)
+                .build()
+                .expect("Grumpy preset should be valid"),
+
+            PersonalityPreset::Cheerful => Personality::builder()
+                .id("preset-cheerful")
+                .name("Cheerful")
+                .icon('^')
+                .tension_baseline(0.2)
+                .coherence_baseline(0.8)
+                .energy_baseline(0.8)
+                .startle_sensitivity(0.4)
+                .recovery_speed(0.8)
+                .curiosity_drive(0.7)
+                .movement_expressiveness(0.8)
+                .sound_expressiveness(0.9)
+                .light_expressiveness(0.9)
+                .build()
+                .expect("Cheerful preset should be valid"),
+
+            PersonalityPreset::Cautious => Personality::builder()
+                .id("preset-cautious")
+                .name("Cautious")
+                .icon('~')
+                .tension_baseline(0.5)
+                .coherence_baseline(0.7)
+                .energy_baseline(0.5)
+                .startle_sensitivity(0.6)
+                .recovery_speed(0.5)
+                .curiosity_drive(0.6)
+                .movement_expressiveness(0.4)
+                .sound_expressiveness(0.3)
+                .light_expressiveness(0.5)
+                .build()
+                .expect("Cautious preset should be valid"),
+
+            PersonalityPreset::Playful => Personality::builder()
+                .id("preset-playful")
+                .name("Playful")
+                .icon('@')
+                .tension_baseline(0.3)
+                .coherence_baseline(0.6)
+                .energy_baseline(0.9)
+                .startle_sensitivity(0.5)
+                .recovery_speed(0.9)
+                .curiosity_drive(0.8)
+                .movement_expressiveness(0.9)
+                .sound_expressiveness(0.8)
+                .light_expressiveness(0.8)
+                .build()
+                .expect("Playful preset should be valid"),
+
+            PersonalityPreset::Serious => Personality::builder()
+                .id("preset-serious")
+                .name("Serious")
+                .icon('=')
+                .tension_baseline(0.4)
+                .coherence_baseline(0.9)
+                .energy_baseline(0.6)
+                .startle_sensitivity(0.3)
+                .recovery_speed(0.6)
+                .curiosity_drive(0.6)
+                .movement_expressiveness(0.5)
+                .sound_expressiveness(0.4)
+                .light_expressiveness(0.5)
+                .build()
+                .expect("Serious preset should be valid"),
+
+            PersonalityPreset::Energetic => Personality::builder()
+                .id("preset-energetic")
+                .name("Energetic")
+                .icon('&')
+                .tension_baseline(0.5)
+                .coherence_baseline(0.6)
+                .energy_baseline(1.0)
+                .startle_sensitivity(0.6)
+                .recovery_speed(0.7)
+                .curiosity_drive(0.8)
+                .movement_expressiveness(1.0)
+                .sound_expressiveness(0.9)
+                .light_expressiveness(0.9)
+                .build()
+                .expect("Energetic preset should be valid"),
+
+            PersonalityPreset::Calm => Personality::builder()
+                .id("preset-calm")
+                .name("Calm")
+                .icon('_')
+                .tension_baseline(0.1)
+                .coherence_baseline(0.9)
+                .energy_baseline(0.4)
+                .startle_sensitivity(0.2)
+                .recovery_speed(0.9)
+                .curiosity_drive(0.5)
+                .movement_expressiveness(0.3)
+                .sound_expressiveness(0.2)
+                .light_expressiveness(0.4)
+                .build()
+                .expect("Calm preset should be valid"),
+
+            PersonalityPreset::Anxious => Personality::builder()
+                .id("preset-anxious")
+                .name("Anxious")
+                .icon('%')
+                .tension_baseline(0.8)
+                .coherence_baseline(0.3)
+                .energy_baseline(0.6)
+                .startle_sensitivity(1.0)
+                .recovery_speed(0.2)
+                .curiosity_drive(0.4)
+                .movement_expressiveness(0.6)
+                .sound_expressiveness(0.5)
+                .light_expressiveness(0.6)
+                .build()
+                .expect("Anxious preset should be valid"),
+        }
     }
 }
 

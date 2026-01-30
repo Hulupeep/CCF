@@ -12,8 +12,6 @@
 //! - All motor responses bounded
 //! - No harmful behavior patterns
 
-#![cfg_attr(feature = "no_std", no_std)]
-
 #[cfg(feature = "no_std")]
 extern crate alloc;
 
@@ -22,6 +20,8 @@ use alloc::{string::String, vec::Vec, vec};
 
 #[cfg(not(feature = "no_std"))]
 use std::{string::String, vec::Vec, vec};
+
+use crate::MotorCommand;
 
 // ============================================
 // Data Types
@@ -369,15 +369,19 @@ impl TurnDetectionSystem {
 
         let transcript_lower = result.transcript.to_lowercase();
 
+        // Check for special "roby" keyword first (requires higher confidence)
+        let contains_roby = self.config.voice_keywords.iter()
+            .any(|kw| kw.to_lowercase() == "roby" && transcript_lower.contains("roby"));
+
+        if contains_roby && result.confidence < 0.8 {
+            return None;
+        }
+
+        // Then check for any matching keyword
         let matched_keyword = self.config.voice_keywords.iter()
             .find(|kw| transcript_lower.contains(&kw.to_lowercase()));
 
-        let keyword = matched_keyword?;
-
-        // Higher confidence required for name-based commands
-        if keyword.to_lowercase().contains("roby") && result.confidence < 0.8 {
-            return None;
-        }
+        let _keyword = matched_keyword?;
 
         self.last_input_timestamp_us = result.timestamp_us;
         self.timeout_prompted = false;
@@ -503,10 +507,10 @@ impl Default for TurnDetectionSystem {
 /// # Kitchen Table Test Safety
 /// - All speeds bounded to safe range
 /// - No aggressive movements
-pub fn acknowledgment_motor_command(ack: &TurnAcknowledgment) -> super::MotorCommand {
+pub fn acknowledgment_motor_command(ack: &TurnAcknowledgment) -> MotorCommand {
     // Small celebratory wiggle for acknowledgment
     // Speeds are bounded for safety (ARCH-003)
-    super::MotorCommand {
+    MotorCommand {
         left: 0,
         right: 0,
         pen_angle: 45,

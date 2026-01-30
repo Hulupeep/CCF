@@ -5,6 +5,8 @@
 //! - Game state management
 //! - Physical acknowledgments (LED, sound, voice)
 //! - Emotional responses to game outcomes
+//! - Chase game mechanics
+//! - Simon Says memory game
 //!
 //! # Safety (Kitchen Table Test)
 //! All motor commands are bounded for safe operation.
@@ -12,6 +14,8 @@
 
 pub mod turn_detection;
 pub mod emotions;
+pub mod chase;
+pub mod simon_says;
 
 pub use turn_detection::{
     TurnDetectionSystem,
@@ -36,4 +40,24 @@ pub use emotions::{
     MovementType,
     EmotionSound,
     AnimationSpeed,
+};
+
+pub use chase::{
+    ChaseState,
+    ChaseConfig,
+    ChaseMode,
+    ChaseStatus,
+    EvasionStyle,
+    EvasionPattern,
+    MovementCommand,
+    MovementType as ChaseMovementType,
+};
+
+pub use simon_says::{
+    SimonState,
+    SimonConfig,
+    SimonColor,
+    SimonStatus,
+    PatternDisplayEvent,
+    InputResult,
 };

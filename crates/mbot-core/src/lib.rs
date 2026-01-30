@@ -412,6 +412,9 @@ pub mod personality;
 // === LEARNINGLAB MODULE ===
 pub mod learninglab;
 
+// === GAMEBOT MODULE ===
+pub mod gamebot;
+
 // === DRAWING HELPERS ===
 
 /// Calculate motor powers to drive to a target position

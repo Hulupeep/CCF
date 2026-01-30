@@ -4,6 +4,7 @@
 //! It uses SONA learning to improve its strategy over time.
 
 use anyhow::Result;
+use mbot_companion::tictactoe_logic::{Cell, Difficulty, GameResult, TicTacToeBoard};
 use mbot_core::{circle_points, drive_to_point, x_points, MBotBrain, MBotSensors, MotorCommand};
 use std::io::{self, Write};
 use std::time::Duration;
@@ -13,15 +14,8 @@ use tokio::time::sleep;
 const CELL_SIZE: f32 = 15.0;
 const BOARD_OFFSET: (f32, f32) = (5.0, 5.0);
 
-#[derive(Clone, Copy, PartialEq, Debug)]
-enum Cell {
-    Empty,
-    X,
-    O,
-}
-
 struct TicTacToeGame {
-    board: [[Cell; 3]; 3],
+    board: TicTacToeBoard,
     brain: MBotBrain,
     current_pos: (f32, f32),
     games_played: u32,
@@ -31,9 +25,9 @@ struct TicTacToeGame {
 }
 
 impl TicTacToeGame {
-    fn new() -> Self {
+    fn new(difficulty: Difficulty) -> Self {
         Self {
-            board: [[Cell::Empty; 3]; 3],
+            board: TicTacToeBoard::new(difficulty),
             brain: MBotBrain::new(),
             current_pos: (0.0, 0.0),
             games_played: 0,
@@ -51,28 +45,11 @@ impl TicTacToeGame {
     }
 
     fn reset_board(&mut self) {
-        self.board = [[Cell::Empty; 3]; 3];
+        self.board.reset();
     }
 
     fn draw_board(&self) {
-        println!("\n  ╔═══╦═══╦═══╗");
-        for row in 0..3 {
-            print!("{} ║", row + 1);
-            for col in 0..3 {
-                let symbol = match self.board[row][col] {
-                    Cell::Empty => ' ',
-                    Cell::X => 'X',
-                    Cell::O => 'O',
-                };
-                print!(" {} ║", symbol);
-            }
-            println!();
-            if row < 2 {
-                println!("  ╠═══╬═══╬═══╣");
-            }
-        }
-        println!("  ╚═══╩═══╩═══╝");
-        println!("    A   B   C  ");
+        println!("{}", self.board);
     }
 
     fn get_human_move(&mut self) -> Option<(usize, usize)> {
@@ -112,7 +89,7 @@ impl TicTacToeGame {
             }
         };
 
-        if self.board[row][col] != Cell::Empty {
+        if !self.board.is_valid_move(row, col) {
             println!("That cell is already taken!");
             return self.get_human_move();
         }
@@ -121,91 +98,7 @@ impl TicTacToeGame {
     }
 
     fn get_robot_move(&self) -> (usize, usize) {
-        // Simple AI: Try to win, block, or take center/corners
-        let empty_cells: Vec<(usize, usize)> = (0..3)
-            .flat_map(|r| (0..3).map(move |c| (r, c)))
-            .filter(|&(r, c)| self.board[r][c] == Cell::Empty)
-            .collect();
-
-        // Try to win
-        for &(r, c) in &empty_cells {
-            let mut test_board = self.board;
-            test_board[r][c] = Cell::O;
-            if self.check_winner_board(&test_board) == Some(Cell::O) {
-                return (r, c);
-            }
-        }
-
-        // Block human
-        for &(r, c) in &empty_cells {
-            let mut test_board = self.board;
-            test_board[r][c] = Cell::X;
-            if self.check_winner_board(&test_board) == Some(Cell::X) {
-                return (r, c);
-            }
-        }
-
-        // Take center if available
-        if self.board[1][1] == Cell::Empty {
-            return (1, 1);
-        }
-
-        // Take a corner
-        for &(r, c) in &[(0, 0), (0, 2), (2, 0), (2, 2)] {
-            if self.board[r][c] == Cell::Empty {
-                return (r, c);
-            }
-        }
-
-        // Take any available
-        empty_cells[0]
-    }
-
-    fn check_winner(&self) -> Option<Cell> {
-        self.check_winner_board(&self.board)
-    }
-
-    fn check_winner_board(&self, board: &[[Cell; 3]; 3]) -> Option<Cell> {
-        // Check rows
-        for row in 0..3 {
-            if board[row][0] != Cell::Empty
-                && board[row][0] == board[row][1]
-                && board[row][1] == board[row][2]
-            {
-                return Some(board[row][0]);
-            }
-        }
-
-        // Check columns
-        for col in 0..3 {
-            if board[0][col] != Cell::Empty
-                && board[0][col] == board[1][col]
-                && board[1][col] == board[2][col]
-            {
-                return Some(board[0][col]);
-            }
-        }
-
-        // Check diagonals
-        if board[0][0] != Cell::Empty
-            && board[0][0] == board[1][1]
-            && board[1][1] == board[2][2]
-        {
-            return Some(board[0][0]);
-        }
-
-        if board[0][2] != Cell::Empty
-            && board[0][2] == board[1][1]
-            && board[1][1] == board[2][0]
-        {
-            return Some(board[0][2]);
-        }
-
-        None
-    }
-
-    fn is_board_full(&self) -> bool {
-        self.board.iter().all(|row| row.iter().all(|&c| c != Cell::Empty))
+        self.board.get_ai_move().expect("No valid moves available")
     }
 
     async fn draw_x(&mut self, row: usize, col: usize) -> Result<()> {
@@ -345,7 +238,25 @@ async fn main() -> Result<()> {
     println!("║  The robot will draw on paper!                             ║");
     println!("╚════════════════════════════════════════════════════════════╝");
 
-    let mut game = TicTacToeGame::new();
+    // Ask for difficulty
+    println!("\nChoose difficulty:");
+    println!("1. Easy (random moves)");
+    println!("2. Medium (smart blocking)");
+    println!("3. Hard (minimax optimal)");
+    print!("Enter choice (1-3, default 2): ");
+    io::stdout().flush().unwrap();
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).ok();
+    let difficulty = match input.trim() {
+        "1" => Difficulty::Easy,
+        "3" => Difficulty::Hard,
+        _ => Difficulty::Medium,
+    };
+
+    println!("\n🤖 Playing at {:?} difficulty level!", difficulty);
+
+    let mut game = TicTacToeGame::new(difficulty);
 
     loop {
         game.reset_board();
@@ -364,7 +275,7 @@ async fn main() -> Result<()> {
                 // Human's turn (X)
                 match game.get_human_move() {
                     Some((row, col)) => {
-                        game.board[row][col] = Cell::X;
+                        game.board.set(row, col, Cell::X);
                         println!("You played X at {}{}", ['A', 'B', 'C'][col], row + 1);
                         game.draw_x(row, col).await?;
                     }
@@ -383,7 +294,7 @@ async fn main() -> Result<()> {
                 sleep(Duration::from_millis(500)).await;
 
                 let (row, col) = game.get_robot_move();
-                game.board[row][col] = Cell::O;
+                game.board.set(row, col, Cell::O);
                 println!(
                     "Robot plays O at {}{}",
                     ['A', 'B', 'C'][col],
@@ -392,31 +303,35 @@ async fn main() -> Result<()> {
                 game.draw_o(row, col).await?;
             }
 
-            // Check for winner
-            if let Some(winner) = game.check_winner() {
-                game.draw_board();
-                match winner {
-                    Cell::X => {
-                        println!("\n🎉 You win!");
-                        game.human_wins += 1;
-                        game.sad_beep().await?;
-                    }
-                    Cell::O => {
-                        println!("\n🤖 Robot wins!");
-                        game.robot_wins += 1;
-                        game.victory_dance().await?;
-                    }
-                    _ => unreachable!(),
+            // Check game state
+            match game.board.check_state() {
+                GameResult::Winner(Cell::X) => {
+                    game.draw_board();
+                    println!("\n🎉 You win!");
+                    game.human_wins += 1;
+                    game.sad_beep().await?;
+                    break;
                 }
-                break;
-            }
-
-            // Check for draw
-            if game.is_board_full() {
-                game.draw_board();
-                println!("\n🤝 It's a draw!");
-                game.draws += 1;
-                break;
+                GameResult::Winner(Cell::O) => {
+                    game.draw_board();
+                    println!("\n🤖 Robot wins!");
+                    game.robot_wins += 1;
+                    game.victory_dance().await?;
+                    break;
+                }
+                GameResult::Winner(Cell::Empty) => {
+                    // Should not happen, but handle gracefully
+                    game.draw_board();
+                    println!("\n✗ Invalid game state!");
+                    break;
+                }
+                GameResult::Draw => {
+                    game.draw_board();
+                    println!("\n🤝 It's a draw!");
+                    game.draws += 1;
+                    break;
+                }
+                GameResult::InProgress => {}
             }
 
             turn += 1;

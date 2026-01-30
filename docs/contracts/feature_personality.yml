@@ -1,0 +1,257 @@
+# Personality Contract - mBot RuVector
+# Data structure invariants for the personality system
+
+contract_meta:
+  id: feature_personality
+  version: 1
+  created_from_spec: "GitHub Issue #12 - STORY-PERS-001"
+  covers_reqs:
+    - PERS-001
+    - ARCH-PERS-001
+    - ARCH-PERS-002
+    - ARCH-PERS-003
+    - ARCH-PERS-004
+  owner: "mbot-ruvector-team"
+
+llm_policy:
+  enforce: true
+  llm_may_modify_non_negotiables: false
+  override_phrase: "override_contract: feature_personality"
+
+data_contract:
+  rust_struct: Personality
+  typescript_interface: PersonalityConfig
+
+  fields:
+    identity:
+      - name: id
+        rust_type: String
+        ts_type: string
+        description: "Unique identifier for this personality"
+        validation: "non-empty string"
+
+      - name: name
+        rust_type: String
+        ts_type: string
+        description: "Display name of the personality"
+        validation: "non-empty string"
+
+      - name: icon
+        rust_type: char
+        ts_type: string
+        description: "Emoji representation of personality"
+        default: "'?'"
+
+      - name: version
+        rust_type: u32
+        ts_type: number
+        description: "Schema version for forward compatibility"
+        default: 1
+
+      - name: created_at
+        rust_type: u64
+        ts_type: number
+        description: "Unix timestamp of creation"
+
+      - name: modified_at
+        rust_type: u64
+        ts_type: number
+        description: "Unix timestamp of last modification"
+
+    baselines:
+      - name: tension_baseline
+        rust_type: f32
+        ts_type: number
+        description: "Where tension wants to settle (0.0-1.0)"
+        validation: "[0.0, 1.0]"
+        default: 0.5
+
+      - name: coherence_baseline
+        rust_type: f32
+        ts_type: number
+        description: "Where coherence wants to settle (0.0-1.0)"
+        validation: "[0.0, 1.0]"
+        default: 0.5
+
+      - name: energy_baseline
+        rust_type: f32
+        ts_type: number
+        description: "Where energy wants to settle (0.0-1.0)"
+        validation: "[0.0, 1.0]"
+        default: 0.5
+
+    reactivity:
+      - name: startle_sensitivity
+        rust_type: f32
+        ts_type: number
+        description: "How easily startled by stimuli (0.0-1.0)"
+        validation: "[0.0, 1.0]"
+        default: 0.5
+
+      - name: recovery_speed
+        rust_type: f32
+        ts_type: number
+        description: "How quickly returns to baseline (0.0-1.0)"
+        validation: "[0.0, 1.0]"
+        default: 0.5
+
+      - name: curiosity_drive
+        rust_type: f32
+        ts_type: number
+        description: "How much novelty attracts it (0.0-1.0)"
+        validation: "[0.0, 1.0]"
+        default: 0.5
+
+    expression:
+      - name: movement_expressiveness
+        rust_type: f32
+        ts_type: number
+        description: "How much feeling shows in movement (0.0-1.0)"
+        validation: "[0.0, 1.0]"
+        default: 0.5
+
+      - name: sound_expressiveness
+        rust_type: f32
+        ts_type: number
+        description: "How much feeling shows in sounds (0.0-1.0)"
+        validation: "[0.0, 1.0]"
+        default: 0.5
+
+      - name: light_expressiveness
+        rust_type: f32
+        ts_type: number
+        description: "How much feeling shows in LEDs (0.0-1.0)"
+        validation: "[0.0, 1.0]"
+        default: 0.5
+
+    extensions:
+      - name: quirks
+        rust_type: "Vec<String>"
+        ts_type: "string[]"
+        description: "List of quirk identifiers"
+        default: "empty vec"
+
+      - name: sound_pack
+        rust_type: "Option<String>"
+        ts_type: "string | undefined"
+        description: "Optional custom sound pack identifier"
+        default: "None"
+
+rules:
+  non_negotiable:
+    - id: I-PERS-001
+      title: "All personality parameters must be within bounds [0.0, 1.0]"
+      rationale: "Bounded parameters ensure predictable and safe behavior"
+      scope:
+        - "crates/mbot-core/src/personality/**/*.rs"
+      behavior:
+        required_patterns:
+          - pattern: /\.clamp\(0\.0,\s*1\.0\)/
+            message: "Parameters must be clamped to [0.0, 1.0]"
+        forbidden_patterns:
+          - pattern: /tension_baseline\s*=\s*[2-9]|tension_baseline\s*=\s*-/
+            message: "Parameter out of bounds"
+        example_violation: |
+          personality.tension_baseline = 1.5;
+        example_compliant: |
+          personality.set_tension_baseline(value)?; // validates bounds
+
+    - id: I-PERS-002
+      title: "Personality must be serializable to JSON"
+      rationale: "Persistence and IPC require JSON serialization"
+      scope:
+        - "crates/mbot-core/src/personality/**/*.rs"
+      behavior:
+        required_patterns:
+          - pattern: /derive.*Serialize.*Deserialize|serde/
+            message: "Must derive serde Serialize/Deserialize"
+        example_compliant: |
+          #[derive(Serialize, Deserialize)]
+          pub struct Personality { ... }
+
+    - id: I-PERS-003
+      title: "Default personality must have safe, neutral values"
+      rationale: "New personalities should be predictable and non-extreme"
+      scope:
+        - "crates/mbot-core/src/personality/**/*.rs"
+      behavior:
+        required_patterns:
+          - pattern: /impl\s+Default\s+for\s+Personality/
+            message: "Must implement Default trait"
+        validation: |
+          All f32 parameters in Default::default() should be 0.5
+
+  soft:
+    - id: I-PERS-010
+      title: "Prefer builder pattern for personality creation"
+      suggestion: "Use PersonalityBuilder for constructing personalities with validation"
+
+    - id: I-PERS-011
+      title: "Log personality changes"
+      suggestion: "Emit events when personality parameters change significantly"
+
+gherkin_scenarios:
+  - feature: "Personality Data Structure"
+    tags: ["@PERS-001", "@data-structure"]
+
+    scenarios:
+      - name: "Create personality with valid parameters"
+        given: "I create a new Personality"
+        when:
+          - "I set tension_baseline to 0.7"
+          - "I set coherence_baseline to 0.5"
+          - "I set energy_baseline to 0.6"
+        then:
+          - "the personality should be valid"
+          - "all parameters should be stored correctly"
+
+      - name: "Reject invalid parameter values"
+        given: "I create a new Personality"
+        when: "I try to set tension_baseline to 1.5"
+        then:
+          - "the operation should fail"
+          - "the error should indicate 'out of bounds'"
+
+      - name: "Serialize personality to JSON"
+        given: "a personality 'Test Bot' with tension_baseline 0.7"
+        when: "I serialize the personality to JSON"
+        then:
+          - "the JSON should contain 'tension_baseline': 0.7"
+          - "the JSON should be valid"
+
+      - name: "Deserialize personality from JSON"
+        given: "valid JSON representing a personality"
+        when: "I deserialize the JSON"
+        then:
+          - "I should get a valid Personality struct"
+          - "all values should match the JSON"
+
+      - name: "Round-trip serialization preserves data"
+        given: "a personality with all parameters set"
+        when: "I serialize to JSON and deserialize back"
+        then: "all values should be identical to the original"
+
+      - name: "Default personality has safe values"
+        given: "I create a default Personality"
+        then:
+          - "tension_baseline should be 0.5"
+          - "coherence_baseline should be 0.5"
+          - "energy_baseline should be 0.5"
+          - "all reactivity parameters should be 0.5"
+          - "all expression parameters should be 0.5"
+
+compliance_checklist:
+  before_editing_files:
+    - question: "Adding a new personality parameter?"
+      if_yes: "Ensure it has validation for [0.0, 1.0] bounds (I-PERS-001)"
+    - question: "Modifying personality struct?"
+      if_yes: "Ensure serde derives are maintained (I-PERS-002)"
+    - question: "Changing default values?"
+      if_yes: "Keep defaults neutral at 0.5 (I-PERS-003)"
+
+test_hooks:
+  tests:
+    - file: "tests/contracts/personality.test.ts"
+      description: "Contract validation for personality data structure"
+    - file: "crates/mbot-core/src/personality/mod.rs"
+      description: "Unit tests for parameter validation and serialization"
