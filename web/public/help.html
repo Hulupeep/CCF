@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📚 mBot2 RuVector - Instructions & Help</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --bg-panel: #12122a;
+            --border: #2a2a4a;
+            --text: #e0e0ff;
+            --text-dim: #8080a0;
+            --accent: #00ff88;
+            --calm: #00aaff;
+            --warning: #ffaa00;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            background: var(--bg-dark);
+            color: var(--text);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: var(--bg-panel);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 16px;
+        }
+
+        .nav {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: var(--bg-panel);
+            border-radius: 8px;
+        }
+
+        .nav a {
+            color: var(--accent);
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+        }
+
+        .nav a:hover {
+            text-decoration: underline;
+        }
+
+        .section {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            font-size: 28px;
+            color: var(--accent);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section h3 {
+            font-size: 20px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            color: var(--calm);
+        }
+
+        .section h4 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .section p {
+            margin-bottom: 15px;
+            color: var(--text-dim);
+        }
+
+        .section ul, .section ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        .section li {
+            margin-bottom: 8px;
+            color: var(--text-dim);
+        }
+
+        .app-card {
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .app-card:hover {
+            border-color: var(--accent);
+        }
+
+        .app-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-desc {
+            color: var(--text-dim);
+            margin-bottom: 15px;
+        }
+
+        .app-features {
+            margin-top: 15px;
+        }
+
+        .feature-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid var(--accent);
+            border-radius: 4px;
+            font-size: 11px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .code-inline {
+            background: var(--bg-dark);
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: var(--accent);
+            font-family: 'SF Mono', monospace;
+        }
+
+        .warning-box {
+            background: rgba(255, 170, 0, 0.1);
+            border: 1px solid var(--warning);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .warning-title {
+            color: var(--warning);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .info-box {
+            background: rgba(0, 170, 255, 0.1);
+            border: 1px solid var(--calm);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .info-title {
+            color: var(--calm);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .toc {
+            background: var(--bg-dark);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .toc-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .toc a {
+            display: block;
+            color: var(--accent);
+            text-decoration: none;
+            padding: 5px 0;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--accent);
+            color: var(--bg-dark);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 mBot2 RuVector</h1>
+            <p class="subtitle">Complete Instructions & Help for AI-Powered mBot2</p>
+        </div>
+
+        <div class="nav">
+            <a href="index.html">🧠 Visualizer</a>
+            <a href="personality-mixer.html">🎨 Mixer</a>
+            <a href="projects.html">🚀 Projects</a>
+            <a href="download.html">📥 Download</a>
+            <a href="help.html" style="color: var(--text); font-weight: bold;">📚 Help</a>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="section">
+            <div class="toc">
+                <div class="toc-title">📑 Quick Navigation</div>
+                <a href="#overview">Overview - What is RuVector?</a>
+                <a href="#apps">Apps & Features</a>
+                <a href="#getting-started">Getting Started</a>
+                <a href="#dashboard">Using the Dashboard</a>
+                <a href="#personality">Personality System</a>
+                <a href="#artbot">ArtBot - Drawing</a>
+                <a href="#gamebot">GameBot - Interactive Games</a>
+                <a href="#sorter">LEGOSorter - Organization</a>
+                <a href="#learninglab">LearningLab - Education</a>
+                <a href="#troubleshooting">Troubleshooting</a>
+            </div>
+        </div>
+
+        <!-- Overview Section -->
+        <div class="section" id="overview">
+            <h2>🤖 What is mBot2 RuVector?</h2>
+            <p>
+                RuVector transforms your mBot2 into an AI-powered companion with a simulated nervous system.
+                Instead of following rigid scripts, your robot develops personality-driven behaviors that emerge
+                from its internal state (tension, coherence, energy) and environmental stimuli.
+            </p>
+
+            <h3>Core Concepts</h3>
+            <ul>
+                <li><strong>Homeostasis:</strong> The robot maintains internal balance through tension, coherence, and energy levels</li>
+                <li><strong>Reflex Modes:</strong> Four behavioral states (Calm, Active, Spike, Protect) that change based on stimuli</li>
+                <li><strong>Personality:</strong> 9 parameters that shape how the robot reacts and expresses itself</li>
+                <li><strong>Emergent Behavior:</strong> Complex behaviors emerge from simple rules + personality + environment</li>
+            </ul>
+
+            <div class="info-box">
+                <div class="info-title">💡 Think of it like this:</div>
+                <p>Traditional robots: "If sensor reads X, do Y"</p>
+                <p>RuVector mBot2: "I feel tense because something is close. My curious personality makes me approach cautiously rather than flee. My energy is high, so my movements are expressive."</p>
+            </div>
+        </div>
+
+        <!-- Apps Section -->
+        <div class="section" id="apps">
+            <h2>🚀 Available Apps & Features</h2>
+            <p>RuVector includes 6 major applications you can deploy to your mBot2:</p>
+
+            <div class="app-card">
+                <div class="app-title">🎨 ArtBot - The Drawing Companion</div>
+                <div class="app-desc">
+                    Transform mBot2 into an expressive artist that draws based on its mood and personality.
+                </div>
+                <div class="app-features">
+                    <span class="feature-tag">Pen Servo Control</span>
+                    <span class="feature-tag">Mood-to-Line-Style Mapping</span>
+                    <span class="feature-tag">Drawing Session Manager</span>
+                    <span class="feature-tag">Basic Shape Drawing</span>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-dim);">
+                    <strong>Status:</strong> 60% Complete |
+                    <strong>Hardware:</strong> Pen servo attachment required |
+                    <strong>Age:</strong> 8+
+                </p>
+                <a href="#artbot" class="btn">Learn More →</a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-title">🧠 Personality System</div>
+                <div class="app-desc">
+                    Give mBot2 unique personalities from Zen to Excitable, or mix your own custom personality.
+                </div>
+                <div class="app-features">
+                    <span class="feature-tag">15 Preset Personalities</span>
+                    <span class="feature-tag">Custom Parameter Mixing</span>
+                    <span class="feature-tag">JSON Persistence</span>
+                    <span class="feature-tag">Behavior Mapping</span>
+                    <span class="feature-tag">Quirks System</span>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-dim);">
+                    <strong>Status:</strong> 100% Complete |
+                    <strong>Hardware:</strong> Base mBot2 |
+                    <strong>Age:</strong> 10+
+                </p>
+                <a href="#personality" class="btn">Learn More →</a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-title">🎯 GameBot - The Play Partner</div>
+                <div class="app-desc">
+                    Play interactive games including Tic-Tac-Toe, Chase, Simon Says, and more.
+                </div>
+                <div class="app-features">
+                    <span class="feature-tag">Tic-Tac-Toe with AI</span>
+                    <span class="feature-tag">Chase & Flee Games</span>
+                    <span class="feature-tag">Simon Says LED Game</span>
+                    <span class="feature-tag">Turn Detection</span>
+                    <span class="feature-tag">Emotional Responses</span>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-dim);">
+                    <strong>Status:</strong> 100% Complete |
+                    <strong>Hardware:</strong> Base mBot2 |
+                    <strong>Age:</strong> 8+
+                </p>
+                <a href="#gamebot" class="btn">Learn More →</a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-title">🔨 LEGOSorter - Organization Helper</div>
+                <div class="app-desc">
+                    Sort LEGO pieces by color using computer vision and smart pick-drop logic.
+                </div>
+                <div class="app-features">
+                    <span class="feature-tag">Color Detection (11+ colors)</span>
+                    <span class="feature-tag">Carousel Stations</span>
+                    <span class="feature-tag">Vision System</span>
+                    <span class="feature-tag">Pick-Drop Loop</span>
+                    <span class="feature-tag">Inventory Tracking</span>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-dim);">
+                    <strong>Status:</strong> 70% Complete |
+                    <strong>Hardware:</strong> Gripper + Carousel attachment |
+                    <strong>Age:</strong> 10+
+                </p>
+                <a href="#sorter" class="btn">Learn More →</a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-title">📚 LearningLab - Education Kit</div>
+                <div class="app-desc">
+                    Teach AI concepts through experiments, real-time visualization, and guided lessons.
+                </div>
+                <div class="app-features">
+                    <span class="feature-tag">Real-Time Visualizer</span>
+                    <span class="feature-tag">Personality Mixer</span>
+                    <span class="feature-tag">Reflex Experiments</span>
+                    <span class="feature-tag">Emotion Timeline</span>
+                    <span class="feature-tag">Lesson Plans</span>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-dim);">
+                    <strong>Status:</strong> 40% Complete |
+                    <strong>Hardware:</strong> Base mBot2 + Computer |
+                    <strong>Age:</strong> 10-14
+                </p>
+                <a href="#learninglab" class="btn">Learn More →</a>
+            </div>
+
+            <div class="app-card">
+                <div class="app-title">🧹 HelperBot - Useful Friend</div>
+                <div class="app-desc">
+                    Practical assistance including follow mode, color detection, and household helpers.
+                </div>
+                <div class="app-features">
+                    <span class="feature-tag">Color Detection</span>
+                    <span class="feature-tag">Follow Mode</span>
+                    <span class="feature-tag">LEGO Sort Helper</span>
+                </div>
+                <p style="margin-top: 15px; color: var(--text-dim);">
+                    <strong>Status:</strong> 30% Complete |
+                    <strong>Hardware:</strong> Base mBot2 |
+                    <strong>Age:</strong> 8+
+                </p>
+            </div>
+        </div>
+
+        <!-- Getting Started -->
+        <div class="section" id="getting-started">
+            <h2>🚀 Getting Started</h2>
+
+            <h3>Step 1: Build the Firmware</h3>
+            <p>Follow the <a href="download.html" style="color: var(--accent);">Download Guide</a> to build and flash RuVector firmware to your mBot2's CyberPi.</p>
+
+            <h3>Step 2: Start the Dashboard</h3>
+            <ol>
+                <li>Open a terminal in the <code class="code-inline">web</code> directory</li>
+                <li>Run <code class="code-inline">npm install</code> (first time only)</li>
+                <li>Run <code class="code-inline">npm start</code></li>
+                <li>Open <a href="http://localhost:3000" style="color: var(--accent);">http://localhost:3000</a> in your browser</li>
+            </ol>
+
+            <h3>Step 3: Connect Your Robot</h3>
+            <p>The dashboard will automatically connect to your mBot2 when it's nearby. You'll see the status indicator turn green.</p>
+
+            <div class="warning-box">
+                <div class="warning-title">⚠️ First Time Setup</div>
+                <p>Make sure you have:</p>
+                <ul>
+                    <li>Rust toolchain installed (<code class="code-inline">rustup</code>)</li>
+                    <li>Node.js 18+ installed</li>
+                    <li>USB-C cable for CyberPi connection</li>
+                    <li>Charged mBot2 batteries</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Dashboard Guide -->
+        <div class="section" id="dashboard">
+            <h2>🧠 Using the Dashboard</h2>
+
+            <h3>Neural Visualizer</h3>
+            <p>Watch your robot's "brain" in real-time:</p>
+            <ul>
+                <li><strong>Reflex Mode:</strong> Shows current state (Calm → Active → Spike → Protect)</li>
+                <li><strong>Tension Meter:</strong> How anxious/stressed the robot feels (higher = more reactive)</li>
+                <li><strong>Coherence Meter:</strong> How coordinated its movements are (higher = smoother)</li>
+                <li><strong>Energy Meter:</strong> Activity level (drains when stressed, recovers when calm)</li>
+                <li><strong>Curiosity Meter:</strong> Drive to explore (modulated by personality)</li>
+                <li><strong>Sensors:</strong> Real-time readings from ultrasonic, gyro, sound, light sensors</li>
+            </ul>
+
+            <h3>Understanding Reflex Modes</h3>
+            <div class="app-features">
+                <span class="feature-tag">😌 Calm (tension < 0.2): Wandering peacefully, low energy usage</span>
+                <span class="feature-tag">🔍 Active (tension 0.2-0.55): Exploring with interest, moderate energy</span>
+                <span class="feature-tag">⚡ Spike (tension 0.55-0.85): Excited response, high energy usage</span>
+                <span class="feature-tag">🛡️ Protect (tension > 0.85): Backing away, defensive mode</span>
+            </div>
+        </div>
+
+        <!-- Personality Guide -->
+        <div class="section" id="personality">
+            <h2>🎨 Personality System Guide</h2>
+
+            <h3>9 Personality Parameters</h3>
+
+            <h4>⚖️ Baselines (Where it wants to be)</h4>
+            <ul>
+                <li><strong>Tension Baseline:</strong> Default anxiety level (0=zen, 1=stressed)</li>
+                <li><strong>Coherence Baseline:</strong> Default coordination (0=clumsy, 1=smooth)</li>
+                <li><strong>Energy Baseline:</strong> Default activity level (0=sleepy, 1=hyperactive)</li>
+            </ul>
+
+            <h4>⚡ Reactivity (How stimuli affect it)</h4>
+            <ul>
+                <li><strong>Startle Sensitivity:</strong> How easily scared (0=brave, 1=jumpy)</li>
+                <li><strong>Recovery Speed:</strong> How quickly it calms (0=holds grudges, 1=forgets fast)</li>
+                <li><strong>Curiosity Drive:</strong> Exploration tendency (0=cautious, 1=adventurous)</li>
+            </ul>
+
+            <h4>🎭 Expression (How it shows feelings)</h4>
+            <ul>
+                <li><strong>Movement Expressiveness:</strong> Motion drama (0=subtle, 1=theatrical)</li>
+                <li><strong>Sound Expressiveness:</strong> Vocal usage (0=quiet, 1=chatty)</li>
+                <li><strong>Light Expressiveness:</strong> LED brightness (0=dim, 1=bright)</li>
+            </ul>
+
+            <h3>15 Preset Personalities</h3>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px;">
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>* Mellow:</strong> Calm, slow to react
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>? Curious:</strong> High curiosity, expressive
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>O Zen:</strong> Low tension, minimal expression
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>! Excitable:</strong> High energy, dramatic
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>. Timid:</strong> Cautious, easily startled
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>+ Adventurous:</strong> Bold explorer
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>- Shy:</strong> Reserved, low expression
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong># Grumpy:</strong> Irritable, high tension
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>^ Cheerful:</strong> Upbeat, quick to engage
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>~ Cautious:</strong> Careful, deliberate
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>@ Playful:</strong> Spontaneous, loves games
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>= Serious:</strong> Focused, methodical
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>& Energetic:</strong> Never sits still
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>_ Calm:</strong> Peaceful, hard to disturb
+                </div>
+                <div style="padding: 10px; background: var(--bg-dark); border-radius: 6px;">
+                    <strong>% Anxious:</strong> Nervous, high alertness
+                </div>
+            </div>
+
+            <h3>Using the Personality Mixer</h3>
+            <ol>
+                <li>Open the <a href="personality-mixer.html" style="color: var(--accent);">Personality Mixer</a></li>
+                <li>Try a preset personality or adjust sliders manually</li>
+                <li>Click "Apply to Robot" to see immediate behavior changes</li>
+                <li>Use "Randomize" for fun experiments (safety bounds enforced)</li>
+                <li>Click "Reset to Defaults" to return to neutral settings</li>
+            </ol>
+        </div>
+
+        <!-- ArtBot Guide -->
+        <div class="section" id="artbot">
+            <h2>🎨 ArtBot - Drawing Companion</h2>
+
+            <h3>Hardware Setup</h3>
+            <ul>
+                <li>Pen servo attachment (45° up, 90° down positions)</li>
+                <li>Drawing surface (A4 paper recommended)</li>
+                <li>Pen or marker compatible with servo holder</li>
+            </ul>
+
+            <h3>How Mood Affects Drawing</h3>
+            <p>ArtBot's drawing style changes based on its emotional state:</p>
+            <ul>
+                <li><strong>Calm (tension < 0.3):</strong> Smooth, flowing lines with gentle curves</li>
+                <li><strong>Tense (tension 0.3-0.7):</strong> Jagged, energetic strokes with sharp angles</li>
+                <li><strong>Stressed (tension > 0.7):</strong> Chaotic scribbles, erratic movements</li>
+            </ul>
+
+            <h3>Drawing Sessions</h3>
+            <ol>
+                <li>Deploy ArtBot from the <a href="projects.html" style="color: var(--accent);">Projects</a> page</li>
+                <li>Set desired personality (try "Zen" for calm drawings, "Excitable" for energetic art)</li>
+                <li>Place paper under the robot</li>
+                <li>Activate drawing mode on CyberPi</li>
+                <li>Watch the robot create personality-driven artwork!</li>
+            </ol>
+        </div>
+
+        <!-- GameBot Guide -->
+        <div class="section" id="gamebot">
+            <h2>🎯 GameBot - Interactive Games</h2>
+
+            <h3>Available Games</h3>
+
+            <h4>Tic-Tac-Toe</h4>
+            <ul>
+                <li>3 difficulty levels: Easy, Medium (defensive), Hard (minimax AI)</li>
+                <li>Robot draws the grid and marks its moves</li>
+                <li>Requires pen servo attachment</li>
+            </ul>
+
+            <h4>Chase Game</h4>
+            <ul>
+                <li>Chase Mode: Robot follows you</li>
+                <li>Flee Mode: Robot runs away</li>
+                <li>Speed scales with distance (closer = faster)</li>
+                <li>Obstacle avoidance enabled</li>
+            </ul>
+
+            <h4>Simon Says</h4>
+            <ul>
+                <li>4-color LED pattern game</li>
+                <li>Progressive difficulty (patterns get longer)</li>
+                <li>Audio feedback for correct/incorrect</li>
+            </ul>
+
+            <h3>Turn Detection</h3>
+            <p>GameBot knows when it's your turn using:</p>
+            <ul>
+                <li>Double-tap detection (tap the robot twice quickly)</li>
+                <li>Voice command ("your turn")</li>
+                <li>30-second timeout with LED prompt</li>
+            </ul>
+
+            <h3>Emotional Responses</h3>
+            <p>The robot reacts to game events:</p>
+            <ul>
+                <li>Winning: Happy animation (green LEDs, victory sound)</li>
+                <li>Losing: Sad animation (blue LEDs, disappointed sound)</li>
+                <li>Thinking: Concentration indicator (yellow LEDs, hum sound)</li>
+            </ul>
+        </div>
+
+        <!-- LEGOSorter Guide -->
+        <div class="section" id="sorter">
+            <h2>🔨 LEGOSorter - Organization Helper</h2>
+
+            <h3>Hardware Requirements</h3>
+            <ul>
+                <li>Gripper attachment for picking pieces</li>
+                <li>Carousel station system (8 bins recommended)</li>
+                <li>RGB sensor for color detection</li>
+                <li>Good lighting (avoid shadows)</li>
+            </ul>
+
+            <h3>Supported Colors</h3>
+            <p><strong>Standard (11):</strong> Red, Blue, Yellow, Green, White, Black, Orange, Lime, Magenta, Cyan, Gray</p>
+            <p><strong>Rare (3):</strong> Pearl, Chrome, Glow-in-Dark</p>
+
+            <h3>Sorting Process</h3>
+            <ol>
+                <li><strong>Calibration:</strong> Run servo calibration (±2° accuracy)</li>
+                <li><strong>Setup:</strong> Configure carousel stations for each color</li>
+                <li><strong>Detection:</strong> Robot scans play area in grid pattern</li>
+                <li><strong>Sorting:</strong> Pick-drop loop for each piece (max 3 retry attempts)</li>
+                <li><strong>Verification:</strong> Double-check piece color after drop</li>
+                <li><strong>Inventory:</strong> Track sorted pieces by color and count</li>
+            </ol>
+
+            <h3>Tips for Best Results</h3>
+            <ul>
+                <li>Use consistent lighting (natural daylight or bright white LED)</li>
+                <li>Clean LEGO pieces before sorting</li>
+                <li>Avoid mixing transparent and opaque pieces</li>
+                <li>Start with simple colors (red, blue, yellow) before advanced ones</li>
+                <li>Calibrate regularly for accuracy</li>
+            </ul>
+        </div>
+
+        <!-- LearningLab Guide -->
+        <div class="section" id="learninglab">
+            <h2>📚 LearningLab - Education Kit</h2>
+
+            <h3>Educational Experiments</h3>
+
+            <h4>1. Startle Response Experiment</h4>
+            <p>Learn how the nervous system reacts to sudden stimuli.</p>
+            <ul>
+                <li>Observe baseline tension levels</li>
+                <li>Trigger startle with loud sound or close approach</li>
+                <li>Measure tension spike and recovery time</li>
+                <li>Try different personalities to compare responses</li>
+            </ul>
+
+            <h4>2. Approach/Avoid Behavior</h4>
+            <p>Explore how curiosity and fear balance decision-making.</p>
+            <ul>
+                <li>Place novel object near robot</li>
+                <li>Watch approach/retreat cycles</li>
+                <li>High curiosity = more approaches</li>
+                <li>High startle sensitivity = more retreats</li>
+            </ul>
+
+            <h4>3. Recovery Time Analysis</h4>
+            <p>Measure how quickly tension returns to baseline.</p>
+            <ul>
+                <li>Record tension before stress event</li>
+                <li>Trigger stress (obstacle, loud noise)</li>
+                <li>Time until tension returns to ±10% of baseline</li>
+                <li>Compare across personalities</li>
+            </ul>
+
+            <h4>4. Mode Transition Observation</h4>
+            <p>Understand the four reflex modes and their triggers.</p>
+            <ul>
+                <li>Start in Calm mode (distance environment)</li>
+                <li>Gradually approach to trigger Active → Spike → Protect</li>
+                <li>Note behavioral changes at each threshold</li>
+                <li>Withdraw and observe return to Calm</li>
+            </ul>
+
+            <h3>Using the Visualizer for Learning</h3>
+            <ol>
+                <li>Open the <a href="index.html" style="color: var(--accent);">Neural Visualizer</a></li>
+                <li>Run an experiment with your robot</li>
+                <li>Watch real-time meters respond to stimuli</li>
+                <li>Take notes on relationships (e.g., "When tension rises, energy drops")</li>
+                <li>Try different personalities and compare results</li>
+            </ol>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="section" id="troubleshooting">
+            <h2>🔧 Troubleshooting</h2>
+
+            <h3>Dashboard Issues</h3>
+
+            <h4>Can't connect to robot</h4>
+            <ul>
+                <li>Check robot is powered on and within Bluetooth range</li>
+                <li>Verify WebSocket server is running (check terminal output)</li>
+                <li>Try refreshing the browser page</li>
+                <li>Check firewall isn't blocking port 8081</li>
+            </ul>
+
+            <h4>Personality changes not applying</h4>
+            <ul>
+                <li>Ensure robot is connected (green status indicator)</li>
+                <li>Check server console for "Personality update" messages</li>
+                <li>Try clicking "Apply to Robot" again</li>
+                <li>Restart the robot if parameters seem stuck</li>
+            </ul>
+
+            <h3>Robot Behavior Issues</h3>
+
+            <h4>Robot not responding to environment</h4>
+            <ul>
+                <li>Check sensors are clean and unobstructed</li>
+                <li>Verify ultrasonic sensor is functioning (check visualizer)</li>
+                <li>Try increasing startle sensitivity in personality mixer</li>
+                <li>Ensure robot isn't stuck in Protect mode</li>
+            </ul>
+
+            <h4>Movements are jerky or uncoordinated</h4>
+            <ul>
+                <li>Check battery level (low battery causes erratic behavior)</li>
+                <li>Increase coherence baseline in personality mixer</li>
+                <li>Ensure surface is smooth and level</li>
+                <li>Check wheel encoders are clean</li>
+            </ul>
+
+            <h3>Hardware Issues</h3>
+
+            <h4>Pen servo not working (ArtBot)</h4>
+            <ul>
+                <li>Verify servo is connected to correct port</li>
+                <li>Run servo calibration from Projects page</li>
+                <li>Check servo angles (45° up, 90° down)</li>
+                <li>Test servo manually with test program</li>
+            </ul>
+
+            <h4>Color detection inaccurate (LEGOSorter)</h4>
+            <ul>
+                <li>Improve lighting (avoid shadows and colored light)</li>
+                <li>Calibrate RGB sensor for your environment</li>
+                <li>Clean sensor lens</li>
+                <li>Check LEGO pieces aren't dirty or faded</li>
+            </ul>
+
+            <h3>Build/Flash Issues</h3>
+            <p>See the detailed <a href="download.html#troubleshooting" style="color: var(--accent);">Download & Troubleshooting Guide</a></p>
+
+            <h3>Getting More Help</h3>
+            <ul>
+                <li><strong>GitHub Issues:</strong> <a href="https://github.com/Hulupeep/mbot_ruvector/issues" style="color: var(--accent);">Report bugs or request features</a></li>
+                <li><strong>Documentation:</strong> <a href="https://github.com/Hulupeep/mbot-help" style="color: var(--accent);">mBot Help Repository</a></li>
+                <li><strong>Official mBot2:</strong> <a href="https://www.makeblock.com/pages/mbot2-support" style="color: var(--accent);">Makeblock Support</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
