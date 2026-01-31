@@ -7,6 +7,7 @@
 //! - Emotional responses to game outcomes
 //! - Chase game mechanics
 //! - Simon Says memory game
+//! - Tic-Tac-Toe physical drawing
 //!
 //! # Safety (Kitchen Table Test)
 //! All motor commands are bounded for safe operation.
@@ -16,6 +17,7 @@ pub mod turn_detection;
 pub mod emotions;
 pub mod chase;
 pub mod simon_says;
+pub mod tictactoe_drawing;
 
 pub use turn_detection::{
     TurnDetectionSystem,
@@ -60,4 +62,18 @@ pub use simon_says::{
     SimonStatus,
     PatternDisplayEvent,
     InputResult,
+};
+
+pub use tictactoe_drawing::{
+    TicTacToeGrid,
+    CellPosition,
+    GameSymbol,
+    DrawMoveCommand,
+    GridDrawResult,
+    SymbolDrawResult,
+    draw_grid,
+    draw_x,
+    draw_o,
+    draw_move,
+    calibrate_position,
 };

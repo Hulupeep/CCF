@@ -15,7 +15,7 @@
 extern crate alloc;
 
 #[cfg(feature = "no_std")]
-use alloc::{string::String, vec::Vec};
+use alloc::{string::String, vec, vec::Vec};
 
 #[cfg(not(feature = "no_std"))]
 use std::{string::String, vec::Vec};

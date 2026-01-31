@@ -415,6 +415,9 @@ pub mod learninglab;
 // === GAMEBOT MODULE ===
 pub mod gamebot;
 
+// === HELPERBOT MODULE ===
+pub mod helperbot;
+
 // === DRAWING HELPERS ===
 
 /// Calculate motor powers to drive to a target position

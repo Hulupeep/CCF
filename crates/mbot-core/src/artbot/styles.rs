@@ -12,13 +12,6 @@
 #[cfg(feature = "no_std")]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
-use alloc::string::String;
-
-#[cfg(not(feature = "no_std"))]
-#[allow(unused_imports)]
-use std::string::String;
-
 use core::fmt;
 
 /// Error type for style generation failures

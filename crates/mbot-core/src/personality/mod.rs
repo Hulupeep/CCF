@@ -882,6 +882,12 @@ pub use behavior_mapping::{
     scale_motor_output, scale_sound_output, scale_light_output,
 };
 
+// === Personality Switching ===
+pub mod switching;
+pub use switching::{
+    PersonalitySwitcher, TransitionConfig, TransitionEvent, Easing,
+};
+
 // === Preset Personalities ===
 
 /// Preset personality types that can be loaded
@@ -924,245 +930,335 @@ impl PersonalityPreset {
     /// Creates a Personality from this preset
     pub fn to_personality(self) -> Personality {
         match self {
-            PersonalityPreset::Mellow => Personality::builder()
-                .id("preset-mellow")
-                .name("Mellow")
-                .icon('*')
-                .tension_baseline(0.2)
-                .coherence_baseline(0.7)
-                .energy_baseline(0.4)
-                .startle_sensitivity(0.2)
-                .recovery_speed(0.8)
-                .curiosity_drive(0.4)
-                .movement_expressiveness(0.3)
-                .sound_expressiveness(0.2)
-                .light_expressiveness(0.5)
-                .build()
-                .expect("Mellow preset should be valid"),
+            PersonalityPreset::Mellow => {
+                let mut builder = Personality::builder()
+                    .id("preset-mellow")
+                    .name("Mellow")
+                    .icon('*')
+                    .tension_baseline(0.2)
+                    .coherence_baseline(0.7)
+                    .energy_baseline(0.4)
+                    .startle_sensitivity(0.2)
+                    .recovery_speed(0.8)
+                    .curiosity_drive(0.4)
+                    .movement_expressiveness(0.3)
+                    .sound_expressiveness(0.2)
+                    .light_expressiveness(0.5);
 
-            PersonalityPreset::Curious => Personality::builder()
-                .id("preset-curious")
-                .name("Curious")
-                .icon('?')
-                .tension_baseline(0.4)
-                .coherence_baseline(0.6)
-                .energy_baseline(0.7)
-                .startle_sensitivity(0.6)
-                .recovery_speed(0.5)
-                .curiosity_drive(0.9)
-                .movement_expressiveness(0.7)
-                .sound_expressiveness(0.6)
-                .light_expressiveness(0.8)
-                .build()
-                .expect("Curious preset should be valid"),
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
 
-            PersonalityPreset::Zen => Personality::builder()
-                .id("preset-zen")
-                .name("Zen")
-                .icon('O')
-                .tension_baseline(0.1)
-                .coherence_baseline(0.9)
-                .energy_baseline(0.3)
-                .startle_sensitivity(0.1)
-                .recovery_speed(0.9)
-                .curiosity_drive(0.3)
-                .movement_expressiveness(0.2)
-                .sound_expressiveness(0.1)
-                .light_expressiveness(0.3)
-                .build()
-                .expect("Zen preset should be valid"),
+                builder.build().expect("Mellow preset should be valid")
+            }
 
-            PersonalityPreset::Excitable => Personality::builder()
-                .id("preset-excitable")
-                .name("Excitable")
-                .icon('!')
-                .tension_baseline(0.6)
-                .coherence_baseline(0.5)
-                .energy_baseline(0.9)
-                .startle_sensitivity(0.8)
-                .recovery_speed(0.4)
-                .curiosity_drive(0.8)
-                .movement_expressiveness(0.9)
-                .sound_expressiveness(0.9)
-                .light_expressiveness(0.9)
-                .build()
-                .expect("Excitable preset should be valid"),
+            PersonalityPreset::Curious => {
+                let mut builder = Personality::builder()
+                    .id("preset-curious")
+                    .name("Curious")
+                    .icon('?')
+                    .tension_baseline(0.4)
+                    .coherence_baseline(0.6)
+                    .energy_baseline(0.7)
+                    .startle_sensitivity(0.6)
+                    .recovery_speed(0.5)
+                    .curiosity_drive(0.9)
+                    .movement_expressiveness(0.7)
+                    .sound_expressiveness(0.6)
+                    .light_expressiveness(0.8);
 
-            PersonalityPreset::Timid => Personality::builder()
-                .id("preset-timid")
-                .name("Timid")
-                .icon('.')
-                .tension_baseline(0.5)
-                .coherence_baseline(0.4)
-                .energy_baseline(0.3)
-                .startle_sensitivity(0.9)
-                .recovery_speed(0.2)
-                .curiosity_drive(0.4)
-                .movement_expressiveness(0.4)
-                .sound_expressiveness(0.2)
-                .light_expressiveness(0.4)
-                .build()
-                .expect("Timid preset should be valid"),
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
 
-            PersonalityPreset::Adventurous => Personality::builder()
-                .id("preset-adventurous")
-                .name("Adventurous")
-                .icon('+')
-                .tension_baseline(0.3)
-                .coherence_baseline(0.7)
-                .energy_baseline(0.8)
-                .startle_sensitivity(0.3)
-                .recovery_speed(0.7)
-                .curiosity_drive(0.9)
-                .movement_expressiveness(0.8)
-                .sound_expressiveness(0.7)
-                .light_expressiveness(0.8)
-                .build()
-                .expect("Adventurous preset should be valid"),
+                builder.build().expect("Curious preset should be valid")
+            }
 
-            PersonalityPreset::Shy => Personality::builder()
-                .id("preset-shy")
-                .name("Shy")
-                .icon('-')
-                .tension_baseline(0.6)
-                .coherence_baseline(0.5)
-                .energy_baseline(0.3)
-                .startle_sensitivity(0.8)
-                .recovery_speed(0.3)
-                .curiosity_drive(0.5)
-                .movement_expressiveness(0.2)
-                .sound_expressiveness(0.1)
-                .light_expressiveness(0.3)
-                .build()
-                .expect("Shy preset should be valid"),
+            PersonalityPreset::Zen => {
+                let mut builder = Personality::builder()
+                    .id("preset-zen")
+                    .name("Zen")
+                    .icon('O')
+                    .tension_baseline(0.1)
+                    .coherence_baseline(0.9)
+                    .energy_baseline(0.3)
+                    .startle_sensitivity(0.1)
+                    .recovery_speed(0.9)
+                    .curiosity_drive(0.3)
+                    .movement_expressiveness(0.2)
+                    .sound_expressiveness(0.1)
+                    .light_expressiveness(0.3);
 
-            PersonalityPreset::Grumpy => Personality::builder()
-                .id("preset-grumpy")
-                .name("Grumpy")
-                .icon('#')
-                .tension_baseline(0.7)
-                .coherence_baseline(0.3)
-                .energy_baseline(0.4)
-                .startle_sensitivity(0.7)
-                .recovery_speed(0.3)
-                .curiosity_drive(0.2)
-                .movement_expressiveness(0.5)
-                .sound_expressiveness(0.4)
-                .light_expressiveness(0.4)
-                .build()
-                .expect("Grumpy preset should be valid"),
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
 
-            PersonalityPreset::Cheerful => Personality::builder()
-                .id("preset-cheerful")
-                .name("Cheerful")
-                .icon('^')
-                .tension_baseline(0.2)
-                .coherence_baseline(0.8)
-                .energy_baseline(0.8)
-                .startle_sensitivity(0.4)
-                .recovery_speed(0.8)
-                .curiosity_drive(0.7)
-                .movement_expressiveness(0.8)
-                .sound_expressiveness(0.9)
-                .light_expressiveness(0.9)
-                .build()
-                .expect("Cheerful preset should be valid"),
+                builder.build().expect("Zen preset should be valid")
+            }
 
-            PersonalityPreset::Cautious => Personality::builder()
-                .id("preset-cautious")
-                .name("Cautious")
-                .icon('~')
-                .tension_baseline(0.5)
-                .coherence_baseline(0.7)
-                .energy_baseline(0.5)
-                .startle_sensitivity(0.6)
-                .recovery_speed(0.5)
-                .curiosity_drive(0.6)
-                .movement_expressiveness(0.4)
-                .sound_expressiveness(0.3)
-                .light_expressiveness(0.5)
-                .build()
-                .expect("Cautious preset should be valid"),
+            PersonalityPreset::Excitable => {
+                let mut builder = Personality::builder()
+                    .id("preset-excitable")
+                    .name("Excitable")
+                    .icon('!')
+                    .tension_baseline(0.6)
+                    .coherence_baseline(0.5)
+                    .energy_baseline(0.9)
+                    .startle_sensitivity(0.8)
+                    .recovery_speed(0.4)
+                    .curiosity_drive(0.8)
+                    .movement_expressiveness(0.9)
+                    .sound_expressiveness(0.9)
+                    .light_expressiveness(0.9);
 
-            PersonalityPreset::Playful => Personality::builder()
-                .id("preset-playful")
-                .name("Playful")
-                .icon('@')
-                .tension_baseline(0.3)
-                .coherence_baseline(0.6)
-                .energy_baseline(0.9)
-                .startle_sensitivity(0.5)
-                .recovery_speed(0.9)
-                .curiosity_drive(0.8)
-                .movement_expressiveness(0.9)
-                .sound_expressiveness(0.8)
-                .light_expressiveness(0.8)
-                .build()
-                .expect("Playful preset should be valid"),
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
 
-            PersonalityPreset::Serious => Personality::builder()
-                .id("preset-serious")
-                .name("Serious")
-                .icon('=')
-                .tension_baseline(0.4)
-                .coherence_baseline(0.9)
-                .energy_baseline(0.6)
-                .startle_sensitivity(0.3)
-                .recovery_speed(0.6)
-                .curiosity_drive(0.6)
-                .movement_expressiveness(0.5)
-                .sound_expressiveness(0.4)
-                .light_expressiveness(0.5)
-                .build()
-                .expect("Serious preset should be valid"),
+                builder.build().expect("Excitable preset should be valid")
+            }
 
-            PersonalityPreset::Energetic => Personality::builder()
-                .id("preset-energetic")
-                .name("Energetic")
-                .icon('&')
-                .tension_baseline(0.5)
-                .coherence_baseline(0.6)
-                .energy_baseline(1.0)
-                .startle_sensitivity(0.6)
-                .recovery_speed(0.7)
-                .curiosity_drive(0.8)
-                .movement_expressiveness(1.0)
-                .sound_expressiveness(0.9)
-                .light_expressiveness(0.9)
-                .build()
-                .expect("Energetic preset should be valid"),
+            PersonalityPreset::Timid => {
+                let mut builder = Personality::builder()
+                    .id("preset-timid")
+                    .name("Timid")
+                    .icon('.')
+                    .tension_baseline(0.5)
+                    .coherence_baseline(0.4)
+                    .energy_baseline(0.3)
+                    .startle_sensitivity(0.9)
+                    .recovery_speed(0.2)
+                    .curiosity_drive(0.4)
+                    .movement_expressiveness(0.4)
+                    .sound_expressiveness(0.2)
+                    .light_expressiveness(0.4);
 
-            PersonalityPreset::Calm => Personality::builder()
-                .id("preset-calm")
-                .name("Calm")
-                .icon('_')
-                .tension_baseline(0.1)
-                .coherence_baseline(0.9)
-                .energy_baseline(0.4)
-                .startle_sensitivity(0.2)
-                .recovery_speed(0.9)
-                .curiosity_drive(0.5)
-                .movement_expressiveness(0.3)
-                .sound_expressiveness(0.2)
-                .light_expressiveness(0.4)
-                .build()
-                .expect("Calm preset should be valid"),
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
 
-            PersonalityPreset::Anxious => Personality::builder()
-                .id("preset-anxious")
-                .name("Anxious")
-                .icon('%')
-                .tension_baseline(0.8)
-                .coherence_baseline(0.3)
-                .energy_baseline(0.6)
-                .startle_sensitivity(1.0)
-                .recovery_speed(0.2)
-                .curiosity_drive(0.4)
-                .movement_expressiveness(0.6)
-                .sound_expressiveness(0.5)
-                .light_expressiveness(0.6)
-                .build()
-                .expect("Anxious preset should be valid"),
+                builder.build().expect("Timid preset should be valid")
+            }
+
+            PersonalityPreset::Adventurous => {
+                let mut builder = Personality::builder()
+                    .id("preset-adventurous")
+                    .name("Adventurous")
+                    .icon('+')
+                    .tension_baseline(0.3)
+                    .coherence_baseline(0.7)
+                    .energy_baseline(0.8)
+                    .startle_sensitivity(0.3)
+                    .recovery_speed(0.7)
+                    .curiosity_drive(0.9)
+                    .movement_expressiveness(0.8)
+                    .sound_expressiveness(0.7)
+                    .light_expressiveness(0.8);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Adventurous preset should be valid")
+            }
+
+            PersonalityPreset::Shy => {
+                let mut builder = Personality::builder()
+                    .id("preset-shy")
+                    .name("Shy")
+                    .icon('-')
+                    .tension_baseline(0.6)
+                    .coherence_baseline(0.5)
+                    .energy_baseline(0.3)
+                    .startle_sensitivity(0.8)
+                    .recovery_speed(0.3)
+                    .curiosity_drive(0.5)
+                    .movement_expressiveness(0.2)
+                    .sound_expressiveness(0.1)
+                    .light_expressiveness(0.3);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Shy preset should be valid")
+            }
+
+            PersonalityPreset::Grumpy => {
+                let mut builder = Personality::builder()
+                    .id("preset-grumpy")
+                    .name("Grumpy")
+                    .icon('#')
+                    .tension_baseline(0.7)
+                    .coherence_baseline(0.3)
+                    .energy_baseline(0.4)
+                    .startle_sensitivity(0.7)
+                    .recovery_speed(0.3)
+                    .curiosity_drive(0.2)
+                    .movement_expressiveness(0.5)
+                    .sound_expressiveness(0.4)
+                    .light_expressiveness(0.4);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Grumpy preset should be valid")
+            }
+
+            PersonalityPreset::Cheerful => {
+                let mut builder = Personality::builder()
+                    .id("preset-cheerful")
+                    .name("Cheerful")
+                    .icon('^')
+                    .tension_baseline(0.2)
+                    .coherence_baseline(0.8)
+                    .energy_baseline(0.8)
+                    .startle_sensitivity(0.4)
+                    .recovery_speed(0.8)
+                    .curiosity_drive(0.7)
+                    .movement_expressiveness(0.8)
+                    .sound_expressiveness(0.9)
+                    .light_expressiveness(0.9);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Cheerful preset should be valid")
+            }
+
+            PersonalityPreset::Cautious => {
+                let mut builder = Personality::builder()
+                    .id("preset-cautious")
+                    .name("Cautious")
+                    .icon('~')
+                    .tension_baseline(0.5)
+                    .coherence_baseline(0.7)
+                    .energy_baseline(0.5)
+                    .startle_sensitivity(0.6)
+                    .recovery_speed(0.5)
+                    .curiosity_drive(0.6)
+                    .movement_expressiveness(0.4)
+                    .sound_expressiveness(0.3)
+                    .light_expressiveness(0.5);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Cautious preset should be valid")
+            }
+
+            PersonalityPreset::Playful => {
+                let mut builder = Personality::builder()
+                    .id("preset-playful")
+                    .name("Playful")
+                    .icon('@')
+                    .tension_baseline(0.3)
+                    .coherence_baseline(0.6)
+                    .energy_baseline(0.9)
+                    .startle_sensitivity(0.5)
+                    .recovery_speed(0.9)
+                    .curiosity_drive(0.8)
+                    .movement_expressiveness(0.9)
+                    .sound_expressiveness(0.8)
+                    .light_expressiveness(0.8);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Playful preset should be valid")
+            }
+
+            PersonalityPreset::Serious => {
+                let mut builder = Personality::builder()
+                    .id("preset-serious")
+                    .name("Serious")
+                    .icon('=')
+                    .tension_baseline(0.4)
+                    .coherence_baseline(0.9)
+                    .energy_baseline(0.6)
+                    .startle_sensitivity(0.3)
+                    .recovery_speed(0.6)
+                    .curiosity_drive(0.6)
+                    .movement_expressiveness(0.5)
+                    .sound_expressiveness(0.4)
+                    .light_expressiveness(0.5);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Serious preset should be valid")
+            }
+
+            PersonalityPreset::Energetic => {
+                let mut builder = Personality::builder()
+                    .id("preset-energetic")
+                    .name("Energetic")
+                    .icon('&')
+                    .tension_baseline(0.5)
+                    .coherence_baseline(0.6)
+                    .energy_baseline(1.0)
+                    .startle_sensitivity(0.6)
+                    .recovery_speed(0.7)
+                    .curiosity_drive(0.8)
+                    .movement_expressiveness(1.0)
+                    .sound_expressiveness(0.9)
+                    .light_expressiveness(0.9);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Energetic preset should be valid")
+            }
+
+            PersonalityPreset::Calm => {
+                let mut builder = Personality::builder()
+                    .id("preset-calm")
+                    .name("Calm")
+                    .icon('_')
+                    .tension_baseline(0.1)
+                    .coherence_baseline(0.9)
+                    .energy_baseline(0.4)
+                    .startle_sensitivity(0.2)
+                    .recovery_speed(0.9)
+                    .curiosity_drive(0.5)
+                    .movement_expressiveness(0.3)
+                    .sound_expressiveness(0.2)
+                    .light_expressiveness(0.4);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Calm preset should be valid")
+            }
+
+            PersonalityPreset::Anxious => {
+                let mut builder = Personality::builder()
+                    .id("preset-anxious")
+                    .name("Anxious")
+                    .icon('%')
+                    .tension_baseline(0.8)
+                    .coherence_baseline(0.3)
+                    .energy_baseline(0.6)
+                    .startle_sensitivity(1.0)
+                    .recovery_speed(0.2)
+                    .curiosity_drive(0.4)
+                    .movement_expressiveness(0.6)
+                    .sound_expressiveness(0.5)
+                    .light_expressiveness(0.6);
+
+                for quirk in self.default_quirks() {
+                    builder = builder.quirk(*quirk);
+                }
+
+                builder.build().expect("Anxious preset should be valid")
+            }
         }
     }
 }

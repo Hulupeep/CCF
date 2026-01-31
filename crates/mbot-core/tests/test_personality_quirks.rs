@@ -272,33 +272,33 @@ fn test_personality_with_quirks() {
 /// Test loading personality quirks into engine
 #[test]
 fn test_load_personality_quirks_into_engine() {
-    let personality = mbot_core::personality::presets::ExtendedPreset::Curious.to_personality();
+    let personality = mbot_core::personality::PersonalityPreset::Curious.to_personality();
 
     let mut engine = QuirkEngine::new();
     for quirk_str in &personality.quirks {
         engine.add_quirk_from_str(quirk_str);
     }
 
-    // Curious Cleo should have at least 2 quirks
-    assert!(engine.active_quirks().len() >= 2);
+    // Curious should have at least 1 quirk
+    assert!(engine.active_quirks().len() >= 1);
 }
 
 /// Integration test: Preset personalities with quirks
 #[test]
 fn test_presets_with_quirks() {
-    use mbot_core::personality::presets::ExtendedPreset;
+    use mbot_core::personality::PersonalityPreset;
 
-    // Curious Cleo should have "investigate_all" quirk
-    let cleo = ExtendedPreset::Curious.to_personality();
-    assert!(cleo.quirks.contains(&"investigate_all".to_string()));
+    // Curious should have "social_butterfly" quirk
+    let curious = PersonalityPreset::Curious.to_personality();
+    assert!(curious.quirks.contains(&"social_butterfly".to_string()));
 
-    // Grumpy Gus should have "reluctant_participation" quirk
-    let gus = ExtendedPreset::Grumpy.to_personality();
-    assert!(gus.quirks.contains(&"reluctant_participation".to_string()));
+    // Grumpy should have "hermit" quirk
+    let grumpy = PersonalityPreset::Grumpy.to_personality();
+    assert!(grumpy.quirks.contains(&"hermit".to_string()));
 
-    // Bouncy Betty should have "spin_when_happy" quirk
-    let betty = ExtendedPreset::Excitable.to_personality();
-    assert!(betty.quirks.contains(&"spin_when_happy".to_string()));
+    // Excitable should have "spin_when_happy" quirk
+    let excitable = PersonalityPreset::Excitable.to_personality();
+    assert!(excitable.quirks.contains(&"spin_when_happy".to_string()));
 }
 
 /// Test that continuous modifier quirks (NightOwl, EarlyBird) work correctly

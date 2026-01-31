@@ -1,5 +1,14 @@
 //! Personality Persistence (#23)
 
+#[cfg(feature = "no_std")]
+extern crate alloc;
+
+#[cfg(feature = "no_std")]
+use alloc::string::{String, ToString};
+
+#[cfg(not(feature = "no_std"))]
+use std::string::{String, ToString};
+
 use super::Personality;
 
 pub fn to_json(p: &Personality) -> Result<String, String> {

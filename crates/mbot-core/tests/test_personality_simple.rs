@@ -128,62 +128,39 @@ fn test_invalid_json() {
 
 #[cfg(feature = "std")]
 #[test]
-fn test_quirk_creation() {
-    let quirk = Quirk::new(
-        "RandomSigh".to_string(),
-        "timer > 30".to_string(),
-        "play_sound(sigh)".to_string(),
-        0.1,
-    );
-
-    assert_eq!(quirk.name, "RandomSigh");
-    assert_eq!(quirk.trigger_condition, "timer > 30");
-    assert_eq!(quirk.behavior, "play_sound(sigh)");
-    assert_eq!(quirk.frequency, 0.1);
+fn test_quirk_enum_all() {
+    // Test that all 9 quirks are present
+    let quirks = Quirk::all();
+    assert_eq!(quirks.len(), 9);
 }
 
 #[cfg(feature = "std")]
 #[test]
-fn test_quirk_frequency_clamping() {
-    // Frequency should be clamped to [0.0, 1.0]
-    let quirk_low = Quirk::new(
-        "Test".to_string(),
-        "always".to_string(),
-        "do_thing".to_string(),
-        -0.5,
-    );
-    assert_eq!(quirk_low.frequency, 0.0, "Should clamp negative to 0.0");
+fn test_quirk_string_conversion() {
+    // Test string conversion for sample quirks
+    let quirk = Quirk::RandomSigh;
+    assert_eq!(quirk.to_str(), "random_sigh");
 
-    let quirk_high = Quirk::new(
-        "Test".to_string(),
-        "always".to_string(),
-        "do_thing".to_string(),
-        2.0,
-    );
-    assert_eq!(quirk_high.frequency, 1.0, "Should clamp > 1.0 to 1.0");
+    let parsed = Quirk::from_str("random_sigh");
+    assert_eq!(parsed, Some(Quirk::RandomSigh));
+}
 
-    let quirk_valid = Quirk::new(
-        "Test".to_string(),
-        "always".to_string(),
-        "do_thing".to_string(),
-        0.5,
-    );
-    assert_eq!(quirk_valid.frequency, 0.5, "Should preserve valid value");
+#[cfg(feature = "std")]
+#[test]
+fn test_quirk_config_default() {
+    // Test that default config works for all quirks
+    for quirk in Quirk::all() {
+        use mbot_core::personality::quirks::QuirkConfig;
+        let config = QuirkConfig::default_for(*quirk);
+        assert_eq!(config.quirk, *quirk);
+        assert!(config.activation_chance >= 0.0 && config.activation_chance <= 1.0);
+    }
 }
 
 #[cfg(feature = "std")]
 #[test]
 fn test_quirk_clone() {
-    let original = Quirk::new(
-        "Test".to_string(),
-        "trigger".to_string(),
-        "behavior".to_string(),
-        0.5,
-    );
-
-    let cloned = original.clone();
-    assert_eq!(cloned.name, original.name);
-    assert_eq!(cloned.trigger_condition, original.trigger_condition);
-    assert_eq!(cloned.behavior, original.behavior);
-    assert_eq!(cloned.frequency, original.frequency);
+    let original = Quirk::SpinWhenHappy;
+    let cloned = original;
+    assert_eq!(cloned, original);
 }

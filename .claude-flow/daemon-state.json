@@ -1,0 +1,135 @@
+{
+  "running": true,
+  "startedAt": "2026-01-30T22:58:18.712Z",
+  "workers": {
+    "map": {
+      "runCount": 24,
+      "successCount": 24,
+      "failureCount": 0,
+      "averageDurationMs": 0.3333333333333333,
+      "lastRun": "2026-01-30T23:04:18.813Z",
+      "nextRun": "2026-01-30T23:13:18.714Z",
+      "isRunning": false
+    },
+    "audit": {
+      "runCount": 27,
+      "successCount": 0,
+      "failureCount": 27,
+      "averageDurationMs": 0,
+      "lastRun": "2026-01-30T17:14:02.061Z",
+      "nextRun": "2026-01-30T23:10:18.813Z",
+      "isRunning": true
+    },
+    "optimize": {
+      "runCount": 19,
+      "successCount": 0,
+      "failureCount": 19,
+      "averageDurationMs": 0,
+      "lastRun": "2026-01-30T23:07:18.872Z",
+      "nextRun": "2026-01-30T23:02:18.712Z",
+      "isRunning": false
+    },
+    "consolidate": {
+      "runCount": 12,
+      "successCount": 12,
+      "failureCount": 0,
+      "averageDurationMs": 0.5833333333333334,
+      "lastRun": "2026-01-30T23:04:18.812Z",
+      "nextRun": "2026-01-30T23:34:18.813Z",
+      "isRunning": false
+    },
+    "testgaps": {
+      "runCount": 15,
+      "successCount": 0,
+      "failureCount": 15,
+      "averageDurationMs": 0,
+      "lastRun": "2026-01-30T17:17:00.027Z",
+      "nextRun": "2026-01-30T23:26:18.812Z",
+      "isRunning": false
+    },
+    "predict": {
+      "runCount": 0,
+      "successCount": 0,
+      "failureCount": 0,
+      "averageDurationMs": 0,
+      "isRunning": false
+    },
+    "document": {
+      "runCount": 0,
+      "successCount": 0,
+      "failureCount": 0,
+      "averageDurationMs": 0,
+      "isRunning": false
+    }
+  },
+  "config": {
+    "autoStart": false,
+    "logDir": "/home/xanacan/projects/code/mbot/mbot_ruvector/.claude-flow/logs",
+    "stateFile": "/home/xanacan/projects/code/mbot/mbot_ruvector/.claude-flow/daemon-state.json",
+    "maxConcurrent": 2,
+    "workerTimeoutMs": 300000,
+    "resourceThresholds": {
+      "maxCpuLoad": 2,
+      "minFreeMemoryPercent": 20
+    },
+    "workers": [
+      {
+        "type": "map",
+        "intervalMs": 900000,
+        "offsetMs": 0,
+        "priority": "normal",
+        "description": "Codebase mapping",
+        "enabled": true
+      },
+      {
+        "type": "audit",
+        "intervalMs": 600000,
+        "offsetMs": 120000,
+        "priority": "critical",
+        "description": "Security analysis",
+        "enabled": true
+      },
+      {
+        "type": "optimize",
+        "intervalMs": 900000,
+        "offsetMs": 240000,
+        "priority": "high",
+        "description": "Performance optimization",
+        "enabled": true
+      },
+      {
+        "type": "consolidate",
+        "intervalMs": 1800000,
+        "offsetMs": 360000,
+        "priority": "low",
+        "description": "Memory consolidation",
+        "enabled": true
+      },
+      {
+        "type": "testgaps",
+        "intervalMs": 1200000,
+        "offsetMs": 480000,
+        "priority": "normal",
+        "description": "Test coverage analysis",
+        "enabled": true
+      },
+      {
+        "type": "predict",
+        "intervalMs": 600000,
+        "offsetMs": 0,
+        "priority": "low",
+        "description": "Predictive preloading",
+        "enabled": false
+      },
+      {
+        "type": "document",
+        "intervalMs": 3600000,
+        "offsetMs": 0,
+        "priority": "low",
+        "description": "Auto-documentation",
+        "enabled": false
+      }
+    ]
+  },
+  "savedAt": "2026-01-30T23:07:18.872Z"
+}

@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-01-30T23:04:18.813Z",
+  "projectRoot": "/home/xanacan/projects/code/mbot/mbot_ruvector",
+  "structure": {
+    "hasPackageJson": true,
+    "hasTsConfig": false,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1769814258813
+}
