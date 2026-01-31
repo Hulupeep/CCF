@@ -48,6 +48,8 @@ npm start
 open http://localhost:3000
 ```
 
+**New to the web dashboard?** See the [Master Setup Guide](../docs/MASTER_GUIDE.md#web-dashboard) for complete instructions on setup, usage, and troubleshooting.
+
 ## Architecture
 
 ```

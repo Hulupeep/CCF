@@ -64,6 +64,13 @@ Watch the nervous system fire in real-time. Adjust parameters, see behavior chan
 - Laptop with Bluetooth
 - Optionally: Servo + pen for drawing
 
+### 📚 Complete Setup Guide
+
+**New to mBot RuVector?** Start here:
+- **[Master Setup Guide](docs/MASTER_GUIDE.md)** - Complete installation, connection, and deployment guide
+- **[Application Guides](docs/APP_GUIDES.md)** - Detailed guides for all 6 applications
+- **[Web Dashboard Guide](web/README.md)** - Dashboard features and usage
+
 ### Run in Simulation (No Hardware)
 ```bash
 git clone https://github.com/Hulupeep/mbot_ruvector.git
@@ -78,11 +85,11 @@ Watch the robot's "brain" in your terminal. It's thinking. It's feeling. It's al
 # Install dependencies (Ubuntu/Debian)
 sudo apt install libdbus-1-dev libudev-dev pkg-config
 
-# Connect via Bluetooth
-cargo run --features bluetooth --bin mbot-companion -- --bluetooth
-
-# Or via USB Serial
+# Connect via USB Serial (recommended)
 cargo run --features serial --bin mbot-companion -- --serial /dev/ttyUSB0
+
+# Or via Bluetooth
+cargo run --features bluetooth --bin mbot-companion -- --bluetooth
 ```
 
 ### Start the Dashboard
@@ -93,6 +100,24 @@ npm start
 ```
 
 Open `http://localhost:3000` - see the nervous system in real-time.
+
+### 🎮 Run Specific Applications
+
+```bash
+# Drawing with personality
+cargo run --release --bin draw -- --serial /dev/ttyUSB0
+
+# Play Tic-Tac-Toe
+cargo run --release --bin tictactoe -- --serial /dev/ttyUSB0
+
+# Color detection
+cargo run --release --bin mbot-companion -- --serial /dev/ttyUSB0 --mode color-detect
+
+# LEGO sorting
+cargo run --release --bin mbot-companion -- --serial /dev/ttyUSB0 --mode sort
+```
+
+See [Application Guides](docs/APP_GUIDES.md) for complete instructions.
 
 ---
 
