@@ -8,3 +8,4 @@ pub mod protocol;
 pub mod sorter;
 pub mod tictactoe_logic;
 pub mod transport;
+pub mod websocket_v2;
