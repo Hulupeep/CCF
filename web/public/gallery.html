@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawing Gallery - mBot2 RuVector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 32px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .nav a {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.3s;
+        }
+
+        .nav a:hover {
+            background: #e0e0e0;
+        }
+
+        .nav a.active {
+            background: #667eea;
+            color: white;
+        }
+
+        #root {
+            min-height: 400px;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 16px;
+            margin-bottom: 24px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status.ready {
+            background: #4caf50;
+            color: white;
+        }
+
+        .status.pending {
+            background: #ff9800;
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #e0e0e0;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎨 Drawing Gallery</h1>
+            <p class="subtitle">View, organize, and export your mBot2 artwork</p>
+        </header>
+
+        <nav class="nav">
+            <a href="index.html">Neural Visualizer</a>
+            <a href="personality-mixer.html">Personality Mixer</a>
+            <a href="gallery.html" class="active">Drawing Gallery</a>
+            <a href="projects.html">Projects</a>
+            <a href="download.html">Download</a>
+        </nav>
+
+        <div class="info-box">
+            <h3>📚 About the Gallery</h3>
+            <p>
+                This gallery stores all drawings created by your mBot2 using IndexedDB for persistent storage.
+                Each drawing includes full stroke data, mood information, and playback capability.
+                You can filter by mood, date, or session, and export your artwork in PNG, SVG, or JSON formats.
+            </p>
+            <p style="margin-top: 8px;">
+                <strong>Status:</strong> <span class="status ready">Ready</span>
+                <strong style="margin-left: 16px;">Contract:</strong> ART-001, ART-002, ART-005, I-ART-GAL-001
+            </p>
+        </div>
+
+        <div id="root">
+            <!-- React DrawingGallery component will be mounted here -->
+            <div style="text-align: center; padding: 48px; color: #666;">
+                <h3>Loading Drawing Gallery...</h3>
+                <p style="margin-top: 16px;">
+                    To use this component, you need to build the React application first.
+                </p>
+                <p style="margin-top: 8px;">
+                    Run: <code style="background: #f5f5f5; padding: 4px 8px; border-radius: 4px;">npm run build</code>
+                </p>
+            </div>
+        </div>
+
+        <div style="margin-top: 32px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+            <h3 style="margin-bottom: 12px;">🎯 Features</h3>
+            <ul style="list-style-position: inside; color: #555; line-height: 2;">
+                <li><strong>Gallery Grid:</strong> Browse all drawings with thumbnails (20 per page)</li>
+                <li><strong>Playback:</strong> Watch drawings animate stroke-by-stroke at original speed</li>
+                <li><strong>Filtering:</strong> Filter by mood (Calm, Active, Spike, Protect), date range, or session</li>
+                <li><strong>Search:</strong> Find drawings by session ID or date</li>
+                <li><strong>Metadata:</strong> View mood transitions, tension/coherence/energy levels, duration</li>
+                <li><strong>Export:</strong> Download as PNG (1200x900), SVG (vector), or JSON (raw data)</li>
+                <li><strong>Delete:</strong> Remove unwanted drawings with confirmation</li>
+                <li><strong>Pagination:</strong> Navigate through large collections efficiently</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 24px; padding: 20px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+            <h3 style="margin-bottom: 12px; color: #856404;">⚙️ Setup Instructions</h3>
+            <ol style="list-style-position: inside; color: #856404; line-height: 2;">
+                <li>Install dependencies: <code>cd web && npm install</code></li>
+                <li>Install React dependencies: <code>npm install react react-dom @types/react @types/react-dom</code></li>
+                <li>Install testing libraries: <code>npm install --save-dev @testing-library/react @testing-library/jest-dom</code></li>
+                <li>Build the application: <code>npm run build</code></li>
+                <li>Start the server: <code>npm start</code></li>
+                <li>Navigate to: <a href="http://localhost:3000/gallery.html">http://localhost:3000/gallery.html</a></li>
+            </ol>
+        </div>
+
+        <div style="margin-top: 24px; padding: 20px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
+            <h3 style="margin-bottom: 12px; color: #2e7d32;">✅ Contract Compliance</h3>
+            <ul style="list-style: none; color: #2e7d32; line-height: 2;">
+                <li>✓ <strong>I-ART-GAL-001:</strong> All stroke data (paths, timestamps, moods) saved to IndexedDB</li>
+                <li>✓ <strong>I-ART-GAL-002:</strong> Playback matches original drawing speed exactly</li>
+                <li>✓ <strong>ART-001:</strong> Shape data preserved with geometric accuracy</li>
+                <li>✓ <strong>ART-002:</strong> Mood events tracked throughout drawing session</li>
+                <li>✓ <strong>ART-005:</strong> All metadata persists across sessions</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>mBot2 RuVector AI Dashboard | Contract: J-ART-FIRST-DRAWING | Issue #60</p>
+            <p style="margin-top: 4px;">Drawing Gallery implements STORY-ART-006</p>
+        </footer>
+    </div>
+
+    <!-- This would be replaced with the actual React bundle in production -->
+    <script>
+        // Placeholder for React app initialization
+        console.log('DrawingGallery component location: web/src/components/DrawingGallery.tsx');
+        console.log('To integrate, build React app and include bundle script here');
+    </script>
+</body>
+</html>

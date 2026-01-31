@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Visualizer - mBot2 RuVector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #0f172a;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        #root {
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-size: 24px;
+            color: #60a5fa;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="loading">Loading Neural Visualizer</div>
+    </div>
+
+    <!-- React Component will be loaded here -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <!-- Inline React Component (for development) -->
+    <script type="module">
+        // This is a placeholder for the built React component
+        // In production, use webpack to bundle the TypeScript component
+
+        console.log('Neural Visualizer starting...');
+        console.log('WebSocket URL: ws://localhost:8081');
+
+        // Simple vanilla JS implementation for immediate use
+        const root = document.getElementById('root');
+
+        // Create basic UI structure
+        root.innerHTML = `
+            <div style="padding: 20px; background-color: #0f172a; min-height: 100vh;">
+                <div style="border-bottom: 2px solid #1e293b; padding-bottom: 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                    <h1>Neural Visualizer</h1>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div id="connection-status" style="width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444;"></div>
+                        <span id="connection-text">Connecting...</span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <h2>Current Mode</h2>
+                        <canvas id="mode-canvas" data-testid="neural-mode-indicator" width="400" height="200" style="width: 100%; height: auto; background-color: #1e293b; border-radius: 8px;"></canvas>
+                    </div>
+                    <div>
+                        <h2>Neural State</h2>
+                        <canvas id="meters-canvas" data-testid="neural-tension-meter" width="400" height="400" style="width: 100%; height: auto; background-color: #1e293b; border-radius: 8px;"></canvas>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h2>Timeline (Last 60 seconds)</h2>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="play-pause" style="padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">⏸ Pause</button>
+                            <button id="zoom-in" style="padding: 8px 16px; background-color: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">🔍+</button>
+                            <button id="zoom-out" style="padding: 8px 16px; background-color: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">🔍-</button>
+                            <button id="zoom-reset" style="padding: 8px 16px; background-color: #6366f1; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset Zoom</button>
+                        </div>
+                    </div>
+                    <canvas id="timeline-canvas" data-testid="neural-timeline-chart" width="1200" height="300" style="width: 100%; height: auto; background-color: #1e293b; border-radius: 8px; cursor: crosshair;"></canvas>
+                    <div id="scrub-info" style="margin-top: 10px; font-size: 12px; color: #9ca3af;"></div>
+                </div>
+
+                <div style="border-top: 2px solid #1e293b; padding-top: 20px;">
+                    <h2>Export Data</h2>
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button id="export-csv" data-testid="export-data-button" style="padding: 10px 20px; background-color: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">Export CSV</button>
+                        <button id="export-json" style="padding: 10px 20px; background-color: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer;">Export JSON</button>
+                    </div>
+                    <div id="data-info" style="margin-top: 10px; font-size: 12px; color: #9ca3af;">0 data points • 0 seconds recorded</div>
+                </div>
+            </div>
+        `;
+
+        // Initialize visualizer
+        const history = [];
+        const maxHistoryMs = 300 * 1000; // 5 minutes
+        let isPaused = false;
+        let zoom = 1;
+        let ws = null;
+        let currentState = null;
+
+        // Setup canvases
+        const modeCanvas = document.getElementById('mode-canvas');
+        const metersCanvas = document.getElementById('meters-canvas');
+        const timelineCanvas = document.getElementById('timeline-canvas');
+
+        const modeCtx = modeCanvas.getContext('2d');
+        const metersCtx = metersCanvas.getContext('2d');
+        const timelineCtx = timelineCanvas.getContext('2d');
+
+        // WebSocket connection
+        function connect() {
+            ws = new WebSocket('ws://localhost:8081');
+
+            ws.onopen = () => {
+                console.log('Connected to mBot server');
+                document.getElementById('connection-status').style.backgroundColor = '#10b981';
+                document.getElementById('connection-text').textContent = 'Connected';
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                currentState = {
+                    timestamp: Date.now(),
+                    mode: data.mode,
+                    tension: data.tension,
+                    coherence: data.coherence,
+                    energy: data.energy,
+                    curiosity: data.curiosity,
+                };
+
+                if (!isPaused) {
+                    history.push(currentState);
+
+                    // Prune old data
+                    const cutoff = Date.now() - maxHistoryMs;
+                    while (history.length > 0 && history[0].timestamp < cutoff) {
+                        history.shift();
+                    }
+
+                    updateDataInfo();
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('Disconnected');
+                document.getElementById('connection-status').style.backgroundColor = '#ef4444';
+                document.getElementById('connection-text').textContent = 'Disconnected';
+                setTimeout(connect, 3000);
+            };
+        }
+
+        connect();
+
+        // Render functions
+        function render() {
+            if (currentState) {
+                renderMode(currentState);
+                renderMeters(currentState);
+            }
+            renderTimeline();
+            requestAnimationFrame(render);
+        }
+
+        function renderMode(state) {
+            const w = modeCanvas.width;
+            const h = modeCanvas.height;
+            modeCtx.clearRect(0, 0, w, h);
+
+            const colors = { Calm: '#4ade80', Active: '#60a5fa', Spike: '#f59e0b', Protect: '#ef4444' };
+            const icons = { Calm: '😌', Active: '🤔', Spike: '⚡', Protect: '🛡️' };
+
+            modeCtx.fillStyle = colors[state.mode] || '#60a5fa';
+            modeCtx.beginPath();
+            modeCtx.arc(w / 2, h / 2 - 20, 40, 0, Math.PI * 2);
+            modeCtx.fill();
+
+            modeCtx.font = '48px sans-serif';
+            modeCtx.textAlign = 'center';
+            modeCtx.textBaseline = 'middle';
+            modeCtx.fillText(icons[state.mode] || '🤖', w / 2, h / 2 - 20);
+
+            modeCtx.font = '24px monospace';
+            modeCtx.fillStyle = '#ffffff';
+            modeCtx.fillText(state.mode, w / 2, h / 2 + 40);
+        }
+
+        function renderMeters(state) {
+            const w = metersCanvas.width;
+            metersCtx.clearRect(0, 0, w, metersCanvas.height);
+
+            const meters = [
+                { label: 'Tension', value: state.tension, color: `rgb(${Math.floor(state.tension * 255)}, 0, 0)` },
+                { label: 'Energy', value: state.energy, color: `rgb(0, 0, ${Math.floor(state.energy * 255)})` },
+                { label: 'Coherence', value: state.coherence, color: '#10b981' },
+                { label: 'Curiosity', value: state.curiosity, color: '#8b5cf6' }
+            ];
+
+            let y = 40;
+            meters.forEach(meter => {
+                metersCtx.fillStyle = '#1f2937';
+                metersCtx.fillRect(40, y, w - 80, 30);
+
+                metersCtx.fillStyle = meter.color;
+                metersCtx.fillRect(40, y, (w - 80) * meter.value, 30);
+
+                metersCtx.strokeStyle = '#4b5563';
+                metersCtx.lineWidth = 2;
+                metersCtx.strokeRect(40, y, w - 80, 30);
+
+                metersCtx.fillStyle = '#ffffff';
+                metersCtx.font = '14px monospace';
+                metersCtx.textAlign = 'left';
+                metersCtx.fillText(meter.label, 40, y - 10);
+
+                metersCtx.textAlign = 'right';
+                metersCtx.fillText((meter.value * 100).toFixed(0) + '%', w - 40, y - 10);
+
+                y += 80;
+            });
+        }
+
+        function renderTimeline() {
+            const w = timelineCanvas.width;
+            const h = timelineCanvas.height;
+            timelineCtx.clearRect(0, 0, w, h);
+
+            const padding = 40;
+            const chartW = w - 2 * padding;
+            const chartH = h - 2 * padding;
+
+            timelineCtx.fillStyle = '#111827';
+            timelineCtx.fillRect(padding, padding, chartW, chartH);
+
+            if (history.length > 0) {
+                const now = Date.now();
+                const duration = 60000; // 60 seconds
+
+                // Draw tension line
+                timelineCtx.strokeStyle = 'rgb(200, 0, 0)';
+                timelineCtx.lineWidth = 2;
+                timelineCtx.beginPath();
+
+                history.forEach((state, i) => {
+                    const age = now - state.timestamp;
+                    if (age > duration) return;
+
+                    const x = padding + chartW * (1 - age / duration);
+                    const y = padding + chartH * (1 - state.tension);
+
+                    if (i === 0) timelineCtx.moveTo(x, y);
+                    else timelineCtx.lineTo(x, y);
+                });
+
+                timelineCtx.stroke();
+
+                // Draw energy line
+                timelineCtx.strokeStyle = 'rgb(0, 0, 200)';
+                timelineCtx.beginPath();
+
+                history.forEach((state, i) => {
+                    const age = now - state.timestamp;
+                    if (age > duration) return;
+
+                    const x = padding + chartW * (1 - age / duration);
+                    const y = padding + chartH * (1 - state.energy);
+
+                    if (i === 0) timelineCtx.moveTo(x, y);
+                    else timelineCtx.lineTo(x, y);
+                });
+
+                timelineCtx.stroke();
+            }
+        }
+
+        function updateDataInfo() {
+            const info = document.getElementById('data-info');
+            info.textContent = `${history.length} data points • ${Math.floor(history.length / 20)} seconds recorded`;
+        }
+
+        // Button handlers
+        document.getElementById('play-pause').onclick = () => {
+            isPaused = !isPaused;
+            document.getElementById('play-pause').textContent = isPaused ? '▶ Play' : '⏸ Pause';
+        };
+
+        document.getElementById('zoom-in').onclick = () => {
+            zoom = Math.min(zoom + 0.25, 3);
+            timelineCanvas.style.transform = `scale(${zoom})`;
+        };
+
+        document.getElementById('zoom-out').onclick = () => {
+            zoom = Math.max(zoom - 0.25, 0.5);
+            timelineCanvas.style.transform = `scale(${zoom})`;
+        };
+
+        document.getElementById('zoom-reset').onclick = () => {
+            zoom = 1;
+            timelineCanvas.style.transform = 'scale(1)';
+        };
+
+        document.getElementById('export-csv').onclick = () => {
+            const csv = [
+                'timestamp,mode,tension,coherence,energy,curiosity',
+                ...history.map(s => `${s.timestamp},${s.mode},${s.tension},${s.coherence},${s.energy},${s.curiosity}`)
+            ].join('\\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `neural-data-${Date.now()}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        document.getElementById('export-json').onclick = () => {
+            const json = JSON.stringify(history, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `neural-data-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        // Start rendering
+        render();
+    </script>
+</body>
+</html>
