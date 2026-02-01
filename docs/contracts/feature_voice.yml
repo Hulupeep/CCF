@@ -1,0 +1,253 @@
+name: Voice Command System
+description: Voice recognition and command processing for hands-free robot control
+version: 1.0.0
+domain: VOICE
+status: active
+
+invariants:
+  - id: I-VOICE-001
+    description: Voice commands must execute within 500ms of recognition
+    severity: critical
+    test_file: tests/voice/command-latency.test.ts
+    validation:
+      - Command recognition to action dispatch <= 500ms
+      - Performance tracked via metrics service
+      - Exceeding threshold triggers warning log
+
+  - id: I-VOICE-002
+    description: System must handle ambient noise (>50dB) without false triggers
+    severity: critical
+    test_file: tests/voice/noise-handling.test.ts
+    validation:
+      - Confidence threshold filtering (default 0.7)
+      - Background noise level monitoring
+      - False positive rate < 5% in 50-60dB environments
+      - Configurable noise threshold in settings
+
+  - id: I-VOICE-003
+    description: Voice feedback must be non-blocking (visual + optional audio)
+    severity: important
+    test_file: tests/voice/feedback.test.ts
+    validation:
+      - Visual feedback always shown (transcript + action)
+      - Audio feedback is optional (user-configurable)
+      - UI never blocks during recognition
+      - Feedback animations < 300ms
+
+bounded_parameters:
+  confidence_threshold:
+    range: [0.0, 1.0]
+    default: 0.7
+    description: Minimum confidence for command recognition
+
+  noise_threshold:
+    range: [0, 120]
+    unit: dB
+    default: 50
+    description: Maximum ambient noise level for recognition
+
+  command_timeout:
+    range: [100, 5000]
+    unit: ms
+    default: 500
+    description: Maximum time from recognition to action
+
+contracts:
+  - id: VOICE-001
+    description: Web Speech API Integration
+    requirements:
+      - Use SpeechRecognition API (webkit fallback)
+      - Graceful degradation if API unavailable
+      - Microphone permission request handling
+      - Browser compatibility check
+    test_file: tests/voice/api-integration.test.ts
+
+  - id: VOICE-002
+    description: Command Pattern Matching
+    requirements:
+      - Regex-based command patterns
+      - Parameter extraction from transcript
+      - Case-insensitive matching
+      - Support 15+ voice commands
+    test_file: tests/voice/pattern-matching.test.ts
+
+  - id: VOICE-003
+    description: Wake Word Detection
+    requirements:
+      - Configurable wake word (default "hey robot")
+      - Continuous listening mode
+      - Wake word activates command processing
+      - Visual indicator for listening state
+    test_file: tests/voice/wake-word.test.ts
+
+  - id: VOICE-004
+    description: Command Confirmation
+    requirements:
+      - Destructive commands require confirmation
+      - "Are you sure?" prompt with yes/no response
+      - Timeout after 5 seconds (auto-cancel)
+      - Confirmation state tracked in UI
+    test_file: tests/voice/confirmation.test.ts
+
+  - id: VOICE-005
+    description: Command History
+    requirements:
+      - Store last 50 commands in memory
+      - Persist history to localStorage
+      - Display in UI with timestamps
+      - Clear history button
+    test_file: tests/voice/history.test.ts
+
+data_structures:
+  VoiceCommandService:
+    description: Main service for voice recognition and command processing
+    methods:
+      - startListening(): Promise<void>
+      - stopListening(): void
+      - isListening(): boolean
+      - processCommand(transcript: string): Promise<CommandResult>
+      - registerCommand(command: VoiceCommand): void
+      - getSettings(): VoiceSettings
+      - updateSettings(settings: Partial<VoiceSettings>): void
+      - getCommandHistory(): VoiceCommandHistory[]
+      - clearHistory(): void
+
+  VoiceCommand:
+    description: Command definition with pattern and handler
+    fields:
+      - pattern: RegExp
+      - action: string
+      - description: string
+      - requiresConfirmation: boolean
+      - handler: (params: any) => Promise<void>
+
+  CommandResult:
+    description: Result of command processing
+    fields:
+      - recognized: boolean
+      - confidence: number (0-1)
+      - command?: string
+      - params?: any
+      - action?: string
+      - error?: string
+
+  VoiceSettings:
+    description: Voice recognition configuration
+    fields:
+      - enabled: boolean
+      - wakeWordEnabled: boolean
+      - wakeWord: string (default "hey robot")
+      - language: string (default "en-US")
+      - continuous: boolean
+      - interimResults: boolean
+      - audioFeedback: boolean
+      - visualFeedback: boolean (always true)
+      - noiseThreshold: number (dB)
+      - confidenceThreshold: number (0-1)
+
+  VoiceCommandHistory:
+    description: Historical command record
+    fields:
+      - id: string
+      - transcript: string
+      - recognized: boolean
+      - confidence: number
+      - action?: string
+      - timestamp: number
+      - executionTime: number (ms)
+
+supported_commands:
+  mode_control:
+    - pattern: /start (drawing|art)/i
+      action: START_ARTBOT
+      description: Activate ArtBot drawing mode
+
+    - pattern: /play (tic-tac-toe|game)/i
+      action: START_GAME
+      description: Start game mode
+
+    - pattern: /follow me/i
+      action: START_FOLLOW
+      description: Activate follow mode
+
+  personality_control:
+    - pattern: /switch to (\w+)/i
+      action: SWITCH_PERSONALITY
+      description: Load personality preset
+      params: [personality_name]
+
+    - pattern: /(increase|decrease) (\w+) by (\d+)/i
+      action: ADJUST_PARAMETER
+      description: Adjust personality parameter
+      params: [direction, parameter, value]
+
+  robot_control:
+    - pattern: /stop/i
+      action: STOP
+      description: Stop current activity
+
+    - pattern: /dance/i
+      action: DANCE
+      description: Perform dance routine
+
+    - pattern: /go to home/i
+      action: GO_HOME
+      description: Return to home position
+
+  data_commands:
+    - pattern: /show stats/i
+      action: SHOW_STATS
+      description: Display game statistics
+
+    - pattern: /save preset (\w+)/i
+      action: SAVE_PRESET
+      description: Save current personality as preset
+      params: [preset_name]
+
+    - pattern: /delete all drawings/i
+      action: DELETE_DRAWINGS
+      description: Delete all saved artworks
+      confirmation_required: true
+
+performance_requirements:
+  command_latency:
+    target: <= 500ms
+    measurement: recognition_start to action_dispatch
+    test: I-VOICE-001
+
+  recognition_accuracy:
+    target: >= 95%
+    condition: Clean environment (<50dB)
+    test: I-VOICE-002
+
+  false_positive_rate:
+    target: < 5%
+    condition: Noisy environment (50-60dB)
+    test: I-VOICE-002
+
+browser_compatibility:
+  chrome: ">= 25"
+  edge: ">= 79"
+  safari: ">= 14.1"
+  firefox: Experimental (requires flag)
+  fallback: Show "Voice commands not supported" message
+
+dependencies:
+  - Web Speech API (SpeechRecognition)
+  - PersonalityStore (for personality switching)
+  - PerformanceMetrics (for latency tracking)
+  - LocalStorage (for settings and history)
+
+related_contracts:
+  - feature_personality.yml (PERS-001 through PERS-004)
+  - feature_architecture.yml (ARCH-005 transport abstraction)
+
+journey_tests:
+  - file: tests/journeys/voice-control.journey.spec.ts
+    scenarios:
+      - Basic voice command execution
+      - Personality switching via voice
+      - Parameter adjustment commands
+      - Ambient noise handling
+      - Destructive command confirmation
+      - Wake word activation

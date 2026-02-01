@@ -1,5 +1,5 @@
 // Jest setup file for testing
-import '@testing-library/jest-dom';
+require('@testing-library/jest-dom');
 
 // Mock window.devicePixelRatio
 Object.defineProperty(window, 'devicePixelRatio', {
