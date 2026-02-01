@@ -37,32 +37,31 @@ describe('VoiceControl Component', () => {
     VoiceCommandService.resetInstance();
     localStorage.clear();
 
-    // Mock browser APIs
-    (global as any).window = {
-      SpeechRecognition: MockSpeechRecognition,
-      AudioContext: class {
-        currentTime = 0;
-        createOscillator() {
-          return {
-            frequency: { value: 0 },
-            connect: jest.fn(),
-            start: jest.fn(),
-            stop: jest.fn(),
-          };
-        }
-        createGain() {
-          return {
-            gain: {
-              setValueAtTime: jest.fn(),
-              exponentialRampToValueAtTime: jest.fn(),
-            },
-            connect: jest.fn(),
-          };
-        }
-        get destination() {
-          return {};
-        }
-      },
+    // Mock browser APIs directly on window object
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+    (window as any).webkitSpeechRecognition = MockSpeechRecognition;
+    (window as any).AudioContext = class {
+      currentTime = 0;
+      createOscillator() {
+        return {
+          frequency: { value: 0 },
+          connect: jest.fn(),
+          start: jest.fn(),
+          stop: jest.fn(),
+        };
+      }
+      createGain() {
+        return {
+          gain: {
+            setValueAtTime: jest.fn(),
+            exponentialRampToValueAtTime: jest.fn(),
+          },
+          connect: jest.fn(),
+        };
+      }
+      get destination() {
+        return {};
+      }
     };
 
     // Mock console.warn
@@ -401,7 +400,8 @@ describe('VoiceControl Component', () => {
   describe('Browser Compatibility Message', () => {
     it('should show unsupported message when browser lacks API', () => {
       // Remove SpeechRecognition support
-      (global as any).window = {};
+      delete (window as any).SpeechRecognition;
+      delete (window as any).webkitSpeechRecognition;
 
       render(<VoiceControl />);
 

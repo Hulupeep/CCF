@@ -67,10 +67,10 @@ describe('VoiceCommandService - Initialization', () => {
     VoiceCommandService.resetInstance();
     localStorage.clear();
 
-    // Mock SpeechRecognition
-    (global as any).window = {
-      SpeechRecognition: MockSpeechRecognition,
-      AudioContext: class {
+    // Mock SpeechRecognition directly on window object
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+    (window as any).webkitSpeechRecognition = MockSpeechRecognition;
+    (window as any).AudioContext = class {
         currentTime = 0;
         createOscillator() {
           return {
@@ -92,8 +92,7 @@ describe('VoiceCommandService - Initialization', () => {
         get destination() {
           return {};
         }
-      },
-    };
+      };
   });
 
   afterEach(() => {
@@ -196,8 +195,7 @@ describe('VoiceCommandService - I-VOICE-002: Confidence Threshold', () => {
         get destination() {
           return {};
         }
-      },
-    };
+      };
   });
 
   it('should filter commands below confidence threshold', async () => {
@@ -229,31 +227,30 @@ describe('VoiceCommandService - I-VOICE-002: Confidence Threshold', () => {
 describe('VoiceCommandService - Command Processing', () => {
   beforeEach(() => {
     VoiceCommandService.resetInstance();
-    (global as any).window = {
-      SpeechRecognition: MockSpeechRecognition,
-      AudioContext: class {
-        currentTime = 0;
-        createOscillator() {
-          return {
-            frequency: { value: 0 },
-            connect: jest.fn(),
-            start: jest.fn(),
-            stop: jest.fn(),
-          };
-        }
-        createGain() {
-          return {
-            gain: {
-              setValueAtTime: jest.fn(),
-              exponentialRampToValueAtTime: jest.fn(),
-            },
-            connect: jest.fn(),
-          };
-        }
-        get destination() {
-          return {};
-        }
-      },
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+    (window as any).webkitSpeechRecognition = MockSpeechRecognition;
+    (window as any).AudioContext = class {
+      currentTime = 0;
+      createOscillator() {
+        return {
+          frequency: { value: 0 },
+          connect: jest.fn(),
+          start: jest.fn(),
+          stop: jest.fn(),
+        };
+      }
+      createGain() {
+        return {
+          gain: {
+            setValueAtTime: jest.fn(),
+            exponentialRampToValueAtTime: jest.fn(),
+          },
+          connect: jest.fn(),
+        };
+      }
+      get destination() {
+        return {};
+      }
     };
   });
 
@@ -341,8 +338,7 @@ describe('VoiceCommandService - I-VOICE-001: Command Latency', () => {
         get destination() {
           return {};
         }
-      },
-    };
+      };
   });
 
   it('should execute commands within 500ms', async () => {
@@ -418,8 +414,7 @@ describe('VoiceCommandService - VOICE-004: Confirmation', () => {
         get destination() {
           return {};
         }
-      },
-    };
+      };
   });
 
   it('should require confirmation for destructive commands', async () => {
@@ -500,8 +495,7 @@ describe('VoiceCommandService - VOICE-005: History', () => {
         get destination() {
           return {};
         }
-      },
-    };
+      };
   });
 
   it('should add commands to history', async () => {
@@ -589,8 +583,7 @@ describe('VoiceCommandService - VOICE-003: Wake Word', () => {
         get destination() {
           return {};
         }
-      },
-    };
+      };
   });
 
   it('should process command without wake word when disabled', async () => {
@@ -613,7 +606,8 @@ describe('VoiceCommandService - VOICE-003: Wake Word', () => {
 
 describe('VoiceCommandService - Browser Compatibility', () => {
   it('should detect native SpeechRecognition support', () => {
-    (global as any).window = { SpeechRecognition: class {} };
+    (window as any).SpeechRecognition = class {};
+    delete (window as any).webkitSpeechRecognition;
 
     const compat = checkBrowserCompatibility();
 
@@ -622,7 +616,8 @@ describe('VoiceCommandService - Browser Compatibility', () => {
   });
 
   it('should detect webkit-prefixed support', () => {
-    (global as any).window = { webkitSpeechRecognition: class {} };
+    delete (window as any).SpeechRecognition;
+    (window as any).webkitSpeechRecognition = class {};
 
     const compat = checkBrowserCompatibility();
 
@@ -631,7 +626,8 @@ describe('VoiceCommandService - Browser Compatibility', () => {
   });
 
   it('should detect no support', () => {
-    (global as any).window = {};
+    delete (window as any).SpeechRecognition;
+    delete (window as any).webkitSpeechRecognition;
 
     const compat = checkBrowserCompatibility();
 
@@ -667,8 +663,7 @@ describe('VoiceCommandService - Custom Commands', () => {
         get destination() {
           return {};
         }
-      },
-    };
+      };
   });
 
   it('should allow registering custom commands', async () => {
