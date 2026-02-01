@@ -1,0 +1,283 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run nightly to catch performance regressions
+    - cron: '0 0 * * *'
+
+jobs:
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Integration Tests - Cross-App
+        run: npm test -- tests/integration/cross-app.test.ts --coverage --coverageReporters=json --coverageReporters=text
+        env:
+          NODE_ENV: test
+
+      - name: Verify Cross-App Coverage >90%
+        run: |
+          COVERAGE=$(npm test -- tests/integration/cross-app.test.ts --coverage --coverageReporters=json | grep -oP '"lines":\s*\K[0-9.]+' | head -1)
+          echo "Cross-App Coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "❌ Cross-app coverage below 90% (got ${COVERAGE}%)"
+            exit 1
+          fi
+          echo "✓ Cross-app coverage: ${COVERAGE}% (target: >90%)"
+
+      - name: Run Integration Tests - WebSocket V2
+        run: npm test -- tests/integration/websocket-v2.test.ts --coverage --coverageReporters=json --coverageReporters=text
+
+      - name: Verify WebSocket V2 Coverage >85%
+        run: |
+          COVERAGE=$(npm test -- tests/integration/websocket-v2.test.ts --coverage --coverageReporters=json | grep -oP '"lines":\s*\K[0-9.]+' | head -1)
+          echo "WebSocket V2 Coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 85" | bc -l) )); then
+            echo "❌ WebSocket V2 coverage below 85% (got ${COVERAGE}%)"
+            exit 1
+          fi
+          echo "✓ WebSocket V2 coverage: ${COVERAGE}% (target: >85%)"
+
+      - name: Run Integration Tests - Data Export/Import
+        run: npm test -- tests/integration/data-export-import.test.ts --coverage --coverageReporters=json --coverageReporters=text
+
+      - name: Verify Data Export/Import Coverage >80%
+        run: |
+          COVERAGE=$(npm test -- tests/integration/data-export-import.test.ts --coverage --coverageReporters=json | grep -oP '"lines":\s*\K[0-9.]+' | head -1)
+          echo "Data Export/Import Coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Data export/import coverage below 80% (got ${COVERAGE}%)"
+            exit 1
+          fi
+          echo "✓ Data export/import coverage: ${COVERAGE}% (target: >80%)"
+
+      - name: Run Integration Tests - Multi-Robot Discovery
+        run: npm test -- tests/integration/multi-robot-discovery.test.ts --coverage --coverageReporters=json --coverageReporters=text
+
+      - name: Verify Multi-Robot Discovery Coverage >75%
+        run: |
+          COVERAGE=$(npm test -- tests/integration/multi-robot-discovery.test.ts --coverage --coverageReporters=json | grep -oP '"lines":\s*\K[0-9.]+' | head -1)
+          echo "Multi-Robot Discovery Coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 75" | bc -l) )); then
+            echo "❌ Multi-robot discovery coverage below 75% (got ${COVERAGE}%)"
+            exit 1
+          fi
+          echo "✓ Multi-robot discovery coverage: ${COVERAGE}% (target: >75%)"
+
+      - name: Run Integration Tests - Personality Persistence
+        run: npm test -- tests/integration/personality-persistence.test.ts --coverage --coverageReporters=json --coverageReporters=text
+
+      - name: Verify Personality Persistence Coverage >90%
+        run: |
+          COVERAGE=$(npm test -- tests/integration/personality-persistence.test.ts --coverage --coverageReporters=json | grep -oP '"lines":\s*\K[0-9.]+' | head -1)
+          echo "Personality Persistence Coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 90" | bc -l) )); then
+            echo "❌ Personality persistence coverage below 90% (got ${COVERAGE}%)"
+            exit 1
+          fi
+          echo "✓ Personality persistence coverage: ${COVERAGE}% (target: >90%)"
+
+      - name: Run Performance Regression Tests
+        run: npm test -- tests/integration/performance-regression.test.ts
+
+      - name: Verify Performance Baselines
+        run: |
+          echo "Checking performance baselines..."
+          npm test -- tests/integration/performance-regression.test.ts | tee performance.log
+
+          # Check for failures
+          if grep -q "FAIL" performance.log; then
+            echo "❌ Performance regression detected"
+            exit 1
+          fi
+
+          echo "✓ All performance baselines met"
+
+      - name: Run Contract Enforcement Tests
+        run: npm test -- tests/integration/contract-enforcement.test.ts
+
+      - name: Verify Contract Compliance
+        run: |
+          echo "Checking contract compliance..."
+          npm test -- tests/integration/contract-enforcement.test.ts | tee contracts.log
+
+          # Check for contract violations
+          if grep -q "CONTRACT VIOLATION" contracts.log; then
+            echo "❌ Contract violations detected"
+            exit 1
+          fi
+
+          echo "✓ All contracts enforced"
+
+      - name: Generate Coverage Report
+        run: |
+          npm test -- tests/integration --coverage --coverageReporters=json-summary
+
+          echo "📊 Integration Test Coverage Summary:"
+          cat coverage/coverage-summary.json | jq '.total'
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage/coverage-final.json
+          flags: integration
+          name: integration-tests
+
+      - name: Save Performance Metrics
+        if: always()
+        run: |
+          mkdir -p metrics
+          npm test -- tests/integration/performance-regression.test.ts --json --outputFile=metrics/performance-${{ github.sha }}.json || true
+
+          echo "Performance metrics saved to metrics/performance-${{ github.sha }}.json"
+
+      - name: Upload Performance Metrics
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-metrics-${{ matrix.node-version }}
+          path: metrics/
+
+  contract-tests:
+    name: Contract Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Contract Tests
+        run: npm test -- tests/contracts --coverage
+
+      - name: Verify No Contract Violations
+        run: |
+          npm test -- tests/contracts | tee contract-test.log
+
+          if grep -q "CONTRACT VIOLATION" contract-test.log; then
+            echo "❌ Contract violations found"
+            cat contract-test.log | grep -A 5 "CONTRACT VIOLATION"
+            exit 1
+          fi
+
+          echo "✓ All contracts pass"
+
+  e2e-journey-tests:
+    name: E2E Journey Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Journey Tests
+        run: npm run test:journeys
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  release-readiness:
+    name: Release Readiness Check
+    runs-on: ubuntu-latest
+    needs: [integration-tests, contract-tests, e2e-journey-tests]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check Release Criteria
+        run: |
+          echo "📋 Release Readiness Checklist:"
+          echo ""
+          echo "✓ Integration tests passed"
+          echo "✓ Contract tests passed"
+          echo "✓ E2E journey tests passed"
+          echo ""
+          echo "Coverage Requirements:"
+          echo "  - Personality persistence: >90% ✓"
+          echo "  - WebSocket V2: >85% ✓"
+          echo "  - Data export/import: >80% ✓"
+          echo "  - Multi-robot discovery: >75% ✓"
+          echo ""
+          echo "✅ READY FOR RELEASE"
+
+      - name: Create Release Summary
+        run: |
+          cat > release-summary.md <<EOF
+          # Release Summary
+
+          ## Integration Tests
+          - ✅ Cross-app flows tested
+          - ✅ Performance baselines met
+          - ✅ All contracts enforced
+
+          ## Coverage
+          - Personality Persistence: >90%
+          - WebSocket V2: >85%
+          - Data Export/Import: >80%
+          - Multi-Robot Discovery: >75%
+
+          ## Journey Tests
+          - ✅ All critical journeys passing
+
+          ## Contract Compliance
+          - ✅ No contract violations detected
+
+          **Status:** READY FOR RELEASE
+          EOF
+
+          cat release-summary.md
+
+      - name: Upload Release Summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-summary
+          path: release-summary.md
