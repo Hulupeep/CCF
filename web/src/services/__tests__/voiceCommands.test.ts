@@ -171,31 +171,31 @@ describe('VoiceCommandService - Settings Validation', () => {
 describe('VoiceCommandService - I-VOICE-002: Confidence Threshold', () => {
   beforeEach(() => {
     VoiceCommandService.resetInstance();
-    (global as any).window = {
-      SpeechRecognition: MockSpeechRecognition,
-      AudioContext: class {
-        currentTime = 0;
-        createOscillator() {
-          return {
-            frequency: { value: 0 },
-            connect: jest.fn(),
-            start: jest.fn(),
-            stop: jest.fn(),
-          };
-        }
-        createGain() {
-          return {
-            gain: {
-              setValueAtTime: jest.fn(),
-              exponentialRampToValueAtTime: jest.fn(),
-            },
-            connect: jest.fn(),
-          };
-        }
-        get destination() {
-          return {};
-        }
-      };
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+    (window as any).webkitSpeechRecognition = MockSpeechRecognition;
+    (window as any).AudioContext = class {
+      currentTime = 0;
+      createOscillator() {
+        return {
+          frequency: { value: 0 },
+          connect: jest.fn(),
+          start: jest.fn(),
+          stop: jest.fn(),
+        };
+      }
+      createGain() {
+        return {
+          gain: {
+            setValueAtTime: jest.fn(),
+            exponentialRampToValueAtTime: jest.fn(),
+          },
+          connect: jest.fn(),
+        };
+      }
+      get destination() {
+        return {};
+      }
+    };
   });
 
   it('should filter commands below confidence threshold', async () => {
@@ -314,31 +314,31 @@ describe('VoiceCommandService - Command Processing', () => {
 describe('VoiceCommandService - I-VOICE-001: Command Latency', () => {
   beforeEach(() => {
     VoiceCommandService.resetInstance();
-    (global as any).window = {
-      SpeechRecognition: MockSpeechRecognition,
-      AudioContext: class {
-        currentTime = 0;
-        createOscillator() {
-          return {
-            frequency: { value: 0 },
-            connect: jest.fn(),
-            start: jest.fn(),
-            stop: jest.fn(),
-          };
-        }
-        createGain() {
-          return {
-            gain: {
-              setValueAtTime: jest.fn(),
-              exponentialRampToValueAtTime: jest.fn(),
-            },
-            connect: jest.fn(),
-          };
-        }
-        get destination() {
-          return {};
-        }
-      };
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+    (window as any).webkitSpeechRecognition = MockSpeechRecognition;
+    (window as any).AudioContext = class {
+      currentTime = 0;
+      createOscillator() {
+        return {
+          frequency: { value: 0 },
+          connect: jest.fn(),
+          start: jest.fn(),
+          stop: jest.fn(),
+        };
+      }
+      createGain() {
+        return {
+          gain: {
+            setValueAtTime: jest.fn(),
+            exponentialRampToValueAtTime: jest.fn(),
+          },
+          connect: jest.fn(),
+        };
+      }
+      get destination() {
+        return {};
+      }
+    };
   });
 
   it('should execute commands within 500ms', async () => {
@@ -390,31 +390,31 @@ describe('VoiceCommandService - I-VOICE-001: Command Latency', () => {
 describe('VoiceCommandService - VOICE-004: Confirmation', () => {
   beforeEach(() => {
     VoiceCommandService.resetInstance();
-    (global as any).window = {
-      SpeechRecognition: MockSpeechRecognition,
-      AudioContext: class {
-        currentTime = 0;
-        createOscillator() {
-          return {
-            frequency: { value: 0 },
-            connect: jest.fn(),
-            start: jest.fn(),
-            stop: jest.fn(),
-          };
-        }
-        createGain() {
-          return {
-            gain: {
-              setValueAtTime: jest.fn(),
-              exponentialRampToValueAtTime: jest.fn(),
-            },
-            connect: jest.fn(),
-          };
-        }
-        get destination() {
-          return {};
-        }
-      };
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+    (window as any).webkitSpeechRecognition = MockSpeechRecognition;
+    (window as any).AudioContext = class {
+      currentTime = 0;
+      createOscillator() {
+        return {
+          frequency: { value: 0 },
+          connect: jest.fn(),
+          start: jest.fn(),
+          stop: jest.fn(),
+        };
+      }
+      createGain() {
+        return {
+          gain: {
+            setValueAtTime: jest.fn(),
+            exponentialRampToValueAtTime: jest.fn(),
+          },
+          connect: jest.fn(),
+        };
+      }
+      get destination() {
+        return {};
+      }
+    };
   });
 
   it('should require confirmation for destructive commands', async () => {
@@ -471,31 +471,31 @@ describe('VoiceCommandService - VOICE-005: History', () => {
   beforeEach(() => {
     VoiceCommandService.resetInstance();
     localStorage.clear();
-    (global as any).window = {
-      SpeechRecognition: MockSpeechRecognition,
-      AudioContext: class {
-        currentTime = 0;
-        createOscillator() {
-          return {
-            frequency: { value: 0 },
-            connect: jest.fn(),
-            start: jest.fn(),
-            stop: jest.fn(),
-          };
-        }
-        createGain() {
-          return {
-            gain: {
-              setValueAtTime: jest.fn(),
-              exponentialRampToValueAtTime: jest.fn(),
-            },
-            connect: jest.fn(),
-          };
-        }
-        get destination() {
-          return {};
-        }
-      };
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+    (window as any).webkitSpeechRecognition = MockSpeechRecognition;
+    (window as any).AudioContext = class {
+      currentTime = 0;
+      createOscillator() {
+        return {
+          frequency: { value: 0 },
+          connect: jest.fn(),
+          start: jest.fn(),
+          stop: jest.fn(),
+        };
+      }
+      createGain() {
+        return {
+          gain: {
+            setValueAtTime: jest.fn(),
+            exponentialRampToValueAtTime: jest.fn(),
+          },
+          connect: jest.fn(),
+        };
+      }
+      get destination() {
+        return {};
+      }
+    };
   });
 
   it('should add commands to history', async () => {
@@ -559,31 +559,31 @@ describe('VoiceCommandService - VOICE-005: History', () => {
 describe('VoiceCommandService - VOICE-003: Wake Word', () => {
   beforeEach(() => {
     VoiceCommandService.resetInstance();
-    (global as any).window = {
-      SpeechRecognition: MockSpeechRecognition,
-      AudioContext: class {
-        currentTime = 0;
-        createOscillator() {
-          return {
-            frequency: { value: 0 },
-            connect: jest.fn(),
-            start: jest.fn(),
-            stop: jest.fn(),
-          };
-        }
-        createGain() {
-          return {
-            gain: {
-              setValueAtTime: jest.fn(),
-              exponentialRampToValueAtTime: jest.fn(),
-            },
-            connect: jest.fn(),
-          };
-        }
-        get destination() {
-          return {};
-        }
-      };
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+    (window as any).webkitSpeechRecognition = MockSpeechRecognition;
+    (window as any).AudioContext = class {
+      currentTime = 0;
+      createOscillator() {
+        return {
+          frequency: { value: 0 },
+          connect: jest.fn(),
+          start: jest.fn(),
+          stop: jest.fn(),
+        };
+      }
+      createGain() {
+        return {
+          gain: {
+            setValueAtTime: jest.fn(),
+            exponentialRampToValueAtTime: jest.fn(),
+          },
+          connect: jest.fn(),
+        };
+      }
+      get destination() {
+        return {};
+      }
+    };
   });
 
   it('should process command without wake word when disabled', async () => {
@@ -639,31 +639,31 @@ describe('VoiceCommandService - Browser Compatibility', () => {
 describe('VoiceCommandService - Custom Commands', () => {
   beforeEach(() => {
     VoiceCommandService.resetInstance();
-    (global as any).window = {
-      SpeechRecognition: MockSpeechRecognition,
-      AudioContext: class {
-        currentTime = 0;
-        createOscillator() {
-          return {
-            frequency: { value: 0 },
-            connect: jest.fn(),
-            start: jest.fn(),
-            stop: jest.fn(),
-          };
-        }
-        createGain() {
-          return {
-            gain: {
-              setValueAtTime: jest.fn(),
-              exponentialRampToValueAtTime: jest.fn(),
-            },
-            connect: jest.fn(),
-          };
-        }
-        get destination() {
-          return {};
-        }
-      };
+    (window as any).SpeechRecognition = MockSpeechRecognition;
+    (window as any).webkitSpeechRecognition = MockSpeechRecognition;
+    (window as any).AudioContext = class {
+      currentTime = 0;
+      createOscillator() {
+        return {
+          frequency: { value: 0 },
+          connect: jest.fn(),
+          start: jest.fn(),
+          stop: jest.fn(),
+        };
+      }
+      createGain() {
+        return {
+          gain: {
+            setValueAtTime: jest.fn(),
+            exponentialRampToValueAtTime: jest.fn(),
+          },
+          connect: jest.fn(),
+        };
+      }
+      get destination() {
+        return {};
+      }
+    };
   });
 
   it('should allow registering custom commands', async () => {
