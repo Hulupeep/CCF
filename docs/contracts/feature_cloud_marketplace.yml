@@ -1,0 +1,388 @@
+# Feature Contract: Cloud Personality Marketplace
+# Issue #85 - FUTURE DOD
+
+metadata:
+  contract_id: feature_cloud_marketplace
+  version: 1
+  created: "2025-02-01"
+  epic: Cloud Integration
+  status: active
+  depends_on: [feature_architecture, feature_personality]
+
+requirements:
+  # ============================================
+  # I-CLOUD-004: Validation Before Publication
+  # ============================================
+  - id: I-CLOUD-004
+    priority: MUST
+    summary: "Marketplace personalities must pass validation before publication"
+    rationale: "Prevent invalid or malicious personalities from appearing in search"
+
+    invariants:
+      - name: validated_flag
+        rule: "Only personalities with validated=true appear in public search"
+        test: |
+          SELECT COUNT(*) FROM marketplace_personalities
+          WHERE validated = FALSE AND id IN (
+            SELECT id FROM search_marketplace_personalities(NULL, NULL, 0, 'newest', 1, 100)
+          ) SHOULD BE 0
+
+      - name: parameter_bounds
+        rule: "All personality parameters must be within [0.0, 1.0]"
+        test: |
+          Config parameters validated by validatePersonalityConfig()
+          All values MUST be: 0.0 <= value <= 1.0
+
+      - name: metadata_validation
+        rule: "Name, description, and tags must meet minimum requirements"
+        test: |
+          - Name: 3-50 characters
+          - Description: 10-500 characters
+          - Tags: 1-10 tags, lowercase alphanumeric with hyphens
+
+    acceptance_criteria:
+      - When publishing personality
+      - Then validation runs on config, name, description, tags
+      - If validation passes, validated=true
+      - If validation fails, validated=false and errors stored
+      - Only validated=true personalities appear in search
+
+  # ============================================
+  # I-CLOUD-005: One Rating Per User
+  # ============================================
+  - id: I-CLOUD-005
+    priority: MUST
+    summary: "Rating system prevents abuse (1 rating per user per personality)"
+    rationale: "Prevent rating manipulation and spam"
+
+    invariants:
+      - name: unique_rating_constraint
+        rule: "Database enforces UNIQUE(personality_id, user_id) on ratings"
+        test: |
+          CREATE TABLE personality_ratings (
+            UNIQUE(personality_id, user_id)
+          );
+          Attempting duplicate rating MUST throw error
+
+      - name: rating_bounds
+        rule: "Ratings must be integers between 1 and 5"
+        test: |
+          CHECK (rating >= 1 AND rating <= 5)
+
+      - name: authenticated_only
+        rule: "Only authenticated users can rate"
+        test: |
+          RLS policy: user_id = auth.uid()
+
+    acceptance_criteria:
+      - When user rates personality first time
+      - Then rating is saved
+      - And average rating is updated
+      - When user tries to rate same personality again
+      - Then error is thrown "You have already rated this personality"
+
+  # ============================================
+  # I-CLOUD-006: Fast Search (<500ms)
+  # ============================================
+  - id: I-CLOUD-006
+    priority: MUST
+    summary: "Search results must return within 500ms for up to 10,000 personalities"
+    rationale: "Ensure responsive user experience at scale"
+
+    invariants:
+      - name: search_performance
+        rule: "Search completes within 500ms for 10k records"
+        test: |
+          EXPLAIN ANALYZE search_marketplace_personalities(...)
+          Execution time MUST be < 500ms
+
+      - name: full_text_indexes
+        rule: "Full-text indexes on name and description"
+        test: |
+          CREATE INDEX idx_marketplace_name_tsvector USING GIN
+          CREATE INDEX idx_marketplace_description_tsvector USING GIN
+
+      - name: tag_index
+        rule: "GIN index on tags array for fast filtering"
+        test: |
+          CREATE INDEX idx_marketplace_tags USING GIN (tags)
+
+      - name: pagination
+        rule: "Results paginated (default 20 per page)"
+        test: |
+          LIMIT page_size OFFSET (page_number - 1) * page_size
+
+    acceptance_criteria:
+      - When searching 10,000 personalities
+      - Then results return within 500ms
+      - And full-text search works on name and description
+      - And tag filtering is fast
+      - And results are paginated
+
+  # ============================================
+  # ARCH-CLOUD-001: Offline-First Design
+  # ============================================
+  - id: ARCH-CLOUD-001
+    priority: SHOULD
+    summary: "Downloaded personalities persist locally"
+    rationale: "Ensure robot continues working without cloud connection"
+
+    invariants:
+      - name: local_storage
+        rule: "Downloaded personalities saved to localStorage"
+        test: |
+          localStorage.getItem('mbot-custom-personalities')
+          Contains all downloaded personalities
+
+      - name: graceful_offline
+        rule: "Marketplace unavailable offline but local personalities work"
+        test: |
+          When network disconnected
+          Then marketplace shows error
+          But PersonalityMixer continues to work with local presets
+
+    acceptance_criteria:
+      - When user downloads personality
+      - Then config saved to local custom personalities
+      - And personality works offline
+      - When network disconnected
+      - Then marketplace tab shows error
+      - But existing personalities still usable
+
+  # ============================================
+  # SAFE-CLOUD-001: Content Moderation
+  # ============================================
+  - id: SAFE-CLOUD-001
+    priority: SHOULD
+    summary: "Users can report inappropriate personalities"
+    rationale: "Community moderation for safety"
+
+    invariants:
+      - name: report_functionality
+        rule: "Report button on every personality card"
+        test: |
+          data-testid="report-personality-{id}" present
+
+      - name: report_storage
+        rule: "Reports stored in personality_reports table"
+        test: |
+          INSERT INTO personality_reports
+          (personality_id, user_id, reason)
+
+      - name: report_reason_length
+        rule: "Report reason must be 10-500 characters"
+        test: |
+          CHECK (char_length(reason) >= 10 AND char_length(reason) <= 500)
+
+    acceptance_criteria:
+      - When user clicks "Report"
+      - Then dialog opens
+      - When user enters reason and submits
+      - Then report saved to database
+      - And thank you message shown
+
+# ============================================
+# Data Contracts
+# ============================================
+
+data_contracts:
+  MarketplaceListing:
+    fields:
+      - name: id
+        type: string (UUID)
+        required: true
+
+      - name: name
+        type: string
+        required: true
+        validation: "3-50 characters"
+
+      - name: description
+        type: string
+        required: true
+        validation: "10-500 characters"
+
+      - name: tags
+        type: string[]
+        required: true
+        validation: "1-10 tags, lowercase alphanumeric with hyphens"
+
+      - name: config
+        type: PersonalityConfig
+        required: true
+        validation: "All parameters 0.0-1.0"
+
+      - name: rating
+        type: number
+        required: true
+        validation: "0.00-5.00, 2 decimals"
+
+      - name: ratingCount
+        type: number
+        required: true
+        validation: ">= 0"
+
+      - name: downloadCount
+        type: number
+        required: true
+        validation: ">= 0"
+
+      - name: validated
+        type: boolean
+        required: true
+        validation: "Must be true to appear in search"
+
+  PersonalityRating:
+    fields:
+      - name: personalityId
+        type: string (UUID)
+        required: true
+
+      - name: userId
+        type: string (UUID)
+        required: true
+
+      - name: rating
+        type: number
+        required: true
+        validation: "Integer 1-5"
+
+      - name: createdAt
+        type: number (timestamp)
+        required: true
+
+    unique_constraint: "(personalityId, userId)"
+
+# ============================================
+# UI Contract (data-testid coverage)
+# ============================================
+
+ui_elements:
+  - testid: marketplace-tab
+    element: button
+    purpose: "Navigate to marketplace browse tab"
+
+  - testid: my-published-tab
+    element: button
+    purpose: "Navigate to user's published personalities"
+
+  - testid: marketplace-search
+    element: input
+    purpose: "Text search for personalities"
+
+  - testid: marketplace-tag-filter
+    element: div
+    purpose: "Filter by tags"
+
+  - testid: marketplace-rating-filter
+    element: select
+    purpose: "Filter by minimum rating"
+
+  - testid: marketplace-sort
+    element: select
+    purpose: "Sort results (popular/rating/newest/downloads)"
+
+  - testid: personality-card-{id}
+    element: div
+    purpose: "Individual personality listing"
+
+  - testid: download-personality-{id}
+    element: button
+    purpose: "Download personality to local presets"
+
+  - testid: rate-personality-{id}
+    element: div
+    purpose: "Rate personality section"
+
+  - testid: star-rating-{id}
+    element: span
+    purpose: "Display average rating"
+
+  - testid: publish-personality-btn
+    element: button
+    purpose: "Open publish dialog"
+
+  - testid: preview-personality-{id}
+    element: button
+    purpose: "Preview personality parameters"
+
+  - testid: report-personality-{id}
+    element: button
+    purpose: "Report inappropriate content"
+
+  - testid: unpublish-personality-{id}
+    element: button
+    purpose: "Remove from marketplace (owner only)"
+
+# ============================================
+# Journey Contracts
+# ============================================
+
+journeys:
+  - id: J-CLOUD-MARKETPLACE
+    name: "Browse and Download Marketplace Personality"
+    dod_criticality: future
+    steps:
+      - action: "User opens marketplace tab"
+        testid: "marketplace-tab"
+        expected: "Trending personalities load"
+
+      - action: "User searches for 'creative'"
+        testid: "marketplace-search"
+        expected: "Results with 'creative' in name/description appear"
+
+      - action: "User filters by 4+ stars"
+        testid: "marketplace-rating-filter"
+        expected: "Only 4+ star personalities shown"
+
+      - action: "User clicks Preview on a personality"
+        testid: "preview-personality-{id}"
+        expected: "Modal shows all 9 parameters"
+
+      - action: "User clicks Download"
+        testid: "download-personality-{id}"
+        expected: "Personality added to local custom presets"
+
+      - action: "User rates personality 5 stars"
+        testid: "rate-star-{id}-5"
+        expected: "Rating saved, average updated"
+
+    e2e_test: "tests/journeys/marketplace-browse.journey.spec.ts"
+
+# ============================================
+# Definition of Done
+# ============================================
+
+definition_of_done:
+  implementation:
+    - MarketplaceBrowser component with search and filters
+    - Supabase client with RLS policies
+    - Validation service for personality configs
+    - useMarketplace React hook
+    - Download to local custom presets
+    - Rating system with 1-per-user enforcement
+    - Report system
+    - My Published page
+    - Publish current personality
+
+  database:
+    - marketplace_personalities table with indexes
+    - personality_ratings table with unique constraint
+    - personality_reports table
+    - RLS policies for all tables
+    - Triggers for rating updates
+    - Full-text search indexes
+
+  testing:
+    - Unit tests for validation logic
+    - Unit tests for search/filter
+    - Integration tests for Supabase client
+    - E2E test: Publish personality
+    - E2E test: Browse and download
+    - E2E test: Rate personality
+    - Load test: 10k personalities in <500ms
+
+  documentation:
+    - Marketplace guidelines for publishers
+    - Validation rules
+    - API documentation
