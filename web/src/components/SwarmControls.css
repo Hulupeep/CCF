@@ -1,0 +1,414 @@
+/* SwarmControls.css */
+
+.swarm-controls {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.swarm-controls h2 {
+  color: #333;
+  border-bottom: 3px solid #4CAF50;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+/* ============================================================================
+ * Swarm Panel Layout
+ * ============================================================================ */
+
+.swarm-panel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .swarm-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ============================================================================
+ * Mode Selector
+ * ============================================================================ */
+
+.mode-selector {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.mode-selector h3 {
+  margin-top: 0;
+  color: #555;
+  font-size: 1.1em;
+}
+
+.mode-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.mode-buttons button {
+  padding: 12px 16px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.mode-buttons button:hover:not(:disabled) {
+  border-color: #4CAF50;
+  background: #f0f8f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
+}
+
+.mode-buttons button.active {
+  background: #4CAF50;
+  color: white;
+  border-color: #4CAF50;
+}
+
+.mode-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+ * Robot Selector
+ * ============================================================================ */
+
+.robot-selector {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.robot-selector h3 {
+  margin-top: 0;
+  color: #555;
+  font-size: 1.1em;
+}
+
+.robot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.robot-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.robot-checkbox:hover {
+  border-color: #4CAF50;
+  background: #f0f8f0;
+}
+
+.robot-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.robot-status {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95em;
+}
+
+.robot-status.idle {
+  color: #666;
+}
+
+.robot-status.moving {
+  color: #2196F3;
+}
+
+.robot-status.executing {
+  color: #4CAF50;
+}
+
+.robot-status.offline {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.battery-indicator {
+  font-size: 0.85em;
+  color: #666;
+}
+
+.robot-selector .warning {
+  color: #FF9800;
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+.robot-selector .error {
+  color: #f44336;
+  margin-top: 10px;
+  margin-bottom: 0;
+  font-weight: 500;
+}
+
+/* ============================================================================
+ * Formation Visualizer
+ * ============================================================================ */
+
+.formation-visualizer {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.formation-visualizer .placeholder {
+  color: #999;
+  font-style: italic;
+}
+
+.formation-visualizer svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.formation-visualizer .grid line {
+  stroke: #eee;
+  stroke-width: 1;
+}
+
+/* Robot markers in visualizer */
+.formation-visualizer circle {
+  transition: all 0.3s ease;
+}
+
+.formation-visualizer text {
+  font-family: monospace;
+  font-weight: bold;
+}
+
+/* ============================================================================
+ * Swarm Status
+ * ============================================================================ */
+
+.swarm-status {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.swarm-status h3 {
+  margin-top: 0;
+  color: #333;
+  font-size: 1.2em;
+}
+
+.status-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-details p {
+  margin: 0;
+  font-size: 0.95em;
+}
+
+.status-details strong {
+  color: #555;
+  margin-right: 8px;
+}
+
+/* ============================================================================
+ * Sync Indicator
+ * ============================================================================ */
+
+.sync-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.sync-indicator.in-sync {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 2px solid #4CAF50;
+}
+
+.sync-indicator.out-of-sync {
+  background: #FFF3E0;
+  color: #E65100;
+  border: 2px solid #FF9800;
+}
+
+.sync-icon {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* ============================================================================
+ * Safety Status
+ * ============================================================================ */
+
+.safety-status {
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+
+.safety-status.safe {
+  background: #E8F5E9;
+  border: 2px solid #4CAF50;
+}
+
+.safety-status.warning {
+  background: #FFF3E0;
+  border: 2px solid #FF9800;
+}
+
+.safety-warnings {
+  margin: 10px 0 0 20px;
+  padding: 0;
+  list-style-type: disc;
+}
+
+.safety-warnings li {
+  margin: 5px 0;
+  color: #E65100;
+}
+
+/* ============================================================================
+ * Control Buttons
+ * ============================================================================ */
+
+.swarm-controls-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.swarm-controls-buttons button {
+  padding: 14px 32px;
+  font-size: 1.1em;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.start-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+}
+
+.start-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.3);
+}
+
+.start-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.stop-btn {
+  background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+  color: white;
+}
+
+.stop-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(244, 67, 54, 0.3);
+}
+
+/* ============================================================================
+ * Contract Notice
+ * ============================================================================ */
+
+.contract-notice {
+  background: #E3F2FD;
+  border: 1px solid #2196F3;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.contract-notice small {
+  color: #1565C0;
+  font-size: 0.85em;
+}
+
+.contract-notice strong {
+  font-weight: 600;
+}
+
+/* ============================================================================
+ * Animations
+ * ============================================================================ */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.robot-status.executing {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================================================
+ * Accessibility
+ * ============================================================================ */
+
+button:focus,
+input:focus {
+  outline: 2px solid #4CAF50;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

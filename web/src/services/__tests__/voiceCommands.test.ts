@@ -6,7 +6,6 @@
  * Invariants: I-VOICE-001, I-VOICE-002, I-VOICE-003
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { VoiceCommandService } from '../voiceCommands';
 import {
   createDefaultVoiceSettings,
@@ -76,18 +75,18 @@ describe('VoiceCommandService - Initialization', () => {
         createOscillator() {
           return {
             frequency: { value: 0 },
-            connect: vi.fn(),
-            start: vi.fn(),
-            stop: vi.fn(),
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
           };
         }
         createGain() {
           return {
             gain: {
-              setValueAtTime: vi.fn(),
-              exponentialRampToValueAtTime: vi.fn(),
+              setValueAtTime: jest.fn(),
+              exponentialRampToValueAtTime: jest.fn(),
             },
-            connect: vi.fn(),
+            connect: jest.fn(),
           };
         }
         get destination() {
@@ -180,18 +179,18 @@ describe('VoiceCommandService - I-VOICE-002: Confidence Threshold', () => {
         createOscillator() {
           return {
             frequency: { value: 0 },
-            connect: vi.fn(),
-            start: vi.fn(),
-            stop: vi.fn(),
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
           };
         }
         createGain() {
           return {
             gain: {
-              setValueAtTime: vi.fn(),
-              exponentialRampToValueAtTime: vi.fn(),
+              setValueAtTime: jest.fn(),
+              exponentialRampToValueAtTime: jest.fn(),
             },
-            connect: vi.fn(),
+            connect: jest.fn(),
           };
         }
         get destination() {
@@ -237,18 +236,18 @@ describe('VoiceCommandService - Command Processing', () => {
         createOscillator() {
           return {
             frequency: { value: 0 },
-            connect: vi.fn(),
-            start: vi.fn(),
-            stop: vi.fn(),
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
           };
         }
         createGain() {
           return {
             gain: {
-              setValueAtTime: vi.fn(),
-              exponentialRampToValueAtTime: vi.fn(),
+              setValueAtTime: jest.fn(),
+              exponentialRampToValueAtTime: jest.fn(),
             },
-            connect: vi.fn(),
+            connect: jest.fn(),
           };
         }
         get destination() {
@@ -325,18 +324,18 @@ describe('VoiceCommandService - I-VOICE-001: Command Latency', () => {
         createOscillator() {
           return {
             frequency: { value: 0 },
-            connect: vi.fn(),
-            start: vi.fn(),
-            stop: vi.fn(),
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
           };
         }
         createGain() {
           return {
             gain: {
-              setValueAtTime: vi.fn(),
-              exponentialRampToValueAtTime: vi.fn(),
+              setValueAtTime: jest.fn(),
+              exponentialRampToValueAtTime: jest.fn(),
             },
-            connect: vi.fn(),
+            connect: jest.fn(),
           };
         }
         get destination() {
@@ -370,7 +369,7 @@ describe('VoiceCommandService - I-VOICE-001: Command Latency', () => {
 
   it('should warn if command exceeds latency threshold', async () => {
     const service = VoiceCommandService.getInstance();
-    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Register slow command
     service.registerCommand({
@@ -402,18 +401,18 @@ describe('VoiceCommandService - VOICE-004: Confirmation', () => {
         createOscillator() {
           return {
             frequency: { value: 0 },
-            connect: vi.fn(),
-            start: vi.fn(),
-            stop: vi.fn(),
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
           };
         }
         createGain() {
           return {
             gain: {
-              setValueAtTime: vi.fn(),
-              exponentialRampToValueAtTime: vi.fn(),
+              setValueAtTime: jest.fn(),
+              exponentialRampToValueAtTime: jest.fn(),
             },
-            connect: vi.fn(),
+            connect: jest.fn(),
           };
         }
         get destination() {
@@ -457,19 +456,19 @@ describe('VoiceCommandService - VOICE-004: Confirmation', () => {
   });
 
   it('should expire confirmation after timeout', async () => {
-    vi.useFakeTimers();
+    jest.useFakeTimers();
     const service = VoiceCommandService.getInstance();
 
     // Initiate destructive command
     await service.processCommand('delete all drawings', 1.0);
 
     // Fast forward past timeout
-    vi.advanceTimersByTime(CONFIRMATION_TIMEOUT_MS + 1000);
+    jest.advanceTimersByTime(CONFIRMATION_TIMEOUT_MS + 1000);
 
     const state = service.getConfirmationState();
     expect(state).toBeNull();
 
-    vi.useRealTimers();
+    jest.useRealTimers();
   });
 });
 
@@ -484,18 +483,18 @@ describe('VoiceCommandService - VOICE-005: History', () => {
         createOscillator() {
           return {
             frequency: { value: 0 },
-            connect: vi.fn(),
-            start: vi.fn(),
-            stop: vi.fn(),
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
           };
         }
         createGain() {
           return {
             gain: {
-              setValueAtTime: vi.fn(),
-              exponentialRampToValueAtTime: vi.fn(),
+              setValueAtTime: jest.fn(),
+              exponentialRampToValueAtTime: jest.fn(),
             },
-            connect: vi.fn(),
+            connect: jest.fn(),
           };
         }
         get destination() {
@@ -573,18 +572,18 @@ describe('VoiceCommandService - VOICE-003: Wake Word', () => {
         createOscillator() {
           return {
             frequency: { value: 0 },
-            connect: vi.fn(),
-            start: vi.fn(),
-            stop: vi.fn(),
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
           };
         }
         createGain() {
           return {
             gain: {
-              setValueAtTime: vi.fn(),
-              exponentialRampToValueAtTime: vi.fn(),
+              setValueAtTime: jest.fn(),
+              exponentialRampToValueAtTime: jest.fn(),
             },
-            connect: vi.fn(),
+            connect: jest.fn(),
           };
         }
         get destination() {
@@ -651,18 +650,18 @@ describe('VoiceCommandService - Custom Commands', () => {
         createOscillator() {
           return {
             frequency: { value: 0 },
-            connect: vi.fn(),
-            start: vi.fn(),
-            stop: vi.fn(),
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
           };
         }
         createGain() {
           return {
             gain: {
-              setValueAtTime: vi.fn(),
-              exponentialRampToValueAtTime: vi.fn(),
+              setValueAtTime: jest.fn(),
+              exponentialRampToValueAtTime: jest.fn(),
             },
-            connect: vi.fn(),
+            connect: jest.fn(),
           };
         }
         get destination() {
@@ -674,7 +673,7 @@ describe('VoiceCommandService - Custom Commands', () => {
 
   it('should allow registering custom commands', async () => {
     const service = VoiceCommandService.getInstance();
-    const handlerSpy = vi.fn();
+    const handlerSpy = jest.fn();
 
     service.registerCommand({
       pattern: /custom command/i,
@@ -691,7 +690,7 @@ describe('VoiceCommandService - Custom Commands', () => {
 
   it('should pass extracted parameters to handler', async () => {
     const service = VoiceCommandService.getInstance();
-    const handlerSpy = vi.fn();
+    const handlerSpy = jest.fn();
 
     service.registerCommand({
       pattern: /set volume to (\d+)/i,

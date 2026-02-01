@@ -1,0 +1,443 @@
+# Feature Contract: UI Polish & Animations
+# Contract ID: feature_ui
+# Epic: UX Improvements
+# Status: active
+# Created: 2025-02-01
+
+metadata:
+  contract_id: feature_ui
+  version: 1
+  status: active
+  created: "2025-02-01"
+  last_updated: "2025-02-01"
+  owner: ux-team
+  epic: UX Improvements
+
+# ============================================
+# INVARIANTS (MUST Requirements)
+# ============================================
+
+invariants:
+  # Accessibility
+  - id: I-UI-001
+    requirement: MUST respect prefers-reduced-motion
+    rationale: |
+      Users with vestibular disorders or motion sensitivity must be able
+      to use the app without experiencing motion sickness or discomfort.
+      All animations must be instant when prefers-reduced-motion is enabled.
+    enforcement: |
+      - Animation service checks media query on initialization
+      - Returns 0ms duration when reduced motion is enabled
+      - Component tests verify animations are disabled
+    test: tests/contracts/ui-animations.test.ts
+    gherkin: |
+      Scenario: Reduced Motion Support
+        Given user has "prefers-reduced-motion: reduce" enabled
+        When any animation triggers
+        Then animation duration is 0ms
+        And no motion occurs
+        And functionality remains identical
+
+  - id: I-UI-002
+    requirement: MUST use consistent timing
+    rationale: |
+      Consistent timing creates a cohesive, professional experience.
+      Users develop muscle memory for interaction timing.
+    enforcement: |
+      - All animations use timing constants from ANIMATION_DURATIONS
+      - Code review checks for hardcoded durations
+      - Visual regression tests detect timing changes
+    values:
+      fast: 150ms
+      standard: 300ms
+      slow: 500ms
+      verySlow: 1000ms
+    test: tests/contracts/ui-animations.test.ts
+    gherkin: |
+      Scenario: Consistent Timing
+        Given animation system is initialized
+        When checking animation durations
+        Then fast animations are 150ms
+        And standard animations are 300ms
+        And slow animations are 500ms
+        And very slow animations are 1000ms
+
+  - id: I-UI-003
+    requirement: MUST prevent layout shift (CLS = 0)
+    rationale: |
+      Layout shift causes confusion and mis-clicks.
+      Animations should only use transform and opacity properties
+      which don't trigger layout recalculation.
+    enforcement: |
+      - All animations use transform/opacity only
+      - Space is pre-allocated for animated elements
+      - Performance tests measure CLS
+      - Lighthouse CI enforces CLS < 0.1
+    test: tests/contracts/ui-animations.test.ts
+    gherkin: |
+      Scenario: Zero Layout Shift
+        Given any component with animations
+        When animation plays
+        Then CLS metric is 0
+        And only transform/opacity properties animate
+        And no reflow occurs
+
+# ============================================
+# SHOULD Requirements (Important)
+# ============================================
+
+recommendations:
+  - id: I-UI-REC-001
+    requirement: SHOULD achieve 60fps performance
+    rationale: |
+      Smooth 60fps animations feel natural and responsive.
+      Lower framerates appear janky and unprofessional.
+    guidance: |
+      - Use GPU-accelerated properties (transform, opacity)
+      - Avoid animating width, height, top, left
+      - Use will-change sparingly
+      - Measure performance with Chrome DevTools
+
+  - id: I-UI-REC-002
+    requirement: SHOULD provide meaningful feedback
+    rationale: |
+      Micro-interactions confirm user actions and provide delight.
+    guidance: |
+      - Button clicks: scale down to 0.95 (150ms)
+      - Button hovers: scale up to 1.05 (150ms)
+      - Slider drag: immediate visual feedback (<16ms)
+      - Loading states: skeleton screens with pulse
+
+  - id: I-UI-REC-003
+    requirement: SHOULD use appropriate easing
+    rationale: |
+      Natural easing makes animations feel organic.
+      Sharp easing draws attention to important changes.
+    guidance:
+      easeInOut: Standard for most transitions
+      easeOut: Entrances and user-triggered actions
+      easeIn: Exits and dismissals
+      sharp: Attention-grabbing changes
+
+# ============================================
+# ANIMATION SPECIFICATIONS
+# ============================================
+
+animation_specs:
+  timing:
+    instant: 0
+    fast: 150
+    standard: 300
+    slow: 500
+    verySlow: 1000
+
+  easing:
+    easeInOut: "cubic-bezier(0.4, 0, 0.2, 1)"
+    easeOut: "cubic-bezier(0.0, 0, 0.2, 1)"
+    easeIn: "cubic-bezier(0.4, 0, 1, 1)"
+    sharp: "cubic-bezier(0.4, 0, 0.6, 1)"
+
+  animations:
+    fadeIn:
+      keyframes:
+        - { opacity: 0 }
+        - { opacity: 1 }
+      duration: 300
+      easing: ease-in-out
+
+    fadeOut:
+      keyframes:
+        - { opacity: 1 }
+        - { opacity: 0 }
+      duration: 300
+      easing: ease-in-out
+
+    scaleIn:
+      keyframes:
+        - { opacity: 0, transform: "scale(0.9)" }
+        - { opacity: 1, transform: "scale(1)" }
+      duration: 300
+      easing: ease-out
+
+    scaleOut:
+      keyframes:
+        - { opacity: 1, transform: "scale(1)" }
+        - { opacity: 0, transform: "scale(0.9)" }
+      duration: 150
+      easing: ease-in
+
+    slideUp:
+      keyframes:
+        - { transform: "translateY(100%)", opacity: 0 }
+        - { transform: "translateY(0)", opacity: 1 }
+      duration: 300
+      easing: ease-out
+
+    slideDown:
+      keyframes:
+        - { transform: "translateY(0)", opacity: 1 }
+        - { transform: "translateY(100%)", opacity: 0 }
+      duration: 150
+      easing: ease-in
+
+    pulse:
+      keyframes:
+        - { opacity: 0.6 }
+        - { opacity: 1 }
+        - { opacity: 0.6 }
+      duration: 1500
+      easing: ease-in-out
+      iterations: Infinity
+
+# ============================================
+# COMPONENT-SPECIFIC ANIMATIONS
+# ============================================
+
+component_animations:
+  personality_slider:
+    drag:
+      duration: instant
+      easing: ease-out
+      feedback: "<16ms visual update"
+
+  mode_button:
+    click:
+      duration: 150
+      easing: ease-in-out
+      transform: "scale(0.95)"
+    hover:
+      duration: 150
+      easing: ease-out
+      transform: "scale(1.05)"
+    active_state:
+      duration: 150
+      easing: ease-in-out
+
+  mode_transition:
+    icon_fade_out:
+      duration: 150
+      easing: ease-in-out
+    icon_fade_in:
+      duration: 150
+      easing: ease-in-out
+    content_transition:
+      duration: 300
+      easing: ease-in-out
+
+  modal:
+    backdrop:
+      fade_in: 300
+      fade_out: 300
+      easing: ease-in-out
+    content:
+      scale_in: 300
+      scale_out: 150
+      easing: ease-out
+
+  toast:
+    slide_in:
+      duration: 300
+      easing: ease-out
+      direction: "from bottom"
+    slide_out:
+      duration: 150
+      easing: ease-in
+      direction: "to bottom"
+    auto_dismiss: 3000
+
+  skeleton_loader:
+    pulse:
+      duration: 1500
+      easing: ease-in-out
+      iterations: infinite
+
+  navigation:
+    tab_transition:
+      duration: 300
+      easing: ease-in-out
+
+  drawing_playback:
+    stroke:
+      duration: variable
+      easing: linear
+      smooth: true
+
+  neural_visualizer:
+    node_pulse:
+      duration: 1000
+      easing: ease-in-out
+    connection_fade:
+      duration: 500
+      easing: ease-in-out
+
+# ============================================
+# PERFORMANCE TARGETS
+# ============================================
+
+performance:
+  frame_rate: 60
+  cls_target: 0
+  animation_budget: 16ms
+  interaction_budget: 100ms
+
+# ============================================
+# TESTING REQUIREMENTS
+# ============================================
+
+testing:
+  unit_tests:
+    - Animation service utility functions
+    - Timing calculations
+    - Reduced motion detection
+
+  integration_tests:
+    - Component animations render correctly
+    - Animations respect reduced motion
+    - CLS remains at 0
+
+  visual_regression:
+    - Percy/Chromatic snapshots of all animations
+    - Compare before/after states
+
+  performance_tests:
+    - 60fps maintained during animations
+    - No forced synchronous layouts
+    - GPU acceleration verification
+
+  e2e_tests:
+    - User journey with animations enabled
+    - User journey with reduced motion
+    - Cross-browser compatibility
+
+# ============================================
+# DATA CONTRACTS
+# ============================================
+
+data_contracts:
+  AnimationService:
+    description: Core animation utility service
+    interface: |
+      interface AnimationService {
+        animate(element: Element, config: AnimationConfig): Animation;
+        animateGroup(elements: Element[], config: AnimationConfig): Animation[];
+        getReducedMotion(): boolean;
+        getDuration(type: AnimationType): number;
+        getEasing(type: EasingType): string;
+      }
+
+  AnimationConfig:
+    description: Configuration for individual animation
+    interface: |
+      interface AnimationConfig {
+        duration?: number;
+        easing?: string;
+        delay?: number;
+        fill?: 'none' | 'forwards' | 'backwards' | 'both';
+        iterations?: number;
+        direction?: 'normal' | 'reverse' | 'alternate';
+        keyframes: Keyframe[];
+      }
+
+  Keyframe:
+    description: Single animation keyframe
+    interface: |
+      interface Keyframe {
+        offset?: number;
+        opacity?: number;
+        transform?: string;
+        [property: string]: any;
+      }
+
+# ============================================
+# JOURNEY COMPLIANCE
+# ============================================
+
+journeys:
+  - id: J-UI-POLISH
+    file: journey_ui_polish.yml
+    status: draft
+    type: e2e
+    dod_criticality: important
+    test_file: tests/journeys/ui-polish.journey.spec.ts
+    scenarios:
+      - Slider smooth drag and feedback
+      - Mode transition animations
+      - Modal open/close animations
+      - Toast notification lifecycle
+      - Loading state transitions
+      - Reduced motion fallback
+
+# ============================================
+# VALIDATION RULES
+# ============================================
+
+validation:
+  code_patterns:
+    allowed:
+      - "useReducedMotion()"
+      - "ANIMATION_DURATIONS"
+      - "EASING_FUNCTIONS"
+      - "transform:"
+      - "opacity:"
+      - "will-change:"
+
+    forbidden:
+      - "width: 100px" # Use transform instead
+      - "height: 100px" # Use transform instead
+      - "top: 50px" # Use transform instead
+      - "left: 50px" # Use transform instead
+      - "margin: auto" # Use transform for centering
+      - Hardcoded timing values outside constants
+
+  performance_checks:
+    - CLS < 0.1
+    - Animation frame rate >= 55fps
+    - No forced synchronous layout
+    - GPU acceleration for transform/opacity
+
+# ============================================
+# DEPENDENCIES
+# ============================================
+
+dependencies:
+  required_packages:
+    - framer-motion: "^11.0.0"
+
+  browser_support:
+    - Chrome: ">= 90"
+    - Firefox: ">= 88"
+    - Safari: ">= 14"
+    - Edge: ">= 90"
+
+# ============================================
+# ACCEPTANCE CRITERIA
+# ============================================
+
+acceptance_criteria:
+  implementation:
+    - Animation service utility created
+    - All timing constants defined
+    - Slider smooth drag implemented
+    - Mode transitions animated
+    - Page transitions added
+    - Modal animations complete
+    - Toast notifications animated
+    - Button micro-interactions added
+    - Skeleton loaders created
+    - Navigation transitions smooth
+    - Reduced motion fallbacks working
+    - CLS = 0 verified
+
+  testing:
+    - All unit tests pass
+    - Visual regression tests pass
+    - Performance tests pass (60fps)
+    - Reduced motion tests pass
+    - E2E journey test passes
+    - Cross-browser tests pass
+
+  documentation:
+    - Animation timing guide created
+    - How to add animations documented
+    - Accessibility best practices documented
+    - Performance optimization tips added

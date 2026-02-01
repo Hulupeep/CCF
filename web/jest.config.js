@@ -6,7 +6,11 @@ module.exports = {
   },
   transform: {
     '^.+\\.(ts|tsx)$': ['babel-jest', {
-      presets: ['@babel/preset-typescript', '@babel/preset-react'],
+      presets: [
+        ['@babel/preset-env', { targets: { node: 'current' } }],
+        '@babel/preset-typescript',
+        '@babel/preset-react'
+      ],
     }],
   },
   testMatch: [

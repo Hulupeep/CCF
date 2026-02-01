@@ -1,0 +1,220 @@
+# Performance Optimization Contract
+# References: Issue #90 (STORY-PERF-001)
+
+contract:
+  name: Performance Optimization
+  version: 1.0.0
+  status: active
+  owner: performance-team
+
+invariants:
+  - id: I-PERF-001
+    name: WebSocket Latency Target
+    description: "WebSocket latency must be <50ms at p99"
+    severity: important
+    enforcement: runtime
+    validation:
+      - type: metric
+        check: websocket.latency_p99_ms <= 50.0
+        failure_mode: alert
+        remediation: "Enable message batching, compression, and connection pooling"
+
+  - id: I-PERF-002
+    name: UI Frame Rate Target
+    description: "UI must maintain 60fps during all interactions"
+    severity: important
+    enforcement: runtime
+    validation:
+      - type: metric
+        check: ui.frame_rate >= 60.0
+        failure_mode: alert
+        remediation: "Optimize rendering with memoization, offscreen canvas, or WebGL"
+
+  - id: I-PERF-003
+    name: Memory Usage Limit
+    description: "Memory usage must not exceed 100MB (20% reduction from baseline)"
+    severity: important
+    enforcement: runtime
+    validation:
+      - type: metric
+        check: memory.heap_used_mb <= 100.0
+        failure_mode: alert
+        remediation: "Apply quantization, pruning, or enable garbage collection"
+
+  - id: I-PERF-004
+    name: Drawing Playback Performance
+    description: "Drawing playback must be smooth at 60fps for 1000+ strokes"
+    severity: important
+    enforcement: runtime
+    validation:
+      - type: benchmark
+        check: drawing_playback_fps >= 60.0 && stroke_count >= 1000
+        failure_mode: alert
+        remediation: "Use offscreen canvas, reduce stroke complexity, or enable GPU acceleration"
+
+optimization_targets:
+  websocket:
+    baseline_latency_ms: 80
+    target_latency_ms: 50
+    improvement_percentage: 37.5
+    strategies:
+      - message_batching
+      - compression
+      - connection_pooling
+
+  memory:
+    baseline_usage_mb: 120
+    target_usage_mb: 100
+    reduction_percentage: 20
+    strategies:
+      - quantization
+      - pruning
+      - garbage_collection
+      - object_pooling
+
+  rendering:
+    baseline_fps: 45
+    target_fps: 60
+    improvement_percentage: 33
+    strategies:
+      - memoization
+      - offscreen_canvas
+      - webgl_acceleration
+      - lazy_loading
+
+  network:
+    target_page_load_ms: 2000
+    target_bundle_size_kb: 500
+    strategies:
+      - code_splitting
+      - image_compression
+      - lazy_loading
+
+profiling_requirements:
+  tools:
+    - chrome_devtools_performance
+    - chrome_devtools_memory
+    - react_devtools_profiler
+    - custom_benchmarks
+
+  metrics:
+    - websocket_latency_p50
+    - websocket_latency_p95
+    - websocket_latency_p99
+    - ui_frame_rate
+    - ui_slow_renders
+    - memory_heap_used
+    - memory_heap_total
+    - memory_gc_count
+    - network_page_load_time
+    - network_bundle_size
+
+  benchmarks:
+    - websocket_message_send
+    - websocket_round_trip
+    - memory_allocation
+    - memory_deallocation
+    - frame_render
+    - drawing_playback
+
+testing_requirements:
+  unit_tests:
+    - metrics_collection
+    - latency_tracking
+    - render_fps_calculation
+    - invariant_checking
+    - optimization_application
+
+  integration_tests:
+    - websocket_batching
+    - memory_limits
+    - render_frame_budget
+    - benchmark_execution
+
+  performance_tests:
+    - baseline_measurement
+    - optimized_measurement
+    - regression_detection
+    - soak_test_10min
+
+  journey_tests:
+    - file: tests/journeys/performance-benchmark.journey.spec.ts
+      description: End-to-end performance validation
+      scenarios:
+        - websocket_latency_under_load
+        - ui_maintains_60fps
+        - memory_stays_under_100mb
+        - drawing_playback_smooth
+
+monitoring_requirements:
+  real_time:
+    - websocket_latency_tracking
+    - frame_rate_monitoring
+    - memory_usage_tracking
+    - alert_generation
+
+  reporting:
+    - baseline_vs_optimized_comparison
+    - improvement_percentage_calculation
+    - invariant_compliance_status
+    - optimization_recommendations
+
+documentation_requirements:
+  - performance_optimization_guide
+  - profiling_methodology
+  - benchmark_results_report
+  - before_after_metrics
+
+dependencies:
+  blocks:
+    - feature: ui_polish_animations
+      reason: Must optimize before adding more animations
+
+  requires:
+    - feature: websocket_real_time_control
+      reason: Need baseline WebSocket implementation
+
+examples:
+  websocket_optimization:
+    language: rust
+    code: |
+      let optimizer = WebSocketOptimizer::new(config);
+
+      // Queue messages for batching
+      optimizer.queue_message(msg1);
+      optimizer.queue_message(msg2);
+
+      // Automatically flushes when batch size or delay reached
+      if let Some(batch) = optimizer.queue_message(msg3) {
+          send_batch(batch);
+      }
+
+  memory_optimization:
+    language: rust
+    code: |
+      let optimizer = MemoryOptimizer::new(config);
+
+      // Check before allocation
+      if optimizer.can_allocate(size) {
+          optimizer.allocate(size);
+          // ... use memory ...
+          optimizer.deallocate(size);
+      }
+
+  performance_monitoring:
+    language: rust
+    code: |
+      let profiler = Arc::new(PerformanceProfiler::new());
+      let monitor = PerformanceMonitor::new(profiler.clone());
+
+      monitor.start();
+
+      // Collect metrics
+      let metrics = monitor.collect_metrics();
+
+      // Check for violations
+      monitor.check_alerts(&metrics);
+
+      // Generate report
+      let report = monitor.generate_report();
+      assert!(report.is_healthy());

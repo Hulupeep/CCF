@@ -389,7 +389,7 @@ pub struct QuirkEngine {
     active_quirks: Vec<QuirkConfig>,
     /// Cooldown tracking (quirk -> last activation time in ms)
     #[cfg(feature = "std")]
-    cooldowns: std::collections::HashMap<Quirk, u64>,
+    cooldowns: Vec<(Quirk, u64)>,
     #[cfg(not(feature = "std"))]
     cooldowns: Vec<(Quirk, u64)>,
 }
@@ -400,7 +400,7 @@ impl QuirkEngine {
         Self {
             active_quirks: Vec::new(),
             #[cfg(feature = "std")]
-            cooldowns: std::collections::HashMap::new(),
+            cooldowns: Vec::new(),
             #[cfg(not(feature = "std"))]
             cooldowns: Vec::new(),
         }
@@ -424,18 +424,12 @@ impl QuirkEngine {
     /// Removes a quirk from the engine
     pub fn remove_quirk(&mut self, quirk: Quirk) {
         self.active_quirks.retain(|q| q.quirk != quirk);
-        #[cfg(feature = "std")]
-        self.cooldowns.remove(&quirk);
-        #[cfg(not(feature = "std"))]
         self.cooldowns.retain(|(q, _)| *q != quirk);
     }
 
     /// Clears all active quirks
     pub fn clear(&mut self) {
         self.active_quirks.clear();
-        #[cfg(feature = "std")]
-        self.cooldowns.clear();
-        #[cfg(not(feature = "std"))]
         self.cooldowns.clear();
     }
 
@@ -446,22 +440,11 @@ impl QuirkEngine {
 
     /// Checks if a quirk is currently on cooldown
     pub fn is_on_cooldown(&self, quirk: Quirk, current_time_ms: u64) -> bool {
-        #[cfg(feature = "std")]
-        {
-            if let Some(&last_activation) = self.cooldowns.get(&quirk) {
-                let elapsed = current_time_ms.saturating_sub(last_activation);
+        for (q, last_activation) in &self.cooldowns {
+            if *q == quirk {
+                let elapsed = current_time_ms.saturating_sub(*last_activation);
                 let cooldown = quirk.default_cooldown_ms();
                 return elapsed < cooldown;
-            }
-        }
-        #[cfg(not(feature = "std"))]
-        {
-            for (q, last_activation) in &self.cooldowns {
-                if *q == quirk {
-                    let elapsed = current_time_ms.saturating_sub(*last_activation);
-                    let cooldown = quirk.default_cooldown_ms();
-                    return elapsed < cooldown;
-                }
             }
         }
         false
@@ -469,17 +452,10 @@ impl QuirkEngine {
 
     /// Records that a quirk has been activated
     pub fn record_activation(&mut self, quirk: Quirk, current_time_ms: u64) {
-        #[cfg(feature = "std")]
-        {
-            self.cooldowns.insert(quirk, current_time_ms);
-        }
-        #[cfg(not(feature = "std"))]
-        {
-            // Remove existing entry
-            self.cooldowns.retain(|(q, _)| *q != quirk);
-            // Add new entry
-            self.cooldowns.push((quirk, current_time_ms));
-        }
+        // Remove existing entry
+        self.cooldowns.retain(|(q, _)| *q != quirk);
+        // Add new entry
+        self.cooldowns.push((quirk, current_time_ms));
     }
 
     /// Checks which quirks should trigger based on current state

@@ -43,6 +43,12 @@ contracts:
     covers_reqs: [ARCH-001, ARCH-002, ARCH-003, ARCH-004, ARCH-005]
     summary: "Core architecture: no_std, determinism, safety, bounds, transport abstraction"
 
+  - id: feature_ai_learning
+    file: feature_ai_learning.yml
+    status: active
+    covers_reqs: [I-AI-001, I-AI-002, I-AI-003, I-AI-004, I-AI-005, I-AI-006, I-AI-007]
+    summary: "AI learning: bounded learning, reward clipping, privacy, observability, confidence thresholds"
+
 # ============================================
 # Epic 1: ArtBot Contracts
 # ============================================
@@ -227,6 +233,15 @@ requirements_coverage:
   LEARN-004: feature_learninglab
   LEARN-006: J-LEARN-CLASS-DEMO
 
+  # AI Learning
+  I-AI-001: feature_ai_learning
+  I-AI-002: feature_ai_learning
+  I-AI-003: feature_ai_learning
+  I-AI-004: feature_ai_learning
+  I-AI-005: feature_ai_learning
+  I-AI-006: feature_ai_learning
+  I-AI-007: feature_ai_learning
+
 # ============================================
 # Implementation Status
 # ============================================
@@ -237,8 +252,16 @@ implementation_status:
     - ARCH-002  # Deterministic tick processing
     - ARCH-004  # Bounded homeostasis values
     - ARCH-005  # Transport abstraction
+    - I-AI-001  # Bounded learning rates
+    - I-AI-002  # Reward clipping
+    - I-AI-003  # Privacy and storage limits
+    - I-AI-004  # Observable predictions
+    - I-AI-005  # Confidence thresholds
+    - I-AI-006  # Minimum observations
+    - I-AI-007  # User control and privacy
 
-  in_progress: []
+  in_progress:
+    - Issue #87  # Predictive Behavior Engine
 
   not_started:
     - ART-001 through ART-007

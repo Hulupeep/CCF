@@ -6,7 +6,7 @@
  * Invariants: I-VOICE-003 (non-blocking UI feedback)
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { VoiceControl } from '../VoiceControl';
@@ -45,18 +45,18 @@ describe('VoiceControl Component', () => {
         createOscillator() {
           return {
             frequency: { value: 0 },
-            connect: vi.fn(),
-            start: vi.fn(),
-            stop: vi.fn(),
+            connect: jest.fn(),
+            start: jest.fn(),
+            stop: jest.fn(),
           };
         }
         createGain() {
           return {
             gain: {
-              setValueAtTime: vi.fn(),
-              exponentialRampToValueAtTime: vi.fn(),
+              setValueAtTime: jest.fn(),
+              exponentialRampToValueAtTime: jest.fn(),
             },
-            connect: vi.fn(),
+            connect: jest.fn(),
           };
         }
         get destination() {
@@ -66,12 +66,12 @@ describe('VoiceControl Component', () => {
     };
 
     // Mock console.warn
-    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
     VoiceCommandService.resetInstance();
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('Rendering and data-testid Coverage', () => {
@@ -260,7 +260,7 @@ describe('VoiceControl Component', () => {
       fireEvent.click(historyBtn);
 
       // Mock window.confirm
-      window.confirm = vi.fn(() => true);
+      window.confirm = jest.fn(() => true);
 
       const clearBtn = screen.getByTestId('clear-history-btn');
       fireEvent.click(clearBtn);

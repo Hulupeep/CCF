@@ -418,6 +418,16 @@ pub mod gamebot;
 // === HELPERBOT MODULE ===
 pub mod helperbot;
 
+// === MULTI-ROBOT COORDINATION MODULE ===
+pub mod multi_robot;
+
+// === PERFORMANCE PROFILING AND OPTIMIZATION MODULE ===
+#[cfg(not(feature = "no_std"))]
+pub mod performance;
+
+// === REINFORCEMENT LEARNING MODULE ===
+pub mod learning;
+
 // === DRAWING HELPERS ===
 
 /// Calculate motor powers to drive to a target position

@@ -1,0 +1,241 @@
+# Multi-Robot Coordination Contract - mBot RuVector
+# Invariants for coordinated multi-robot behaviors
+
+contract_meta:
+  id: feature_multi_robot
+  version: 1
+  created_from_spec: "Issue #82: Multi-Robot Coordination Protocol"
+  covers_reqs:
+    - I-MULTI-001
+    - I-MULTI-002
+    - I-MULTI-003
+    - I-MULTI-004
+    - I-MULTI-005
+    - I-MULTI-006
+  owner: "mbot-ruvector-team"
+  journey_contract: J-MULTI-SWARM-DANCE
+
+llm_policy:
+  enforce: true
+  llm_may_modify_non_negotiables: false
+  override_phrase: "override_contract: feature_multi_robot"
+
+rules:
+  non_negotiable:
+    - id: I-MULTI-001
+      title: "Multi-robot network discovery must complete within 5 seconds"
+      rationale: "Users expect quick robot discovery for coordination"
+      scope:
+        - "crates/mbot-core/src/multi_robot/**/*.rs"
+        - "web/src/services/multiRobotCoordination.ts"
+      behavior:
+        required_patterns:
+          - pattern: /discoveryTimeout.*5000|timeout.*5s/
+            message: "Discovery timeout must be 5 seconds"
+          - pattern: /mDNS|WebSocket.*discovery/
+            message: "Must use discovery protocol"
+        example_compliant: |
+          const DISCOVERY_TIMEOUT_MS: u32 = 5000;
+          pub async fn discover_robots(timeout: Duration) -> Result<Vec<RobotInfo>>
+
+    - id: I-MULTI-002
+      title: "State synchronization must maintain consistency (no split-brain)"
+      rationale: "Prevent inconsistent state across robots"
+      scope:
+        - "crates/mbot-core/src/multi_robot/**/*.rs"
+        - "web/src/services/multiRobotCoordination.ts"
+      behavior:
+        required_patterns:
+          - pattern: /sequence.*number|vector.*clock|timestamp/
+            message: "Must use ordering mechanism for state sync"
+          - pattern: /heartbeat|health.*check/
+            message: "Must have heartbeat mechanism"
+        forbidden_patterns:
+          - pattern: /setState.*without.*sync|state.*=.*value/
+            message: "State changes must go through sync protocol"
+        example_violation: |
+          robot.state.position = newPosition; // No sync!
+        example_compliant: |
+          syncStateChange(robot_id, StateUpdate {
+            position: newPosition,
+            sequence: next_sequence(),
+            timestamp: now()
+          });
+
+    - id: I-MULTI-003
+      title: "Leader election must be deterministic and complete within 3 seconds"
+      rationale: "Quick, reliable leader election prevents coordination delays"
+      scope:
+        - "crates/mbot-core/src/multi_robot/**/*.rs"
+        - "web/src/services/multiRobotCoordination.ts"
+      behavior:
+        required_patterns:
+          - pattern: /Bully|Raft|election.*algorithm/
+            message: "Must use established leader election algorithm"
+          - pattern: /election.*timeout.*3000|3s/
+            message: "Election must complete in 3 seconds"
+        example_compliant: |
+          const ELECTION_TIMEOUT_MS: u32 = 3000;
+          pub async fn elect_leader() -> Result<RobotId>
+
+    - id: I-MULTI-004
+      title: "Coordination supports 2-4 robots maximum"
+      rationale: "Keep complexity manageable for home use"
+      scope:
+        - "crates/mbot-core/src/multi_robot/**/*.rs"
+        - "web/src/services/multiRobotCoordination.ts"
+      behavior:
+        required_patterns:
+          - pattern: /maxRobots.*=.*4|MAX_ROBOTS.*4/
+            message: "Maximum 4 robots in coordination"
+        forbidden_patterns:
+          - pattern: /maxRobots.*>.*4/
+            message: "No more than 4 robots allowed"
+        example_compliant: |
+          const MAX_ROBOTS: usize = 4;
+          if robots.len() > MAX_ROBOTS {
+            return Err(CoordinationError::TooManyRobots);
+          }
+
+    - id: I-MULTI-005
+      title: "State sync latency must be <100ms"
+      rationale: "Ensure coordinated movements appear synchronized"
+      scope:
+        - "crates/mbot-core/src/multi_robot/**/*.rs"
+        - "web/src/services/multiRobotCoordination.ts"
+      behavior:
+        required_patterns:
+          - pattern: /syncInterval.*100|sync.*every.*100ms/
+            message: "State sync must happen at least every 100ms"
+          - pattern: /latency.*monitor|measure.*sync.*time/
+            message: "Must monitor sync latency"
+        example_compliant: |
+          const SYNC_INTERVAL_MS: u32 = 100;
+          async fn sync_state_loop() {
+            loop {
+              sync_all_robots().await;
+              sleep(Duration::from_millis(SYNC_INTERVAL_MS)).await;
+            }
+          }
+
+    - id: I-MULTI-006
+      title: "Graceful handling of robot disconnect"
+      rationale: "System must continue operating when a robot disconnects"
+      scope:
+        - "crates/mbot-core/src/multi_robot/**/*.rs"
+        - "web/src/services/multiRobotCoordination.ts"
+      behavior:
+        required_patterns:
+          - pattern: /on.*disconnect|handle.*disconnect/
+            message: "Must handle disconnect events"
+          - pattern: /timeout.*detection|missed.*heartbeat/
+            message: "Must detect disconnects via timeout"
+        example_compliant: |
+          fn on_robot_disconnect(robot_id: RobotId) {
+            remove_from_mesh(robot_id);
+            if is_leader(robot_id) {
+              trigger_new_election();
+            }
+            notify_remaining_robots(robot_id);
+          }
+
+  soft:
+    - id: I-MULTI-010
+      title: "Log all coordination events for debugging"
+      suggestion: "Use tracing/logging for discovery, elections, state changes"
+
+    - id: I-MULTI-011
+      title: "Visualize mesh topology in UI"
+      suggestion: "Show robot connections and leader status graphically"
+
+data_contract:
+  coordination_message:
+    fields:
+      - name: fromRobot
+        type: string
+        required: true
+        description: "ID of sending robot"
+      - name: toRobots
+        type: "string[]"
+        required: true
+        description: "Target robot IDs (empty = broadcast)"
+      - name: action
+        type: "'sync' | 'command' | 'state' | 'heartbeat'"
+        required: true
+        description: "Message type"
+      - name: payload
+        type: any
+        required: true
+        description: "Message payload"
+      - name: timestamp
+        type: number
+        required: true
+        description: "Unix timestamp in ms"
+      - name: sequence
+        type: number
+        required: true
+        description: "Message sequence number for ordering"
+
+  robot_state:
+    fields:
+      - name: id
+        type: string
+        required: true
+        description: "Unique robot ID"
+      - name: role
+        type: "'leader' | 'follower'"
+        required: true
+        description: "Robot role in coordination"
+      - name: position
+        type: "{ x: number; y: number }"
+        required: true
+        description: "Robot position"
+      - name: status
+        type: "'idle' | 'moving' | 'executing'"
+        required: true
+        description: "Current robot status"
+      - name: lastHeartbeat
+        type: number
+        required: true
+        description: "Timestamp of last heartbeat"
+
+  coordination_config:
+    fields:
+      - name: maxRobots
+        type: number
+        default: 4
+        description: "Maximum robots in coordination"
+      - name: heartbeatInterval
+        type: number
+        default: 1000
+        description: "Heartbeat interval in ms"
+      - name: discoveryTimeout
+        type: number
+        default: 5000
+        description: "Discovery timeout in ms"
+      - name: syncInterval
+        type: number
+        default: 100
+        description: "State sync interval in ms"
+
+compliance_checklist:
+  before_editing_files:
+    - question: "Adding coordination logic?"
+      if_yes: "Ensure discovery completes in 5s (I-MULTI-001)"
+    - question: "Modifying state sync?"
+      if_yes: "Ensure no split-brain scenarios (I-MULTI-002)"
+    - question: "Adding leader election?"
+      if_yes: "Must complete in 3s (I-MULTI-003)"
+    - question: "Changing robot limits?"
+      if_yes: "Max 4 robots allowed (I-MULTI-004)"
+    - question: "Modifying sync timing?"
+      if_yes: "Keep latency <100ms (I-MULTI-005)"
+    - question: "Handling disconnects?"
+      if_yes: "Must gracefully handle (I-MULTI-006)"
+
+test_hooks:
+  tests:
+    - file: "tests/contracts/multi_robot.test.ts"
+      description: "Validates multi-robot coordination invariants"
+    - file: "tests/journeys/multi-robot-coordination.journey.spec.ts"
+      description: "E2E test for J-MULTI-SWARM-DANCE journey"
