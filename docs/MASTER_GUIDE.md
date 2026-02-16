@@ -1,343 +1,309 @@
 # mBot RuVector - Master Setup Guide
 
-**Give your robot a nervous system. Watch it come alive.**
+This guide assumes you have never done this before. Every step tells you exactly what to type, what you should see on screen, and what it means when something goes wrong.
 
-This guide walks you through setting up mBot2 with RuVector AI, from unboxing to running your first application.
+**How it works:** The mBot2 robot is the body (wheels, sensors, LEDs). Your laptop runs the brain (the RuVector companion app). They talk to each other through a USB cable. You do not upload code to the robot. The robot keeps its factory software. Your laptop tells it what to do.
 
 ---
 
 ## Table of Contents
 
-1. [Hardware Requirements](#hardware-requirements)
-2. [Software Prerequisites](#software-prerequisites)
-3. [Hardware Setup](#hardware-setup)
-4. [Connecting to CyberPi](#connecting-to-cyberpi)
-5. [Building Firmware](#building-firmware)
-6. [Downloading to Robot](#downloading-to-robot)
-7. [Running Applications](#running-applications)
-8. [Web Dashboard](#web-dashboard)
-9. [Troubleshooting](#troubleshooting)
+1. [What You Need to Buy](#what-you-need-to-buy)
+2. [Putting the Robot Together](#putting-the-robot-together)
+3. [Installing Software on Your Computer](#installing-software-on-your-computer)
+4. [Try It Without a Robot First](#try-it-without-a-robot-first)
+5. [Plugging In the Robot](#plugging-in-the-robot)
+6. [Running With the Real Robot](#running-with-the-real-robot)
+7. [Web Dashboard](#web-dashboard)
+8. [Brain Layer (LLM Integration)](#brain-layer-llm-integration)
+9. [When Things Go Wrong](#when-things-go-wrong)
 10. [Next Steps](#next-steps)
 
 ---
 
-## Hardware Requirements
+## What You Need to Buy
 
-### Essential Components
+### Required
 
-| Item | Description | Source |
-|------|-------------|--------|
-| **mBot2** | Makeblock mBot2 robot kit with CyberPi controller | [Makeblock Store](https://www.makeblock.com/steam-kits/mbot2) |
-| **USB-C Cable** | For connecting CyberPi to laptop | Usually included with mBot2 |
-| **Computer** | Windows 10+, macOS 10.15+, or Ubuntu 20.04+ | - |
+| Item | What It Is | Where to Get It | Cost |
+|------|-----------|-----------------|------|
+| **Makeblock mBot2** | A small wheeled robot with a brain board called CyberPi. Comes with motors, sensors, LEDs, and a USB-C cable in the box. | [Makeblock Store](https://www.makeblock.com/steam-kits/mbot2) | ~$100 |
+| **A computer** | Windows 10 or newer, macOS 10.15 or newer, or Ubuntu 20.04 or newer. A laptop works great. | You probably have one | - |
 
-### Optional Components
+The USB-C cable you need comes in the mBot2 box. You do not need to buy one separately.
 
-| Item | Purpose | Used By |
-|------|---------|---------|
-| **Servo Motor** | Drawing pen control | ArtBot |
-| **Pen/Marker** | Creating artwork | ArtBot |
-| **LEGO Bricks** | Sorting demonstrations | LEGOSorter |
-| **Colored Objects** | Color detection tests | HelperBot |
-| **Flat Surface** | Drawing canvas | ArtBot |
+### Optional (for specific features)
+
+| Item | What It Is For | Which Feature Uses It |
+|------|---------------|----------------------|
+| **A small servo motor** | Lifts and lowers a pen so the robot can draw | ArtBot drawing mode |
+| **A pen or marker** | The actual drawing tool | ArtBot drawing mode |
+| **LEGO bricks (assorted colors)** | Something for the robot to sort | LEGO Sorter |
+
+You do not need any of the optional items to get started. Start with just the mBot2 and your computer.
 
 ---
 
-## Software Prerequisites
+## Putting the Robot Together
 
-### 1. Install Rust Toolchain
+If you bought a new mBot2, it comes in a box with parts that need to be assembled.
 
-Rust is required to build the mBot RuVector firmware.
+### Step 1: Follow the Makeblock Instructions
 
-#### Windows
+The mBot2 box includes a printed instruction booklet. Follow it to snap the chassis together, attach the wheels, and connect the motors. It takes about 20-30 minutes. No tools required - everything snaps or screws together by hand.
 
-Download and run [rustup-init.exe](https://rustup.rs/)
+If you lost the booklet, Makeblock has the instructions online: [mBot2 Assembly Guide](https://www.makeblock.com/pages/mbot2-support)
 
-```powershell
-# Verify installation
-rustc --version
-cargo --version
+### Step 2: Find the Power Button
+
+Look at the CyberPi board on top of the robot. It is the green circuit board with a small color screen. The power button is on the **left side** of the CyberPi board. It is a small physical button.
+
+### Step 3: Turn It On
+
+Press and hold the power button for about 2 seconds. Let go when the screen lights up.
+
+**What you should see:** The small color screen on the CyberPi shows the Makeblock logo, then a home screen with icons. The screen is about the size of a postage stamp. If the screen stays dark, the battery is dead - charge it with the USB-C cable for 30 minutes and try again.
+
+**What you should hear:** A short startup chime from the buzzer.
+
+### Step 4: Make Sure It Works
+
+On the CyberPi home screen, use the small joystick (the little nub next to the screen) to navigate to the "Drive" icon and click it. Now tilt the CyberPi forward - the robot should drive forward. Tilt it left - it turns left. This confirms the motors, sensors, and brain board are all working.
+
+Press the home button (the round button below the screen) to go back to the home screen.
+
+You are done with hardware setup. Leave the robot turned on for the next steps.
+
+### Optional: Attaching a Pen for Drawing
+
+Skip this section if you just want to try the nervous system first. Come back to it later when you want to try ArtBot.
+
+You need a small hobby servo motor (the kind used in RC cars, about $5-10). The mBot2 does not come with one.
+
+```
+      Top view of mBot2
+    ┌──────────────────┐
+    │    [CyberPi]     │
+    │                  │
+    │   servo ← Port 1 is on the right side
+    │    │             │    of the CyberPi board.
+    │   pen            │    It is labeled "1".
+    │    ▼             │
+    └──────────────────┘
+        wheels here
 ```
 
-#### macOS
+1. Plug the servo's 3-pin cable into **Port 1** on the CyberPi. Port 1 is labeled with a "1" printed on the board, on the right side. The cable only fits one way.
+2. Tape or rubber-band the servo to the back of the robot chassis so the arm hangs over the rear.
+3. Tape a pen or marker to the servo arm so the pen tip points down.
+4. When the servo arm rotates to 45 degrees, the pen should lift off the paper. At 90 degrees, it should touch the paper. You will calibrate the exact angles later.
 
+---
+
+## Installing Software on Your Computer
+
+You need to install two things: the Rust programming language (which builds the companion app) and some system libraries (which let Rust talk to USB devices).
+
+### Step 1: Open a Terminal
+
+A terminal is the text window where you type commands. It looks like a black or white window with a blinking cursor.
+
+**Linux (Ubuntu/Debian):** Press `Ctrl + Alt + T` on your keyboard. A terminal window opens.
+
+**macOS:** Press `Cmd + Space` to open Spotlight search. Type `Terminal` and press Enter.
+
+**Windows:** Press the Windows key on your keyboard. Type `cmd` and press Enter. (For a better experience, install [Windows Terminal](https://aka.ms/terminal) from the Microsoft Store - it is free.)
+
+You should see a blinking cursor waiting for you to type. Everything below that says "type this" means type it into this window and press Enter.
+
+### Step 2: Install Rust
+
+Rust is the programming language this project is written in. You need it to build the app that runs on your laptop.
+
+**Linux or macOS - type this:**
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
-
-# Verify installation
-rustc --version
-cargo --version
 ```
 
-#### Linux (Ubuntu/Debian)
+It will show some text and then ask:
+```
+1) Proceed with standard installation (default - just press enter)
+2) Customize installation
+3) Cancel installation
+```
 
+Type `1` and press Enter.
+
+When it says "Rust is installed now", **close your terminal window and open a new one.** This is important - the new terminal will know where Rust is. The old one will not.
+
+**Windows:** Download and run [rustup-init.exe](https://rustup.rs/). Follow the prompts. When done, close and reopen your terminal.
+
+**Verify it worked - type this in your new terminal:**
 ```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
-
-# Install system dependencies
-sudo apt update
-sudo apt install -y build-essential pkg-config libdbus-1-dev libudev-dev
-
-# Verify installation
 rustc --version
-cargo --version
 ```
 
-### 2. Install Node.js (for Web Dashboard)
+You should see something like `rustc 1.83.0 (some numbers)`. The exact version number does not matter. If you see "command not found" instead, close the terminal, open a new one, and try again. If it still says "command not found", the installation failed - go back to the curl command and try again.
 
-Download from [nodejs.org](https://nodejs.org/) (LTS version recommended)
+### Step 3: Install System Libraries
 
+These are extra packages your operating system needs so Rust can talk to USB devices and Bluetooth adapters. Without them, the build will fail with confusing errors about "libudev" or "libdbus".
+
+**Linux (Ubuntu/Debian) - type this:**
 ```bash
-# Verify installation
-node --version
-npm --version
+sudo apt update && sudo apt install -y build-essential pkg-config libdbus-1-dev libudev-dev libssl-dev
 ```
 
-### 3. Clone Repository
+It will ask for your password. When you type your password, **nothing appears on screen** - no dots, no stars, nothing. That is normal. Type your password and press Enter.
 
+If it says "Unable to locate package", you might be on a non-Debian Linux. Search for equivalent packages for your distribution.
+
+**macOS - type this:**
+```bash
+xcode-select --install
+```
+
+A popup window appears asking to install developer tools. Click "Install". Wait for it to finish (5-10 minutes).
+
+**Windows:** Download and run [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/). In the installer, check the box next to "Desktop development with C++" and click Install. This is a large download (~2 GB).
+
+### Step 4: Download This Project
+
+**Type this:**
 ```bash
 git clone https://github.com/Hulupeep/mbot_ruvector.git
+```
+
+This downloads the project into a folder called `mbot_ruvector` in whatever directory your terminal is currently in (usually your home folder).
+
+If you see "git: command not found":
+- Linux: type `sudo apt install git` then try again
+- macOS: it will prompt you to install git automatically
+- Windows: download from [git-scm.com](https://git-scm.com/), install it, reopen your terminal
+
+Now go into the project folder:
+```bash
 cd mbot_ruvector
 ```
 
-### 4. Install Web Dependencies
+Your terminal prompt should now show `mbot_ruvector` somewhere in it. If it says "No such file or directory", the clone failed. Try the git clone command again.
 
+---
+
+## Try It Without a Robot First
+
+Before connecting hardware, make sure the software works. Simulation mode runs the entire nervous system on your laptop without needing a robot.
+
+**Type this:**
 ```bash
-cd web
-npm install
-cd ..
+cargo run --bin mbot-companion -- --simulate
 ```
+
+**The first time you run this**, Rust downloads and compiles all the dependencies. This takes 2-5 minutes. You will see lines like:
+```
+   Compiling serde v1.0.203
+   Compiling tokio v1.38.0
+   ...
+```
+
+This is normal. Wait for it to finish.
+
+**What you should see when it starts:** A box made of lines that updates every second:
+
+```
+╔══════════════════════════════════════════════════════════════╗
+║  😌 Calm  │  Tension: 0.30  │  Coherence: 0.70  │  Energy: 0.50
+╠══════════════════════════════════════════════════════════════╣
+║  📏 Distance:  100.0 cm  │  🔊 Sound: 0.00  │  💡 Light: 0.50
+║  ⚙️  Encoders: L=    0 R=    0  │  🌀 Gyro:    0.0°/s
+╠══════════════════════════════════════════════════════════════╣
+║  ⏱️  Tick:     20  │  Avg:   50µs  │  Max:  120µs
+╚══════════════════════════════════════════════════════════════╝
+```
+
+This is the robot's nervous system running. It is thinking, feeling, and reacting - just with simulated sensor data instead of real hardware. The mode (Calm/Active/Spike/Protect) will change over time as the internal state fluctuates.
+
+**To stop it:** Press `Ctrl + C` (hold Control and press C).
+
+If you see errors instead, jump to [When Things Go Wrong](#when-things-go-wrong).
 
 ---
 
-## Hardware Setup
+## Plugging In the Robot
 
-### Basic mBot2 Assembly
+### Step 1: Get the USB-C Cable
 
-1. **Assemble the chassis** following the [official mBot2 guide](https://www.makeblock.com/pages/mbot2-support)
-2. **Install batteries** in the CyberPi controller
-3. **Power on** the CyberPi (press power button)
-4. Verify the screen displays and the robot responds to test movements
+Find the USB-C cable that came in the mBot2 box. One end is USB-C (small, oval-shaped connector). The other end is USB-A (the rectangular one) or USB-C depending on what came in your box.
 
-### Optional: Pen Servo for Drawing
+### Step 2: Connect the Cable
 
-For ArtBot functionality, attach a servo motor with pen holder:
+1. Make sure the mBot2 is **turned on** (the small screen on the CyberPi should be showing something)
+2. Plug the USB-C end into the CyberPi (the port is on the bottom edge of the CyberPi board)
+3. Plug the other end into your computer
 
-```
-      mBot2
-    ┌─────────┐
-    │ CyberPi │
-    │         │
-    │  [pen]  │  ← Servo on Port 1
-    │    │    │     Angle 45° = pen up
-    │    ▼    │     Angle 90° = pen down
-    └─────────┘
-```
+If you are using a USB hub, that works fine too.
 
-**Connection:**
-1. Connect servo to **Port 1** on CyberPi
-2. Attach pen holder to servo arm
-3. Secure pen with rubber band or clip
-4. Test servo range before drawing
+### Step 3: Check That Your Computer Sees the Robot
 
----
+Your computer creates a "serial port" when the robot is plugged in. You need to find its name.
 
-## Connecting to CyberPi
-
-### USB-C Connection (Recommended)
-
-This is the most reliable connection method for firmware upload.
-
-#### 1. Connect the Cable
-
-1. Power on the CyberPi
-2. Connect USB-C cable from CyberPi to computer
-3. Wait for the connection sound/notification
-
-#### 2. Find the Serial Port
-
-**Linux:**
+**Linux - type this:**
 ```bash
 ls /dev/ttyUSB* /dev/ttyACM*
-# Usually: /dev/ttyUSB0 or /dev/ttyACM0
 ```
 
-**macOS:**
+You should see something like `/dev/ttyUSB0` or `/dev/ttyACM0`. That is your port name. Remember it.
+
+If you see `No such file or directory` for both, your computer does not see the robot. Try:
+- Unplug and replug the USB cable
+- Try a different USB port on your computer
+- Make sure the robot is turned on
+- Try a different USB cable
+
+**macOS - type this:**
 ```bash
 ls /dev/tty.usb*
-# Usually: /dev/tty.usbserial-* or /dev/tty.usbmodem*
 ```
 
-**Windows:**
-```powershell
-# Open Device Manager
-# Look under "Ports (COM & LPT)"
-# Usually: COM3, COM4, etc.
-```
+You should see something like `/dev/tty.usbserial-1420` or `/dev/tty.usbmodem14201`. That is your port name.
 
-#### 3. Set Permissions (Linux Only)
+**Windows:** Open Device Manager (press Windows key, type "Device Manager", press Enter). Look for "Ports (COM & LPT)" in the list. Click the arrow to expand it. You should see something like "USB Serial Device (COM3)". The "COM3" part is your port name.
 
+### Step 4: Give Yourself Permission to Use the Port (Linux Only)
+
+Linux does not let regular users talk to USB devices by default. You need to fix this once.
+
+**Quick fix (works right now, resets on reboot):**
 ```bash
-# Add yourself to dialout group
-sudo usermod -a -G dialout $USER
-
-# Logout and login for changes to take effect
-# OR for immediate access:
 sudo chmod 666 /dev/ttyUSB0
 ```
 
-### Bluetooth Connection (Alternative)
+Replace `/dev/ttyUSB0` with whatever port name you found in Step 3.
 
-**Note:** Bluetooth has higher latency and is less reliable for firmware uploads. Use USB-C when possible.
-
-#### 1. Enable Bluetooth on CyberPi
-
-1. Navigate to Settings on CyberPi screen
-2. Enable Bluetooth
-3. Set device to discoverable
-
-#### 2. Pair from Computer
-
-**Linux:**
+**Permanent fix (survives reboots):**
 ```bash
-bluetoothctl
-scan on
-# Find mBot2-XXXX
-pair XX:XX:XX:XX:XX:XX
-trust XX:XX:XX:XX:XX:XX
-connect XX:XX:XX:XX:XX:XX
+sudo usermod -a -G dialout $USER
 ```
 
-**macOS:**
-```bash
-# Use System Preferences → Bluetooth
-# Find and pair with mBot2-XXXX
-```
-
-**Windows:**
-```powershell
-# Use Settings → Bluetooth & devices
-# Add device → Bluetooth
-# Select mBot2-XXXX
-```
+After running this, **log out of your computer and log back in** (or restart). The change does not take effect until you do.
 
 ---
 
-## Building Firmware
+## Running With the Real Robot
 
-### Development Build (Faster)
+Now you will run the same nervous system, but connected to actual hardware. The robot will move, react to sounds, flash its LEDs, and respond to objects near its ultrasonic sensor.
 
-For testing and rapid iteration:
-
-```bash
-# Build companion app with simulation
-cargo build --bin mbot-companion
-
-# Build specific application binary
-cargo build --bin draw
-cargo build --bin tictactoe
-```
-
-### Release Build (Optimized)
-
-For actual robot deployment:
+**Type this** (replace `/dev/ttyUSB0` with your actual port name from the previous section):
 
 ```bash
-# Build optimized firmware
-cargo build --release --bin mbot-companion
-
-# Build time: ~2-5 minutes (first build)
-# Subsequent builds: ~30 seconds
+cargo run --features serial --bin mbot-companion -- --serial /dev/ttyUSB0
 ```
 
-### Build Verification
+**What you should see:** The same status box as simulation mode, but now the sensor values come from the real robot. Wave your hand in front of the ultrasonic sensor (the two "eyes" on the front of the mBot2) and watch the Distance value change. Clap your hands and watch the Sound value spike. The reflex mode may change from Calm to Spike when you clap.
 
-```bash
-# Check that build succeeded
-ls target/release/mbot-companion
-# OR
-ls target/debug/mbot-companion
-```
+**What you should see on the robot:** The LEDs may change color. The motors may turn briefly. The exact behavior depends on the robot's personality and current emotional state - that is the whole point. It is not following a script.
 
-**Expected output:**
-- File size: 5-15 MB (debug), 2-5 MB (release)
-- No error messages during build
-- Executable permissions set
-
----
-
-## Downloading to Robot
-
-### Method 1: USB Serial Upload (Recommended)
-
-This is the primary method for getting code onto the CyberPi.
-
-```bash
-# Find your serial port (see "Connecting" section above)
-export MBOT_PORT=/dev/ttyUSB0  # Linux/Mac
-# OR
-set MBOT_PORT=COM3             # Windows
-
-# Upload firmware (this compiles and sends)
-cargo run --release --bin mbot-companion -- --serial $MBOT_PORT
-```
-
-**What happens:**
-1. Rust compiles the code
-2. Binary is sent via serial to CyberPi
-3. CyberPi reboots with new firmware
-4. Application starts automatically
-
-### Method 2: Bluetooth Upload (Alternative)
-
-**Warning:** Bluetooth upload is slower and less reliable. Use for remote updates only.
-
-```bash
-# Upload via Bluetooth
-cargo run --release --features bluetooth --bin mbot-companion -- --bluetooth
-```
-
-### Method 3: DFU Mode (Recovery)
-
-If normal upload fails, use Device Firmware Update mode:
-
-#### Enter DFU Mode
-
-1. Power off CyberPi
-2. Hold **Reset** button
-3. Press **Power** button while holding Reset
-4. Release Reset after 3 seconds
-5. Screen should show "DFU Mode"
-
-#### Upload in DFU Mode
-
-```bash
-# Linux - requires dfu-util
-sudo apt install dfu-util
-dfu-util -d 0483:df11 -a 0 -s 0x08000000 -D target/release/mbot-companion
-
-# macOS - install via Homebrew
-brew install dfu-util
-dfu-util -d 0483:df11 -a 0 -s 0x08000000 -D target/release/mbot-companion
-```
-
-### Upload Verification
-
-**Success indicators:**
-- ✅ "Upload complete" message
-- ✅ CyberPi reboots automatically
-- ✅ Screen shows application UI
-- ✅ No error messages
-
-**Failure indicators:**
-- ❌ Timeout errors
-- ❌ Permission denied
-- ❌ Device not found
-- ❌ CyberPi doesn't reboot
-
-See [Troubleshooting](#troubleshooting) section if upload fails.
+**To stop:** Press `Ctrl + C`. The robot will stop moving.
 
 ---
 
@@ -648,6 +614,89 @@ curl -i -N -H "Connection: Upgrade" -H "Upgrade: websocket" ws://localhost:8081
 2. Check paper size (must be 30cm x 30cm)
 3. Verify servo pen angle
 4. Run calibration routine first
+
+---
+
+## Brain Layer (LLM Integration)
+
+The brain layer adds LLM-powered reasoning, memory, voice, and chat on top of the deterministic nervous system. It is entirely optional - the robot works without it.
+
+### Prerequisites
+
+The brain layer has no extra system dependencies beyond what you already installed. It uses HTTP to talk to LLM APIs.
+
+For local-only operation (no API keys needed):
+1. Install [Ollama](https://ollama.ai/)
+2. Pull a model: `ollama pull llama3.2`
+
+### Building with Brain Features
+
+```bash
+# Brain only (LLM + memory + autonomy)
+cargo build --features "serial,brain" --bin mbot-companion
+
+# Brain + voice pipeline
+cargo build --features "serial,brain,voice" --bin mbot-companion
+
+# Brain + Telegram chat
+cargo build --features "serial,brain,telegram" --bin mbot-companion
+
+# Everything
+cargo build --features "serial,brain,voice,telegram,discord" --bin mbot-companion
+```
+
+### Running with Brain
+
+```bash
+# With Ollama (local, free)
+cargo run --features "serial,brain" --bin mbot-companion -- --serial /dev/ttyUSB0 --brain
+
+# With Claude API (set key first)
+export ANTHROPIC_API_KEY="sk-ant-your-key"
+cargo run --features "serial,brain" --bin mbot-companion -- --serial /dev/ttyUSB0 --brain
+
+# With voice (set keys first)
+export OPENAI_API_KEY="sk-your-key"
+export ELEVENLABS_API_KEY="your-key"
+cargo run --features "serial,brain,voice" --bin mbot-companion -- --serial /dev/ttyUSB0 --brain --voice
+```
+
+### What the Brain Does
+
+When enabled, the brain layer runs alongside the deterministic nervous system:
+
+1. **Every tick**: The deterministic nervous system processes sensors and generates motor commands (always runs, cannot be overridden by LLM)
+2. **Every N seconds** (configurable): The brain queries the LLM with the robot's current state and personality
+3. **The LLM suggests**: Motor actions, speech, personality adjustments, or activities
+4. **SafetyFilter checks**: Every suggestion before execution (motors clamped, harmful speech blocked)
+5. **If LLM fails**: The robot continues on its deterministic nervous system - no degradation
+
+### Brain Environment Variables
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | *(none)* | Claude API key |
+| `MBOT_CLAUDE_MODEL` | `claude-sonnet-4-20250514` | Claude model |
+| `MBOT_OLLAMA_URL` | `http://localhost:11434` | Ollama server |
+| `MBOT_OLLAMA_MODEL` | `llama3.2` | Ollama model |
+| `MBOT_LLM_TIMEOUT_SECS` | `30` | Max request time (capped at 30) |
+| `MBOT_LLM_MAX_TOKENS` | `256` | Max response tokens |
+| `MBOT_DB_PATH` | `mbot_memory.db` | SQLite database file |
+| `OPENAI_API_KEY` | *(none)* | Whisper STT |
+| `GROQ_API_KEY` | *(none)* | Groq Whisper STT |
+| `ELEVENLABS_API_KEY` | *(none)* | ElevenLabs TTS |
+| `MBOT_TELEGRAM_TOKEN` | *(none)* | Telegram bot token |
+| `MBOT_DISCORD_TOKEN` | *(none)* | Discord bot token |
+
+### Brain Troubleshooting
+
+**"No providers available"**: Neither Claude API key nor Ollama is reachable. Check that Ollama is running (`ollama serve`) or that `ANTHROPIC_API_KEY` is set.
+
+**"LLM timeout"**: The LLM took longer than 30 seconds. This can happen with large local models. Try a smaller Ollama model (`llama3.2` is faster than `llama3.1:70b`).
+
+**"Brain layer error" in logs**: The brain gracefully degrades. The deterministic nervous system continues running. Check verbose output (`-v`) for details.
+
+**Voice not working**: Make sure both `OPENAI_API_KEY` (for speech-to-text) and `ELEVENLABS_API_KEY` (for text-to-speech) are set. Check that your microphone is connected and working.
 
 ---
 

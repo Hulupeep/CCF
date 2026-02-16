@@ -37,6 +37,33 @@ tracing-subscriber = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
+# Brain layer dependencies
+reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }
+rusqlite = { version = "0.31", features = ["bundled", "serde_json"] }
+tokio-cron-scheduler = "0.10"
+uuid = { version = "1.7", features = ["v4"] }
+async-trait = "0.1"
+base64 = "0.22"
+chrono = { version = "0.4", features = ["serde"] }
+
+# Chat channel dependencies
+teloxide = { version = "0.12", features = ["macros"] }
+serenity = { version = "0.12", features = ["client", "gateway", "model"] }
+
+# BLE dependencies
+futures = "0.3"
+
+# Voice API HTTP server
+warp = "0.3"
+
+# .env file loading
+dotenvy = "0.15"
+
+# Voice pipeline dependencies
+cpal = "0.15"
+rodio = "0.19"
+hound = "3.5"
+
 [profile.release]
 opt-level = 3
 lto = true

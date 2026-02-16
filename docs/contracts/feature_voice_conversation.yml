@@ -1,0 +1,779 @@
+# Feature Contract - Voice Conversation System
+# Phone-based voice I/O with LLM reasoning on laptop, R2-D2 tone feedback on CyberPi
+#
+# Architecture:
+#   Phone (HTTP) --> Laptop (STT/LLM/TTS) --> CyberPi (play_tone + display via BLE)
+#
+# The phone provides the microphone/speaker via browser Web APIs.
+# The laptop runs mbot-companion with the voice-api HTTP server.
+# CyberPi produces R2-D2 chirps via play_tone() and shows text on its display.
+
+contract_meta:
+  id: feature_voice_conversation
+  version: 1
+  created_from_spec: "Voice Conversation System Design"
+  covers_reqs:
+    - VCONV-001
+    - VCONV-002
+    - VCONV-003
+    - VCONV-004
+    - VCONV-005
+    - VCONV-006
+    - VCONV-007
+    - VCONV-008
+    - VCONV-009
+    - VCONV-010
+  owner: "mbot-ruvector-team"
+  parent_epic: "Voice Conversation System"
+
+llm_policy:
+  enforce: true
+  llm_may_modify_non_negotiables: false
+  override_phrase: "override_contract: feature_voice_conversation"
+
+# ============================================
+# Architecture Invariants
+# ============================================
+
+rules:
+  non_negotiable:
+    - id: VCONV-001
+      title: "R2-D2 voice uses ONLY play_tone() API"
+      rationale: >
+        CyberPi speaker is a low-fidelity piezo buzzer driven through MicroPython.
+        Raw audio streaming over BLE is unreliable and exceeds bandwidth.
+        All robot vocalizations must use cyberpi.audio.play_tone() sequences
+        to produce R2-D2-style chirps and beeps.
+      scope:
+        - "crates/mbot-companion/src/transport.rs"
+        - "crates/mbot-companion/src/protocol.rs"
+        - "crates/mbot-embedded/src/**/*.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /cyberpi\.audio\.play_file|cyberpi\.audio\.record|audio_stream|raw_audio|pcm_data.*cyberpi/
+            message: "CyberPi speaker must only use play_tone() - no raw audio streaming or file playback to device"
+          - pattern: /wav.*cyberpi|mp3.*cyberpi|ogg.*cyberpi/
+            message: "No audio file formats may be sent to CyberPi - use play_tone() sequences"
+        required_patterns:
+          - pattern: /play_tone/
+            message: "R2-D2 vocalizations must use play_tone() API"
+        example_violation: |
+          // Streaming raw audio to CyberPi over BLE
+          transport.send_audio_stream(&wav_bytes).await;
+        example_compliant: |
+          // R2-D2 chirp sequence via play_tone()
+          transport.send_f3_command("cyberpi.audio.play_tone(784, 0.2)").await;
+          transport.send_f3_command("cyberpi.audio.play_tone(659, 0.2)").await;
+          transport.send_f3_command("cyberpi.audio.play_tone(523, 0.6)").await;
+
+    - id: VCONV-002
+      title: "All voice processing happens on laptop, not CyberPi"
+      rationale: >
+        CyberPi (ESP32) has insufficient memory and CPU for STT, TTS, or LLM inference.
+        All speech-to-text, text-to-speech, and LLM processing runs on the laptop
+        within mbot-companion. The phone captures audio and plays back TTS audio.
+        CyberPi only receives play_tone() commands and display text.
+      scope:
+        - "crates/mbot-companion/src/brain/voice/**/*.rs"
+        - "crates/mbot-companion/src/brain/llm/**/*.rs"
+        - "crates/mbot-embedded/src/**/*.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /stt.*cyberpi|tts.*cyberpi|llm.*cyberpi|whisper.*cyberpi/i
+            message: "STT/TTS/LLM must run on laptop, never on CyberPi"
+          - pattern: /transcribe.*embedded|inference.*embedded/i
+            message: "No voice inference on the embedded device"
+        required_patterns:
+          - pattern: /SttProvider|transcribe/
+            message: "STT processing must exist in companion voice module"
+        example_violation: |
+          // Sending audio to CyberPi for on-device transcription
+          transport.send_audio_for_transcription(&audio).await;
+        example_compliant: |
+          // Transcribe on laptop, send only result to CyberPi display
+          let result = stt_provider.transcribe(&audio, sample_rate).await?;
+          transport.display_text(&result.text).await;
+
+    - id: VCONV-003
+      title: "HTTP API binds to local network only"
+      rationale: >
+        The voice HTTP API accepts audio from the phone on the same WiFi network.
+        It must never be exposed to the public internet. Binding to 0.0.0.0 is
+        acceptable for LAN access but must not be port-forwarded or tunneled.
+        No TLS is required for local-only operation.
+      scope:
+        - "crates/mbot-companion/src/**/*.rs"
+        - "web/server.js"
+      behavior:
+        forbidden_patterns:
+          - pattern: /ngrok|cloudflare.*tunnel|localtunnel|expose.*public/i
+            message: "Voice HTTP API must not be exposed to the public internet"
+          - pattern: /0\.0\.0\.0.*443|public_ip|external_ip/
+            message: "No public-facing port bindings for voice API"
+        required_patterns:
+          - pattern: /127\.0\.0\.1|localhost|0\.0\.0\.0|local/
+            message: "HTTP server must bind to local/LAN addresses"
+        example_violation: |
+          // Tunneling voice API to the internet
+          let tunnel = ngrok::connect(voice_port).await?;
+        example_compliant: |
+          // Bind to LAN only
+          let addr = SocketAddr::from(([0, 0, 0, 0], voice_port));
+          axum::Server::bind(&addr).serve(app.into_make_service()).await?;
+
+    - id: VCONV-004
+      title: "Voice commands pass through SafetyFilter before motor execution"
+      rationale: >
+        Voice-originated motor commands are parsed from natural language by the LLM,
+        making them unpredictable. Every motor command derived from voice input must
+        pass through the existing SafetyFilter (I-BRAIN-004) before being sent to
+        the transport layer. This is the Kitchen Table Test (ARCH-003) for voice.
+      scope:
+        - "crates/mbot-companion/src/brain/planner/**/*.rs"
+        - "crates/mbot-companion/src/brain/voice/**/*.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /voice.*motor.*direct|bypass.*safety|skip.*filter/i
+            message: "Voice-originated motor commands must not bypass SafetyFilter"
+          - pattern: /transport\.send_motor.*voice|voice.*send_motor/
+            message: "Voice commands must route through planner + SafetyFilter, not directly to transport"
+        required_patterns:
+          - pattern: /SafetyFilter|safety.*check|safety.*filter/
+            message: "SafetyFilter must be in the voice-to-motor pipeline"
+        example_violation: |
+          // Directly executing voice-parsed motor command
+          let cmd = parse_voice_motor("go forward fast");
+          transport.send_motor(cmd).await;
+        example_compliant: |
+          // Route through SafetyFilter
+          let actions = action_translator.parse(&llm_response);
+          for action in actions {
+              if let Some(safe_action) = safety_filter.check(action) {
+                  executor.execute(safe_action).await;
+              }
+          }
+
+    - id: VCONV-005
+      title: "STT/TTS/LLM API keys from env vars only"
+      rationale: >
+        Voice processing uses external APIs (OpenAI Whisper, ElevenLabs, Groq,
+        Anthropic Claude, Ollama). API keys must come from environment variables
+        and never appear in source code, config files checked into git, or logs.
+      scope:
+        - "crates/mbot-companion/src/brain/**/*.rs"
+        - "web/**/*.js"
+        - "web/**/*.ts"
+        - "web/**/*.tsx"
+      behavior:
+        forbidden_patterns:
+          - pattern: /sk-[a-zA-Z0-9]{20,}|sk_live_|sk_test_/
+            message: "API key literal detected in source code"
+          - pattern: /api_key\s*[:=]\s*"[^"]*[a-zA-Z0-9]{20,}"/
+            message: "Hardcoded API key in string assignment"
+          - pattern: /ELEVENLABS_API_KEY\s*=\s*"[^"]+"/
+            message: "Hardcoded ElevenLabs key - must use env var"
+          - pattern: /OPENAI_API_KEY\s*=\s*"[^"]+"/
+            message: "Hardcoded OpenAI key - must use env var"
+          - pattern: /ANTHROPIC_API_KEY\s*=\s*"[^"]+"/
+            message: "Hardcoded Anthropic key - must use env var"
+          - pattern: /GROQ_API_KEY\s*=\s*"[^"]+"/
+            message: "Hardcoded Groq key - must use env var"
+        required_patterns:
+          - pattern: /std::env::var|env::var|process\.env\./
+            message: "API keys must be loaded from environment variables"
+        example_violation: |
+          let api_key = "sk-proj-abc123def456...";
+        example_compliant: |
+          let api_key = std::env::var("ELEVENLABS_API_KEY")
+              .context("ELEVENLABS_API_KEY not set")?;
+
+    - id: VCONV-006
+      title: "Phone web UI uses standard browser APIs only"
+      rationale: >
+        The phone connects to the voice API via a web page served by the laptop.
+        It must use standard Web APIs (MediaRecorder, AudioContext, fetch) so it
+        works on any phone browser without installing a native app. No WebRTC
+        peer connections, no native plugins, no app store distribution.
+      scope:
+        - "web/src/**/*.ts"
+        - "web/src/**/*.tsx"
+        - "web/src/**/*.js"
+        - "web/public/**/*.html"
+      behavior:
+        forbidden_patterns:
+          - pattern: /RTCPeerConnection|RTCDataChannel|webrtc/i
+            message: "No WebRTC - use standard HTTP/WebSocket for voice transport"
+          - pattern: /cordova|capacitor|react-native|expo/i
+            message: "No native app frameworks - must be pure web"
+          - pattern: /navigator\.plugins|ActiveXObject/
+            message: "No browser plugins required"
+        required_patterns:
+          - pattern: /MediaRecorder|AudioContext|getUserMedia|navigator\.mediaDevices/
+            message: "Must use standard browser audio APIs"
+        example_violation: |
+          // Requiring a native app
+          import { NativeAudio } from '@capacitor/native-audio';
+        example_compliant: |
+          // Standard browser API
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const recorder = new MediaRecorder(stream);
+
+    - id: VCONV-007
+      title: "Voice pipeline disableable via --voice-api flag"
+      rationale: >
+        The voice HTTP server and voice pipeline must be opt-in. Running
+        mbot-companion without --voice-api (or --voice) must not start the
+        HTTP server or attempt audio capture. This keeps the default footprint
+        minimal and avoids unnecessary network listeners.
+      scope:
+        - "crates/mbot-companion/src/main.rs"
+        - "crates/mbot-companion/src/brain/voice/mod.rs"
+        - "crates/mbot-companion/Cargo.toml"
+      behavior:
+        forbidden_patterns:
+          - pattern: /voice.*always_on|voice.*auto_start.*true/
+            message: "Voice pipeline must not auto-start without explicit flag"
+        required_patterns:
+          - pattern: /enabled.*false|Disabled|cfg\(feature.*=.*"voice"\)/
+            message: "Voice must be disabled by default or feature-gated"
+        example_violation: |
+          // Voice always starts
+          let voice = VoicePipeline::new(VoiceConfig { enabled: true, ..});
+        example_compliant: |
+          // Voice only starts when flag is set
+          #[cfg(feature = "voice")]
+          if args.voice {
+              voice_pipeline.enable();
+          }
+
+    - id: VCONV-008
+      title: "R2-D2 tones synchronized with display text"
+      rationale: >
+        When the robot "speaks" via R2-D2 tones, the CyberPi display must show
+        corresponding text (the actual response) at the same time. The user reads
+        the display to understand what the beeps mean. Tones without display text
+        or display text without tones creates a confusing experience.
+      scope:
+        - "crates/mbot-companion/src/transport.rs"
+        - "crates/mbot-companion/src/brain/voice/**/*.rs"
+        - "crates/mbot-companion/src/brain/narrator/**/*.rs"
+      behavior:
+        required_patterns:
+          - pattern: /display.*text|show.*text|cyberpi\.display/
+            message: "R2-D2 tone sequences must have accompanying display text"
+          - pattern: /play_tone/
+            message: "Display text updates must have accompanying R2-D2 tones"
+        example_violation: |
+          // Playing tones with nothing on screen
+          transport.play_r2d2_chirp().await;
+          // User hears beeps but has no idea what robot said
+        example_compliant: |
+          // Synchronized tone + display
+          transport.display_text(&response_text).await;
+          transport.play_r2d2_response().await;
+          // User reads display while hearing characteristic beeps
+
+    - id: VCONV-009
+      title: "Motor commands from voice clamped [-100, 100]"
+      rationale: >
+        Voice-originated motor commands are parsed from natural language and may
+        contain arbitrary values. All motor speed values must be clamped to the
+        safe range [-100, 100] before transmission. This is enforced by both
+        SafetyFilter (I-BRAIN-005) and explicit clamping at the transport layer.
+      scope:
+        - "crates/mbot-companion/src/brain/planner/safety.rs"
+        - "crates/mbot-companion/src/brain/planner/action_translator.rs"
+        - "crates/mbot-companion/src/transport.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /motor.*speed.*>.*100|motor.*=.*200|motor.*=.*255/
+            message: "Motor speed exceeds safe range [-100, 100]"
+          - pattern: /left\s*[:=]\s*\d{3,}|right\s*[:=]\s*\d{3,}/
+            message: "Motor value >= 100 without clamping"
+        required_patterns:
+          - pattern: /\.clamp\(-?100,\s*100\)|clamp\(-self\.max_motor_speed/
+            message: "Motor speeds must be clamped to [-100, 100]"
+        example_violation: |
+          // Unclamped voice-parsed motor command
+          let cmd = MotorCommand { left: 200, right: 200, .. };
+          transport.send_motor(cmd).await;
+        example_compliant: |
+          // Clamped via SafetyFilter
+          let cmd = MotorCommand {
+              left: parsed_left.clamp(-100, 100),
+              right: parsed_right.clamp(-100, 100),
+              ..Default::default()
+          };
+
+    - id: VCONV-010
+      title: "HTTP server feature-gated under voice-api feature flag"
+      rationale: >
+        The HTTP server for phone voice I/O adds network dependencies (axum/actix/warp)
+        and attack surface. It must be behind a Cargo feature flag so that builds
+        without voice support have no HTTP server code compiled in. The feature
+        flag is "voice" in Cargo.toml, and the CLI flag is --voice.
+      scope:
+        - "crates/mbot-companion/Cargo.toml"
+        - "crates/mbot-companion/src/main.rs"
+        - "crates/mbot-companion/src/brain/voice/**/*.rs"
+      behavior:
+        required_patterns:
+          - pattern: /cfg\(feature\s*=\s*"voice"\)|#\[cfg\(feature = "voice"\)\]/
+            message: "Voice/HTTP modules must be behind cfg(feature = \"voice\")"
+          - pattern: /voice\s*=\s*\[/
+            message: "voice feature flag must be defined in Cargo.toml"
+        forbidden_patterns:
+          - pattern: /mod voice;$(?!\s*\/\/)/m
+            message: "Voice module must be conditionally compiled, not unconditional"
+        example_violation: |
+          // Voice module always compiled
+          mod voice;
+          use voice::VoiceServer;
+        example_compliant: |
+          // Voice module behind feature flag
+          #[cfg(feature = "voice")]
+          mod voice;
+
+  soft:
+    - id: VCONV-020
+      title: "Prefer WebSocket over polling for real-time voice state"
+      suggestion: "Use WebSocket to push voice state (listening/speaking) to phone UI for responsive feedback"
+
+    - id: VCONV-021
+      title: "Support multiple simultaneous phone connections"
+      suggestion: "Allow more than one phone to view/interact, but only one active voice session"
+
+    - id: VCONV-022
+      title: "Provide latency metrics for voice pipeline"
+      suggestion: "Track and expose STT latency, LLM latency, TTS latency, total round-trip"
+
+    - id: VCONV-023
+      title: "Support offline fallback for voice commands"
+      suggestion: "Basic commands (stop, go, turn) should work without LLM via local pattern matching"
+
+# ============================================
+# Bounded Parameters
+# ============================================
+
+bounded_parameters:
+  motor_speed:
+    range: [-100, 100]
+    unit: "percent"
+    description: "Motor speed for voice-commanded movements"
+
+  tone_frequency:
+    range: [200, 2000]
+    unit: "Hz"
+    description: "R2-D2 play_tone() frequency range"
+
+  tone_duration:
+    range: [0.05, 2.0]
+    unit: "seconds"
+    description: "R2-D2 play_tone() duration per note"
+
+  http_port:
+    range: [1024, 65535]
+    default: 8090
+    description: "Voice HTTP API port (must be unprivileged)"
+
+  vad_threshold:
+    range: [0.0, 1.0]
+    default: 0.02
+    description: "Voice activity detection energy threshold"
+
+  max_recording_duration:
+    range: [1, 60]
+    unit: "seconds"
+    default: 30
+    description: "Maximum single voice recording length"
+
+# ============================================
+# Data Structures
+# ============================================
+
+data_contracts:
+  VoiceConversationRequest:
+    description: "HTTP request from phone with recorded audio"
+    required_fields:
+      - audio: "Vec<u8> - PCM or WebM audio bytes from phone microphone"
+      - sample_rate: "u32 - audio sample rate (typically 16000)"
+      - format: "String - audio format (pcm, webm, wav)"
+    optional_fields:
+      - session_id: "String - for conversation continuity"
+      - language: "String - ISO 639-1 language code"
+
+  VoiceConversationResponse:
+    description: "HTTP response to phone with TTS audio and text"
+    required_fields:
+      - text: "String - the robot's textual response"
+      - audio: "Option<Vec<u8>> - TTS audio bytes for phone playback"
+      - session_id: "String - conversation session identifier"
+    optional_fields:
+      - emotion: "String - detected emotional tone"
+      - actions_taken: "Vec<String> - motor/display actions executed"
+
+  R2D2ToneSequence:
+    description: "Sequence of play_tone() calls for R2-D2 vocalization"
+    required_fields:
+      - tones: "Vec<ToneNote> - sequence of frequency/duration pairs"
+      - emotion: "String - happy, curious, sad, excited, confused"
+    sub_types:
+      ToneNote:
+        required_fields:
+          - frequency: "u16 - Hz, range [200, 2000]"
+          - duration_ms: "u16 - milliseconds, range [50, 2000]"
+          - pause_after_ms: "u16 - silence gap after note"
+
+# ============================================
+# Acceptance Criteria (Gherkin)
+# ============================================
+
+acceptance_criteria:
+  feature: "Voice Conversation System"
+  actor: "User with phone and mBot"
+  benefit: "I can talk to mBot naturally and it responds with R2-D2 chirps and display text"
+
+  scenarios:
+    - name: "First voice conversation"
+      given:
+        - "mbot-companion is running with --voice flag"
+        - "phone is connected to same WiFi network as laptop"
+        - "phone opens voice web UI in browser"
+      when:
+        - "user says 'Hello mBot, what can you do?'"
+      then:
+        - "phone captures audio via MediaRecorder API"
+        - "audio is sent to laptop via HTTP POST"
+        - "laptop transcribes speech via STT provider"
+        - "laptop generates response via LLM"
+        - "TTS audio is sent back to phone for playback"
+        - "CyberPi plays R2-D2 chirp sequence via play_tone()"
+        - "CyberPi display shows response text"
+
+    - name: "Voice motor command with safety"
+      given:
+        - "voice pipeline is active"
+        - "user says 'go in a circle'"
+      when:
+        - "LLM translates to motor commands"
+      then:
+        - "motor command passes through SafetyFilter"
+        - "motor speeds are clamped to [-100, 100]"
+        - "mBot executes circular motion"
+        - "CyberPi chirps acknowledgment"
+
+    - name: "Voice API not started without flag"
+      given:
+        - "mbot-companion is started without --voice flag"
+      when:
+        - "the application initializes"
+      then:
+        - "no HTTP server is started for voice"
+        - "no audio capture is initialized"
+        - "VoicePipeline state is Disabled"
+
+    - name: "API keys loaded from environment"
+      given:
+        - "ELEVENLABS_API_KEY is set in environment"
+        - "OPENAI_API_KEY is set in environment"
+      when:
+        - "voice pipeline initializes"
+      then:
+        - "keys are read from std::env::var()"
+        - "no keys appear in log output"
+        - "missing keys produce clear error messages"
+
+    - name: "Phone uses browser APIs only"
+      given:
+        - "user opens voice UI on iPhone Safari"
+      when:
+        - "voice page loads"
+      then:
+        - "microphone permission is requested via getUserMedia"
+        - "audio is captured via MediaRecorder"
+        - "no native app install is required"
+        - "no browser plugins are required"
+
+    - name: "R2-D2 tones synchronized with display"
+      given:
+        - "robot has generated a response"
+      when:
+        - "response is delivered to CyberPi"
+      then:
+        - "display text appears before or simultaneously with tones"
+        - "tone sequence matches emotional context of response"
+        - "user can read display to understand what beeps mean"
+
+    - name: "Unsafe voice command blocked"
+      given:
+        - "user says 'go at maximum speed 255'"
+      when:
+        - "LLM generates motor command with speed 255"
+      then:
+        - "SafetyFilter clamps speed to 100"
+        - "robot moves at safe speed"
+        - "no motor value exceeds [-100, 100]"
+
+    - name: "HTTP server binds locally"
+      given:
+        - "voice API is starting"
+      when:
+        - "HTTP server binds to address"
+      then:
+        - "server listens on local/LAN address"
+        - "no tunnel or public exposure is created"
+        - "accessible only from same network"
+
+# ============================================
+# Journey Contracts
+# ============================================
+
+journeys:
+  - id: J-VCONV-FIRST-CONVERSATION
+    title: "User has first voice conversation with mBot"
+    criticality: critical
+    description: >
+      A user picks up their phone, opens the mBot voice page in their browser,
+      and has their first spoken conversation with the robot. The robot responds
+      with R2-D2 chirps on its speaker, shows text on its display, and the phone
+      plays back a TTS voice response. The user experiences a natural, multimodal
+      conversation.
+    preconditions:
+      - "mBot is powered on and connected via BLE to laptop"
+      - "mbot-companion is running with --voice flag"
+      - "Phone and laptop are on the same WiFi network"
+    steps:
+      - step: 1
+        actor: "User"
+        action: "Opens http://<laptop-ip>:8090/voice in phone browser"
+        expected: "Voice UI loads with microphone permission prompt"
+      - step: 2
+        actor: "User"
+        action: "Grants microphone permission"
+        expected: "UI shows 'Ready - tap to speak' button"
+      - step: 3
+        actor: "User"
+        action: "Taps speak button and says 'Hello mBot, who are you?'"
+        expected: "UI shows recording indicator, captures audio via MediaRecorder"
+      - step: 4
+        actor: "System"
+        action: "Phone sends audio to laptop via HTTP POST /api/voice/converse"
+        expected: "Laptop receives audio, begins STT transcription"
+      - step: 5
+        actor: "System"
+        action: "Laptop transcribes speech, sends to LLM with personality context"
+        expected: "LLM generates in-character response"
+      - step: 6
+        actor: "System"
+        action: "Laptop generates TTS audio and R2-D2 tone sequence"
+        expected: "Response text, TTS audio, and tone commands ready"
+      - step: 7
+        actor: "System"
+        action: "Laptop sends TTS audio to phone, tone commands to CyberPi"
+        expected: "Phone plays voice response, CyberPi chirps and shows text"
+      - step: 8
+        actor: "User"
+        action: "Reads CyberPi display while hearing R2-D2 chirps"
+        expected: "Display text matches the spoken response content"
+    postconditions:
+      - "Conversation session is established with session_id"
+      - "No API keys were exposed in logs or network traffic"
+      - "All audio was processed on the laptop, not on CyberPi"
+    test_file: "tests/journeys/first-voice-conversation.journey.spec.ts"
+
+  - id: J-VCONV-VOICE-COMMAND
+    title: "User gives voice command and robot executes"
+    criticality: critical
+    description: >
+      A user gives a natural language motor command ("go in a circle") via the
+      phone voice interface. The command is transcribed, interpreted by the LLM,
+      translated to motor actions, passed through SafetyFilter, and executed by
+      the robot. The robot acknowledges with R2-D2 chirps and display feedback.
+    preconditions:
+      - "Voice conversation session is active (J-VCONV-FIRST-CONVERSATION passed)"
+      - "mBot is on a flat surface with room to move"
+    steps:
+      - step: 1
+        actor: "User"
+        action: "Taps speak button and says 'Go in a circle'"
+        expected: "Audio captured and sent to laptop"
+      - step: 2
+        actor: "System"
+        action: "STT transcribes 'go in a circle'"
+        expected: "Transcript passed to LLM with action prompt"
+      - step: 3
+        actor: "System"
+        action: "LLM interprets as motor command: left=50, right=-50 for 3 seconds"
+        expected: "ActionTranslator produces BrainAction::Motor"
+      - step: 4
+        actor: "System"
+        action: "SafetyFilter checks motor command"
+        expected: "Speeds within [-100, 100], command approved"
+      - step: 5
+        actor: "System"
+        action: "Motor command sent to CyberPi via BLE transport"
+        expected: "mBot begins circular motion"
+      - step: 6
+        actor: "System"
+        action: "CyberPi plays acknowledgment chirp and shows 'Going in a circle!'"
+        expected: "R2-D2 tone plays, display text visible"
+      - step: 7
+        actor: "System"
+        action: "Phone receives response: 'Sure! Watch me spin!'"
+        expected: "TTS audio plays on phone speaker"
+      - step: 8
+        actor: "System"
+        action: "After 3 seconds, motor command completes"
+        expected: "mBot stops, CyberPi shows 'Done!'"
+    postconditions:
+      - "Motor speeds never exceeded [-100, 100] during execution"
+      - "SafetyFilter was invoked for every motor command"
+      - "R2-D2 chirps and display text were synchronized"
+      - "No direct voice-to-motor path bypassed the safety filter"
+    test_file: "tests/journeys/voice-command-execution.journey.spec.ts"
+
+# ============================================
+# data-testid Requirements
+# ============================================
+
+test_ids:
+  - element: "Speak button"
+    testid: "voice-speak-btn"
+    purpose: "Tap to start/stop voice recording"
+
+  - element: "Voice status indicator"
+    testid: "voice-status"
+    purpose: "Shows Idle/Listening/Recording/Transcribing/Speaking state"
+
+  - element: "Transcript display"
+    testid: "voice-transcript"
+    purpose: "Shows what the user said (STT result)"
+
+  - element: "Response display"
+    testid: "voice-response"
+    purpose: "Shows what the robot said (LLM response text)"
+
+  - element: "Connection status"
+    testid: "voice-connection"
+    purpose: "Shows connected/disconnected to mbot-companion"
+
+  - element: "Microphone permission prompt"
+    testid: "voice-mic-permission"
+    purpose: "Prompt for browser microphone access"
+
+  - element: "Voice settings panel"
+    testid: "voice-settings"
+    purpose: "Configure language, sensitivity, etc."
+
+  - element: "Conversation history"
+    testid: "voice-history"
+    purpose: "Scrollable list of conversation turns"
+
+  - element: "Pipeline latency display"
+    testid: "voice-latency"
+    purpose: "Shows STT + LLM + TTS timing breakdown"
+
+  - element: "Emergency stop button"
+    testid: "voice-estop"
+    purpose: "Immediately stop all motor commands from voice"
+
+# ============================================
+# E2E Test References
+# ============================================
+
+e2e_tests:
+  - file: "tests/journeys/first-voice-conversation.journey.spec.ts"
+    covers: ["VCONV-001", "VCONV-002", "VCONV-003", "VCONV-005", "VCONV-006", "VCONV-007", "VCONV-008", "VCONV-010"]
+    journey: "J-VCONV-FIRST-CONVERSATION"
+    scenarios:
+      - "Phone opens voice UI in browser"
+      - "Audio captured via standard browser APIs"
+      - "STT/TTS/LLM runs on laptop"
+      - "R2-D2 tones play via play_tone()"
+      - "Display text synchronized with tones"
+      - "HTTP server on local network only"
+
+  - file: "tests/journeys/voice-command-execution.journey.spec.ts"
+    covers: ["VCONV-004", "VCONV-009"]
+    journey: "J-VCONV-VOICE-COMMAND"
+    scenarios:
+      - "Voice command parsed by LLM"
+      - "Motor command passes SafetyFilter"
+      - "Motor speeds clamped [-100, 100]"
+      - "Robot executes commanded motion"
+      - "Acknowledgment chirp and display"
+
+# ============================================
+# Compliance Checklist
+# ============================================
+
+compliance_checklist:
+  before_editing_files:
+    - question: "Adding audio output to CyberPi?"
+      if_yes: "Must use play_tone() only - no raw audio streaming (VCONV-001)"
+    - question: "Adding voice processing code?"
+      if_yes: "Must run on laptop, never on CyberPi/ESP32 (VCONV-002)"
+    - question: "Adding HTTP endpoints?"
+      if_yes: "Must bind to local network only (VCONV-003)"
+    - question: "Adding voice-to-motor path?"
+      if_yes: "Must route through SafetyFilter (VCONV-004)"
+    - question: "Using API keys for STT/TTS/LLM?"
+      if_yes: "Must load from env vars, never hardcode (VCONV-005)"
+    - question: "Adding phone UI features?"
+      if_yes: "Must use standard browser APIs only (VCONV-006)"
+    - question: "Modifying voice startup?"
+      if_yes: "Must remain opt-in via --voice flag (VCONV-007)"
+    - question: "Adding robot vocalizations?"
+      if_yes: "Must synchronize tones with display text (VCONV-008)"
+    - question: "Parsing motor values from voice?"
+      if_yes: "Must clamp to [-100, 100] (VCONV-009)"
+    - question: "Adding voice module code?"
+      if_yes: "Must be behind cfg(feature = \"voice\") (VCONV-010)"
+
+# ============================================
+# Related Contracts
+# ============================================
+
+related_contracts:
+  - contract: "feature_architecture.yml"
+    ids: ["ARCH-003", "ARCH-005"]
+    relationship: "VCONV-004 extends Kitchen Table Test to voice; VCONV-001 uses transport abstraction"
+  - contract: "feature_voice.yml"
+    ids: ["I-VOICE-001", "I-VOICE-002", "I-VOICE-003"]
+    relationship: "Voice command system (browser-side); VCONV covers the phone-laptop-CyberPi pipeline"
+  - contract: "feature_personality.yml"
+    ids: ["PERS-001"]
+    relationship: "Voice responses colored by active personality"
+
+# ============================================
+# Test Hooks
+# ============================================
+
+test_hooks:
+  tests:
+    - file: "tests/contracts/voice_conversation.test.ts"
+      description: "Scans for voice conversation contract violations"
+    - file: "tests/journeys/first-voice-conversation.journey.spec.ts"
+      description: "End-to-end first conversation journey"
+    - file: "tests/journeys/voice-command-execution.journey.spec.ts"
+      description: "End-to-end voice command journey"
+
+# ============================================
+# Definition of Done
+# ============================================
+
+definition_of_done:
+  - "Phone can capture audio and send to laptop via HTTP"
+  - "STT transcribes speech on laptop (not on CyberPi)"
+  - "LLM generates in-character response on laptop"
+  - "TTS audio returned to phone for playback"
+  - "CyberPi plays R2-D2 chirps via play_tone() API only"
+  - "CyberPi display shows response text synchronized with chirps"
+  - "All motor commands from voice pass through SafetyFilter"
+  - "All motor speeds clamped to [-100, 100]"
+  - "All API keys loaded from environment variables"
+  - "HTTP server binds to local network only"
+  - "Voice pipeline disabled by default, enabled via --voice flag"
+  - "Phone web UI works with standard browser APIs (no native app)"
+  - "All 10 VCONV invariants pass contract tests"
+  - "Both journey tests (J-VCONV-FIRST-CONVERSATION, J-VCONV-VOICE-COMMAND) pass"

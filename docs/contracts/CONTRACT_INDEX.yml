@@ -5,9 +5,9 @@ metadata:
   project: mbot-ruvector
   version: 1
   created: "2025-01-30"
-  total_contracts: 6
-  total_requirements: "25 MUST, 12 SHOULD, 8 MAY"
-  total_journeys: 7
+  total_contracts: 7
+  total_requirements: "29 MUST, 14 SHOULD, 8 MAY"
+  total_journeys: 9
 
 definition_of_done:
   critical_journeys:
@@ -16,12 +16,14 @@ definition_of_done:
     - J-PERS-MEET-PERSONALITY
     - J-HELP-LEGO-SORT
     - J-LEARN-FIRST-EXPERIMENT
+    - J-SENSOR-ALL-REAL
 
   important_journeys:
     - J-PERS-CUSTOMIZE
     - J-GAME-CHASE-FUN
     - J-HELP-DESK-TIDY
     - J-LEARN-CLASS-DEMO
+    - J-SENSOR-DIAGNOSE
 
   future_journeys:
     - J-GAME-DANCE-BATTLE
@@ -48,6 +50,32 @@ contracts:
     status: active
     covers_reqs: [I-AI-001, I-AI-002, I-AI-003, I-AI-004, I-AI-005, I-AI-006, I-AI-007]
     summary: "AI learning: bounded learning, reward clipping, privacy, observability, confidence thresholds"
+
+  - id: feature_sensors
+    file: feature_sensors.yml
+    status: active
+    covers_reqs: [SENSOR-001, SENSOR-002, SENSOR-003, SENSOR-004, SENSOR-005, SENSOR-006]
+    summary: "Sensor fidelity: real hardware reads, no silent simulation, last-known-good fallback"
+
+  - id: J-SENSOR-ALL-REAL
+    file: feature_sensors.yml
+    status: active
+    type: e2e
+    dod_criticality: critical
+    dod_status: failing
+    covers_reqs: [SENSOR-001, SENSOR-002, SENSOR-003]
+    summary: "All sensors return real hardware values when connected via serial"
+    e2e_test: "tests/contracts/sensor_fidelity.rs"
+
+  - id: J-SENSOR-DIAGNOSE
+    file: feature_sensors.yml
+    status: draft
+    type: e2e
+    dod_criticality: important
+    dod_status: not_tested
+    covers_reqs: [SENSOR-006]
+    summary: "Diagnostic mode tests each sensor individually"
+    e2e_test: "tests/journeys/sensor-diagnose.journey.spec.ts"
 
 # ============================================
 # Epic 1: ArtBot Contracts
@@ -233,6 +261,14 @@ requirements_coverage:
   LEARN-004: feature_learninglab
   LEARN-006: J-LEARN-CLASS-DEMO
 
+  # Sensors
+  SENSOR-001: [feature_sensors, J-SENSOR-ALL-REAL]
+  SENSOR-002: [feature_sensors, J-SENSOR-ALL-REAL]
+  SENSOR-003: [feature_sensors, J-SENSOR-ALL-REAL]
+  SENSOR-004: feature_sensors
+  SENSOR-005: feature_sensors
+  SENSOR-006: [feature_sensors, J-SENSOR-DIAGNOSE]
+
   # AI Learning
   I-AI-001: feature_ai_learning
   I-AI-002: feature_ai_learning
@@ -264,6 +300,7 @@ implementation_status:
     - Issue #87  # Predictive Behavior Engine
 
   not_started:
+    - SENSOR-001 through SENSOR-006
     - ART-001 through ART-007
     - PERS-001 through PERS-008
     - GAME-001 through GAME-007

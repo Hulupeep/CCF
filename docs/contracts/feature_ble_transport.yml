@@ -1,0 +1,174 @@
+# Feature Contract - BLE Transport for CyberPi HalocodeProtocol
+# Ensures BLE transport uses the correct f3/f4 protocol and reads real hardware data.
+
+contract_meta:
+  id: feature_ble_transport
+  version: 1
+  created_from_spec: "GitHub Issue #96"
+  covers_reqs:
+    - BLE-001
+    - BLE-002
+    - BLE-003
+    - BLE-004
+    - BLE-005
+  owner: "mbot-ruvector-team"
+
+llm_policy:
+  enforce: true
+  llm_may_modify_non_negotiables: false
+  override_phrase: "override_contract: feature_ble_transport"
+
+rules:
+  non_negotiable:
+    - id: BLE-001
+      title: "BLE transport uses same f3/f4 protocol as serial"
+      rationale: "CyberPi only speaks HalocodeProtocol. BLE and serial are just different byte pipes."
+      scope:
+        - "crates/mbot-companion/src/transport.rs"
+      behavior:
+        required_patterns:
+          - pattern: /protocol::sensor_read|protocol::command|protocol::online_mode_frame/
+            message: "BLE must use protocol module for frame construction"
+          - pattern: /parser\.feed/
+            message: "BLE must use F3Parser for response parsing"
+        example_violation: |
+          // BAD: BLE uses custom framing instead of protocol module
+          bt.write(&write_char, b"get_brightness", WriteType::WithoutResponse)
+        example_compliant: |
+          // GOOD: BLE uses same protocol module as serial
+          let frame = protocol::sensor_read(protocol::read_brightness_script(), idx);
+          bt.write(&write_char, &frame, WriteType::WithoutResponse).await?;
+
+    - id: BLE-002
+      title: "BLE uses Makeblock standard GATT UUIDs"
+      rationale: "Makeblock devices use ffe1 service, ffe2 notify, ffe3 write"
+      scope:
+        - "crates/mbot-companion/src/transport.rs"
+      behavior:
+        required_patterns:
+          - pattern: /ffe1/
+            message: "Must reference Makeblock service UUID ffe1"
+          - pattern: /ffe2/
+            message: "Must reference Makeblock notify UUID ffe2"
+          - pattern: /ffe3/
+            message: "Must reference Makeblock write UUID ffe3"
+        example_compliant: |
+          pub const SERVICE: Uuid = Uuid::from_u128(0x0000ffe1_0000_1000_8000_00805f9b34fb);
+          pub const NOTIFY_CHAR: Uuid = Uuid::from_u128(0x0000ffe2_0000_1000_8000_00805f9b34fb);
+          pub const WRITE_CHAR: Uuid = Uuid::from_u128(0x0000ffe3_0000_1000_8000_00805f9b34fb);
+
+    - id: BLE-003
+      title: "BLE read_sensors must NOT call read_simulated()"
+      rationale: "SENSOR-002 compliance - BLE must read from hardware, not return fake data"
+      scope:
+        - "crates/mbot-companion/src/transport.rs"
+      behavior:
+        forbidden_patterns:
+          - pattern: /Bluetooth.*read_simulated/
+            message: "Bluetooth transport must not silently use simulated data"
+          - pattern: /TransportInner::Bluetooth.*=>.*read_simulated/
+            message: "Bluetooth match arm must not call read_simulated()"
+        required_patterns:
+          - pattern: /read_sensors_ble/
+            message: "Bluetooth must dispatch to read_sensors_ble()"
+
+    - id: BLE-004
+      title: "BLE sensor reads use notification stream with timeout"
+      rationale: "BLE responses arrive asynchronously via ffe2 notifications"
+      scope:
+        - "crates/mbot-companion/src/transport.rs"
+      behavior:
+        required_patterns:
+          - pattern: /notifications\(\).*await/
+            message: "BLE must read from notification stream"
+          - pattern: /timeout_at|timeout\(/
+            message: "BLE reads must have timeouts to prevent hangs"
+        example_compliant: |
+          let mut stream = bt.peripheral.notifications().await?;
+          let deadline = tokio::time::Instant::now() + Duration::from_millis(timeout_ms);
+          match tokio::time::timeout_at(deadline, stream.next()).await { ... }
+
+    - id: BLE-005
+      title: "All BLE code gated under #[cfg(feature = \"bluetooth\")]"
+      rationale: "BLE depends on system libraries (libdbus). Must be opt-in."
+      scope:
+        - "crates/mbot-companion/src/transport.rs"
+      behavior:
+        required_patterns:
+          - pattern: /cfg\(feature = "bluetooth"\)/
+            message: "BLE code must be feature-gated"
+
+  soft:
+    - id: BLE-010
+      title: "BLE should retry connection on scan failure"
+      suggestion: "Allow configurable scan duration and retry count"
+
+acceptance_criteria:
+  feature: "BLE Transport for CyberPi HalocodeProtocol"
+  actor: "mBot2 companion app user"
+  benefit: "I can control my mBot2 wirelessly via Bluetooth"
+
+  scenarios:
+    - name: "BLE scan discovers mBot2"
+      given:
+        - "the user runs mbot-companion --bluetooth"
+        - "the mBot2 is powered on"
+      when:
+        - "the companion app scans for BLE devices"
+      then:
+        - "it finds a Makeblock/CyberPi/mBot device"
+        - "it connects and discovers GATT services"
+
+    - name: "All sensors read over BLE"
+      given:
+        - "the CyberPi protocol is initialized over BLE"
+      when:
+        - "read_sensors() is called"
+      then:
+        - "brightness, loudness, gyro, accel, ultrasonic are queried via BLE"
+        - "real hardware values are returned"
+        - "read_simulated() is NOT called"
+
+    - name: "Diagnostics work over BLE"
+      given:
+        - "the user runs mbot-companion --bluetooth --diagnose"
+      when:
+        - "diagnostics execute"
+      then:
+        - "each sensor is tested individually over BLE"
+        - "results show PASS/TIMEOUT per sensor"
+
+journeys:
+  - id: J-BLE-CONNECT-AND-READ
+    description: "User connects mBot2 via BLE. All sensors return real values. Commands execute wirelessly."
+    criticality: critical
+    test_file: "tests/contracts/ble_transport.rs"
+    covers: [BLE-001, BLE-002, BLE-003, BLE-004, BLE-005]
+
+e2e_tests:
+  - file: "tests/contracts/ble_transport.rs"
+    covers: [BLE-001, BLE-002, BLE-003, BLE-004, BLE-005]
+    scenarios:
+      - "BLE code uses protocol module for frame construction"
+      - "BLE code references Makeblock GATT UUIDs ffe1/ffe2/ffe3"
+      - "BLE read_sensors dispatches to read_sensors_ble, not read_simulated"
+      - "BLE reads use notification stream with timeouts"
+      - "All BLE code is feature-gated under bluetooth"
+
+compliance_checklist:
+  before_editing_files:
+    - question: "Adding BLE transport code?"
+      if_yes: "Keep in transport.rs, feature-gate under bluetooth (ARCH-005, BLE-005)"
+    - question: "Adding BLE sensor reads?"
+      if_yes: "Use protocol module + F3Parser, never call read_simulated (BLE-001, BLE-003)"
+    - question: "Changing BLE UUIDs?"
+      if_yes: "Must match Makeblock standard: ffe1/ffe2/ffe3 (BLE-002)"
+
+definition_of_done:
+  - "cargo build --features bluetooth -p mbot-companion compiles"
+  - "BLE connects to CyberPi via scan + GATT discovery"
+  - "All 5 core sensors read via BLE (not simulated)"
+  - "Motor/LED/buzzer commands work over BLE"
+  - "Diagnostics run over BLE"
+  - "All BLE code feature-gated under bluetooth"
+  - "Contract tests pass"

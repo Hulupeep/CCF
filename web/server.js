@@ -18,13 +18,45 @@ const WS_PORT = process.env.WS_PORT || 8081;
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Start HTTP server
-const server = app.listen(PORT, () => {
-    console.log(`🤖 mBot2 Dashboard: http://localhost:${PORT}`);
+const server = app.listen(PORT);
+
+server.on('listening', () => {
+    console.log(`  Dashboard: http://localhost:${PORT}`);
+});
+
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`\n  ERROR: Port ${PORT} is already in use.`);
+        console.error(`  Something else is running on that port.`);
+        console.error(`\n  To fix this, either:`);
+        console.error(`    1. Stop the other process: kill $(lsof -ti:${PORT})`);
+        console.error(`    2. Use a different port:   PORT=3001 npm start`);
+        console.error();
+        process.exit(1);
+    }
+    throw err;
 });
 
 // Start WebSocket server
 const wss = new WebSocket.Server({ port: WS_PORT });
-console.log(`📡 WebSocket server on port ${WS_PORT}`);
+
+wss.on('listening', () => {
+    console.log(`  WebSocket: ws://localhost:${WS_PORT}`);
+});
+
+wss.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`\n  ERROR: Port ${WS_PORT} is already in use.`);
+        console.error(`  A previous server may still be running.`);
+        console.error(`\n  To fix this, either:`);
+        console.error(`    1. Stop the other process: kill $(lsof -ti:${WS_PORT})`);
+        console.error(`    2. Use a different port:   WS_PORT=8082 npm start`);
+        console.error();
+        server.close();
+        process.exit(1);
+    }
+    throw err;
+});
 
 // Simulated robot brain (replace with real connection)
 class SimulatedBrain {
@@ -148,6 +180,14 @@ wss.on('connection', (ws) => {
     });
 });
 
-console.log('\n🧠 RuVector mBot2 Dashboard Ready!');
-console.log('   Simulating robot brain state...');
-console.log('   Connect real mBot2 via --serial or --bluetooth\n');
+console.log('\n==========================================================');
+console.log('  mBot2 RuVector Dashboard');
+console.log('==========================================================\n');
+console.log('  The dashboard is running with simulated brain data.');
+console.log('  Open the URL above in your web browser to see it.\n');
+console.log('  What you can do:');
+console.log('    - Watch the nervous system in real-time');
+console.log('    - Adjust personality with sliders');
+console.log('    - Try the preset personalities\n');
+console.log('  Press Ctrl+C to stop the server.\n');
+console.log('----------------------------------------------------------\n');
