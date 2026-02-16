@@ -11,7 +11,7 @@
 
 #![cfg_attr(feature = "no_std", allow(unused_imports))]
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
 use super::Personality;

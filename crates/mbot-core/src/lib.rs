@@ -6,22 +6,22 @@
 //!
 //! Based on RuVector's DAG nervous system architecture.
 
-#![cfg_attr(feature = "no_std", no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::vec::Vec;
 
 // Math functions - use libm for no_std, std for normal builds
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use libm::{sinf, cosf, sqrtf, atan2f, fabsf, powf};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 mod math {
     #[inline] pub fn sinf(x: f32) -> f32 { x.sin() }
     #[inline] pub fn cosf(x: f32) -> f32 { x.cos() }
@@ -31,7 +31,7 @@ mod math {
     #[inline] pub fn powf(x: f32, y: f32) -> f32 { x.powf(y) }
 }
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use math::*;
 
 /// Sensor frame from mBot2 hardware
@@ -422,7 +422,7 @@ pub mod helperbot;
 pub mod multi_robot;
 
 // === PERFORMANCE PROFILING AND OPTIMIZATION MODULE ===
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 pub mod performance;
 
 // === REINFORCEMENT LEARNING MODULE ===

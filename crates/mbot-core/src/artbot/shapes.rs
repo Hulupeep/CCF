@@ -11,17 +11,17 @@
 //! - ARCH-001: no_std compatible
 //! - ARCH-002: Deterministic rendering
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::vec::Vec;
 
 // Math functions - use libm for no_std, std for normal builds
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use libm::{cosf, fabsf, sinf, sqrtf};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 mod math {
     #[inline]
     pub fn sinf(x: f32) -> f32 {
@@ -41,7 +41,7 @@ mod math {
     }
 }
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use math::*;
 
 use core::f32::consts::PI;

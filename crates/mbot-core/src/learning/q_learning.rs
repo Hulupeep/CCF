@@ -6,17 +6,17 @@
 //! - I-AI-003: Learning rate decay
 //! - I-AI-004: Epsilon-greedy exploration decay
 
-#![cfg_attr(feature = "no_std", no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{string::String, vec::Vec};
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use hashbrown::HashMap;
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{collections::HashMap, string::String, vec::Vec};
 
 use super::{State, Action, Policy, RewardFunction, LearningMetrics, LearningConfig, ReinforcementLearner, UserFeedback};
@@ -277,8 +277,7 @@ impl ReinforcementLearner for QLearner {
 
     fn reset_learning(&mut self, game_type: &str) {
         // Remove all Q-values for this game type
-        let game_prefix = game_type.to_string();
-        self.q_table.retain(|k, _| !k.starts_with(&game_prefix));
+        self.q_table.retain(|k, _| !k.starts_with(game_type));
 
         // Reset metrics
         if self.policies.contains_key(game_type) {

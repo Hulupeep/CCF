@@ -9,17 +9,17 @@
 //! - **I-PERS-018:** Quirks must respect cooldown periods
 //! - **I-PERS-019:** Multiple quirks can coexist without conflict
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::string::String;
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::vec::Vec;
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::string::String;
 
 use core::fmt;

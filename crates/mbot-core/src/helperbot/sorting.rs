@@ -3,9 +3,9 @@
 //! Implements systematic LEGO sorting with grid-based scanning and path planning
 //! Contract: feature_helperbot.yml (I-HELP-010 through I-HELP-013)
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{string::{String, ToString}, vec, vec::Vec};
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{string::{String, ToString}, vec, vec::Vec};
 
 use serde::{Deserialize, Serialize};
@@ -25,9 +25,9 @@ impl Position {
     pub fn distance_to(&self, other: &Position) -> f32 {
         let dx = self.x - other.x;
         let dy = self.y - other.y;
-        #[cfg(feature = "no_std")]
+        #[cfg(not(feature = "std"))]
         return libm::sqrtf(dx * dx + dy * dy);
-        #[cfg(not(feature = "no_std"))]
+        #[cfg(feature = "std")]
         return (dx * dx + dy * dy).sqrt();
     }
 }

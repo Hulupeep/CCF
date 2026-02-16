@@ -6,15 +6,15 @@
 //! - I-MULTI-004: 20cm safety buffer between robots
 //! - ARCH-003: Kitchen Table Test - no harmful behaviors
 
-#![cfg_attr(feature = "no_std", no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{vec::Vec, string::String};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{vec::Vec, string::String};
 
 use super::{Position, RobotState};
@@ -75,9 +75,9 @@ impl CollisionAvoidance {
             let dx = position.x - robot.position.x;
             let dy = position.y - robot.position.y;
 
-            #[cfg(feature = "no_std")]
+            #[cfg(not(feature = "std"))]
             let distance = libm::sqrtf(dx * dx + dy * dy);
-            #[cfg(not(feature = "no_std"))]
+            #[cfg(feature = "std")]
             let distance = (dx * dx + dy * dy).sqrt();
 
             if distance < self.safety_buffer {
@@ -85,9 +85,9 @@ impl CollisionAvoidance {
                 conflicting_robots.push(robot.id.as_str().into());
 
                 // Calculate avoidance vector (away from robot)
-                #[cfg(feature = "no_std")]
+                #[cfg(not(feature = "std"))]
                 let norm = libm::sqrtf(dx * dx + dy * dy);
-                #[cfg(not(feature = "no_std"))]
+                #[cfg(feature = "std")]
                 let norm = (dx * dx + dy * dy).sqrt();
 
                 if norm > 0.001 {
@@ -99,9 +99,9 @@ impl CollisionAvoidance {
                 conflicting_robots.push(robot.id.as_str().into());
 
                 // Calculate gentle avoidance vector
-                #[cfg(feature = "no_std")]
+                #[cfg(not(feature = "std"))]
                 let norm = libm::sqrtf(dx * dx + dy * dy);
-                #[cfg(not(feature = "no_std"))]
+                #[cfg(feature = "std")]
                 let norm = (dx * dx + dy * dy).sqrt();
 
                 if norm > 0.001 {
@@ -177,13 +177,13 @@ impl CollisionAvoidance {
                 let dx = robots[i].position.x - robots[j].position.x;
                 let dy = robots[i].position.y - robots[j].position.y;
 
-                #[cfg(feature = "no_std")]
+                #[cfg(not(feature = "std"))]
                 let distance = libm::sqrtf(dx * dx + dy * dy);
-                #[cfg(not(feature = "no_std"))]
+                #[cfg(feature = "std")]
                 let distance = (dx * dx + dy * dy).sqrt();
 
                 if distance < self.safety_buffer {
-                    #[cfg(feature = "no_std")]
+                    #[cfg(not(feature = "std"))]
                     use alloc::format;
 
                     return Err(format!(

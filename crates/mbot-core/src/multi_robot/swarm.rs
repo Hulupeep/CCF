@@ -11,15 +11,15 @@
 //! - I-MULTI-006: Formation accuracy ±5cm
 //! - I-MULTI-007: Movement sync within 100ms
 
-#![cfg_attr(feature = "no_std", no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{vec::Vec, string::String, boxed::Box};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{vec::Vec, string::String, boxed::Box};
 
 use super::{RobotId, RobotState, Position};
@@ -255,20 +255,20 @@ impl FollowLeaderMode {
     fn calculate_positions(&self, leader_pos: Position, leader_heading: f32, follower_count: usize) -> Vec<Position> {
         let mut positions = Vec::new();
 
-        #[cfg(feature = "no_std")]
+        #[cfg(not(feature = "std"))]
         use libm::{cosf, sinf};
 
         for i in 0..follower_count {
             let offset = (i + 1) as f32 * self.spacing;
 
-            #[cfg(feature = "no_std")]
+            #[cfg(not(feature = "std"))]
             let x = leader_pos.x - offset * cosf(leader_heading);
-            #[cfg(not(feature = "no_std"))]
+            #[cfg(feature = "std")]
             let x = leader_pos.x - offset * leader_heading.cos();
 
-            #[cfg(feature = "no_std")]
+            #[cfg(not(feature = "std"))]
             let y = leader_pos.y - offset * sinf(leader_heading);
-            #[cfg(not(feature = "no_std"))]
+            #[cfg(feature = "std")]
             let y = leader_pos.y - offset * leader_heading.sin();
 
             positions.push(Position { x, y });
@@ -386,7 +386,7 @@ impl SwarmMode for CircleMode {
     }
 
     fn update(&mut self, delta_time: f32, robots: &[RobotState]) -> Result<Vec<TargetPosition>, SwarmError> {
-        #[cfg(feature = "no_std")]
+        #[cfg(not(feature = "std"))]
         use libm::{cosf, sinf};
 
         // Update rotation angle
@@ -399,14 +399,14 @@ impl SwarmMode for CircleMode {
         for (i, robot) in robots.iter().enumerate() {
             let angle = self.current_angle + (i as f32) * angle_step;
 
-            #[cfg(feature = "no_std")]
+            #[cfg(not(feature = "std"))]
             let x = self.center.x + self.radius * cosf(angle);
-            #[cfg(not(feature = "no_std"))]
+            #[cfg(feature = "std")]
             let x = self.center.x + self.radius * angle.cos();
 
-            #[cfg(feature = "no_std")]
+            #[cfg(not(feature = "std"))]
             let y = self.center.y + self.radius * sinf(angle);
-            #[cfg(not(feature = "no_std"))]
+            #[cfg(feature = "std")]
             let y = self.center.y + self.radius * angle.sin();
 
             targets.push(TargetPosition {
@@ -473,7 +473,7 @@ impl SwarmMode for WaveMode {
     }
 
     fn update(&mut self, delta_time: f32, robots: &[RobotState]) -> Result<Vec<TargetPosition>, SwarmError> {
-        #[cfg(feature = "no_std")]
+        #[cfg(not(feature = "std"))]
         use libm::sinf;
 
         self.current_time += delta_time;
@@ -485,9 +485,9 @@ impl SwarmMode for WaveMode {
             let phase = (i as f32) * self.phase_offset;
             let wave_value = {
                 let arg = 2.0 * core::f32::consts::PI * self.frequency * self.current_time + phase;
-                #[cfg(feature = "no_std")]
+                #[cfg(not(feature = "std"))]
                 let result = sinf(arg);
-                #[cfg(not(feature = "no_std"))]
+                #[cfg(feature = "std")]
                 let result = arg.sin();
                 result
             };
@@ -607,7 +607,7 @@ impl SwarmMode for RandomWalkMode {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "no_std")))]
 mod tests {
     use super::*;
 
@@ -656,9 +656,9 @@ mod tests {
         for target in &targets {
             let dx = target.position.x - mode.center.x;
             let dy = target.position.y - mode.center.y;
-            #[cfg(feature = "no_std")]
+            #[cfg(not(feature = "std"))]
             let dist_to_center = libm::sqrtf(dx * dx + dy * dy);
-            #[cfg(not(feature = "no_std"))]
+            #[cfg(feature = "std")]
             let dist_to_center = (dx * dx + dy * dy).sqrt();
 
             assert!((dist_to_center - mode.radius).abs() < FORMATION_TOLERANCE_CM);

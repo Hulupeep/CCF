@@ -10,15 +10,15 @@
 //! - `swarm` - Swarm play modes (Issue #83)
 //! - `collision` - Collision avoidance system (Issue #83)
 
-#![cfg_attr(feature = "no_std", no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{string::String, vec::Vec};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{string::String, vec::Vec};
 
 // Re-export swarm and collision modules
@@ -333,7 +333,7 @@ impl CoordinationManager {
 
         if priority > my_priority {
             // Higher priority robot found, acknowledge it
-            #[cfg(feature = "no_std")]
+            #[cfg(not(feature = "std"))]
             use alloc::vec;
 
             Some(CoordinationMessage {
@@ -404,7 +404,7 @@ impl CoordinationManager {
     /// Get current time (milliseconds)
     /// Note: In no_std, this should be provided by platform
     fn current_time(&self) -> u64 {
-        #[cfg(not(feature = "no_std"))]
+        #[cfg(feature = "std")]
         {
             use std::time::{SystemTime, UNIX_EPOCH};
             SystemTime::now()
@@ -413,7 +413,7 @@ impl CoordinationManager {
                 .as_millis() as u64
         }
 
-        #[cfg(feature = "no_std")]
+        #[cfg(not(feature = "std"))]
         {
             // In no_std, time must be provided externally
             0

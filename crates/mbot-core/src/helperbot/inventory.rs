@@ -3,9 +3,9 @@
 //! Implements persistent inventory tracking for sorted LEGO pieces
 //! Contracts: SORT-004 (persistence), SORT-005 (offline-first), ARCH-001 (no_std)
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{string::{String, ToString}, vec, vec::Vec, format};
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{string::{String, ToString}, vec::Vec, format};
 
 use serde::{Deserialize, Serialize};

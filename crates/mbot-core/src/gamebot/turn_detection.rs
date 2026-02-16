@@ -12,13 +12,13 @@
 //! - All motor responses bounded
 //! - No harmful behavior patterns
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{string::String, vec::Vec, vec};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{string::String, vec::Vec, vec};
 
 use crate::MotorCommand;
@@ -191,11 +191,11 @@ pub struct AccelerometerReading {
 impl AccelerometerReading {
     /// Calculate magnitude of acceleration
     pub fn magnitude(&self) -> f32 {
-        #[cfg(feature = "no_std")]
+        #[cfg(not(feature = "std"))]
         {
             libm::sqrtf(self.x * self.x + self.y * self.y + self.z * self.z)
         }
-        #[cfg(not(feature = "no_std"))]
+        #[cfg(feature = "std")]
         {
             (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
         }

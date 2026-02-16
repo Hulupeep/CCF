@@ -16,13 +16,13 @@
 //! - User override mechanism
 //! - Privacy controls
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{vec::Vec, string::String, collections::VecDeque, format};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{vec::Vec, string::String, collections::VecDeque, format};
 
 use core::cmp::Ordering;

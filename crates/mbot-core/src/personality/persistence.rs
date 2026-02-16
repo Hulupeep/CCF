@@ -1,12 +1,12 @@
 //! Personality Persistence (#23)
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::string::{String, ToString};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::string::{String, ToString};
 
 use super::Personality;

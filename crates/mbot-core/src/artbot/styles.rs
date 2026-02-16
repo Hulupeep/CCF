@@ -9,7 +9,7 @@
 //! - ARCH-001: no_std compatible
 //! - ARCH-002: Deterministic (same tension = same style)
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
 use core::fmt;

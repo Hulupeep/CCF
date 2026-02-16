@@ -3,17 +3,17 @@
 //! Q-learning implementation for mBot to learn from game outcomes and user feedback.
 //! Supports multiple games with separate Q-tables and policy persistence.
 
-#![cfg_attr(feature = "no_std", no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{string::String, vec::Vec};
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use hashbrown::HashMap;
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{collections::HashMap, string::String, vec::Vec};
 
 mod q_learning;
@@ -67,12 +67,12 @@ impl State {
 
     /// Serialize state to string for use as Q-table key
     pub fn to_key(&self) -> String {
-        #[cfg(feature = "no_std")]
+        #[cfg(not(feature = "std"))]
         {
             use alloc::format;
             format!("{}:{}", self.board_state, self.features.len())
         }
-        #[cfg(not(feature = "no_std"))]
+        #[cfg(feature = "std")]
         {
             format!("{}:{:?}", self.board_state, self.features)
         }
@@ -106,12 +106,12 @@ impl Action {
 
     /// Serialize action to string for use as Q-table key
     pub fn to_key(&self) -> String {
-        #[cfg(feature = "no_std")]
+        #[cfg(not(feature = "std"))]
         {
             use alloc::format;
             format!("{}_{}_{}", self.action_type, self.position.0, self.position.1)
         }
-        #[cfg(not(feature = "no_std"))]
+        #[cfg(feature = "std")]
         {
             format!("{}_({},{})", self.action_type, self.position.0, self.position.1)
         }

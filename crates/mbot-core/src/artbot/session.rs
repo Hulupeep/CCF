@@ -10,13 +10,13 @@
 //! - ARCH-001: no_std compatible
 //! - ARCH-002: Deterministic state transitions
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{string::String, vec::Vec};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{string::String, vec::Vec};
 
 use core::fmt;

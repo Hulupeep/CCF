@@ -5,12 +5,29 @@
 use std::fs;
 use std::path::Path;
 
+/// Resolve path: try crate-relative first (running from crate root),
+/// then workspace-relative (running from workspace root).
+fn read_src(relative: &str) -> String {
+    fs::read_to_string(relative)
+        .or_else(|_| fs::read_to_string(format!("crates/mbot-core/{}", relative)))
+        .unwrap_or_else(|e| panic!("Could not read {}: {}", relative, e))
+}
+
+fn read_doc(relative: &str) -> String {
+    fs::read_to_string(format!("../../{}", relative))
+        .or_else(|_| fs::read_to_string(relative))
+        .unwrap_or_else(|e| panic!("Could not read {}: {}", relative, e))
+}
+
+fn doc_exists(relative: &str) -> bool {
+    Path::new(&format!("../../{}", relative)).exists()
+        || Path::new(relative).exists()
+}
+
 /// Test I-AI-001: Learning rates must be bounded
 #[test]
 fn test_i_ai_001_bounded_learning_rates() {
-    let prediction_rs = fs::read_to_string(
-        "crates/mbot-core/src/learning/prediction.rs"
-    ).expect("Could not read prediction.rs");
+    let prediction_rs = read_src("src/learning/prediction.rs");
 
     // Check that we use clamp() for confidence/probability values
     assert!(
@@ -22,9 +39,7 @@ fn test_i_ai_001_bounded_learning_rates() {
 /// Test I-AI-003: Storage must be bounded
 #[test]
 fn test_i_ai_003_bounded_storage() {
-    let prediction_rs = fs::read_to_string(
-        "crates/mbot-core/src/learning/prediction.rs"
-    ).expect("Could not read prediction.rs");
+    let prediction_rs = read_src("src/learning/prediction.rs");
 
     // Check for max_history_size and VecDeque with capacity
     assert!(
@@ -47,9 +62,7 @@ fn test_i_ai_003_bounded_storage() {
 /// Test I-AI-004: Predictions must include reasoning
 #[test]
 fn test_i_ai_004_observable_predictions() {
-    let prediction_rs = fs::read_to_string(
-        "crates/mbot-core/src/learning/prediction.rs"
-    ).expect("Could not read prediction.rs");
+    let prediction_rs = read_src("src/learning/prediction.rs");
 
     // Check for reasoning field in Prediction struct
     assert!(
@@ -67,9 +80,7 @@ fn test_i_ai_004_observable_predictions() {
 /// Test I-AI-005: Minimum confidence threshold for proactive actions
 #[test]
 fn test_i_ai_005_confidence_threshold() {
-    let prediction_rs = fs::read_to_string(
-        "crates/mbot-core/src/learning/prediction.rs"
-    ).expect("Could not read prediction.rs");
+    let prediction_rs = read_src("src/learning/prediction.rs");
 
     // Check for min_confidence field
     assert!(
@@ -94,9 +105,7 @@ fn test_i_ai_005_confidence_threshold() {
 /// Test I-AI-006: Minimum observations required for patterns
 #[test]
 fn test_i_ai_006_min_observations() {
-    let prediction_rs = fs::read_to_string(
-        "crates/mbot-core/src/learning/prediction.rs"
-    ).expect("Could not read prediction.rs");
+    let prediction_rs = read_src("src/learning/prediction.rs");
 
     // Check for min_observations field
     assert!(
@@ -127,9 +136,7 @@ fn test_i_ai_006_min_observations() {
 /// Test I-AI-007: User can disable predictions and clear data
 #[test]
 fn test_i_ai_007_user_control() {
-    let prediction_rs = fs::read_to_string(
-        "crates/mbot-core/src/learning/prediction.rs"
-    ).expect("Could not read prediction.rs");
+    let prediction_rs = read_src("src/learning/prediction.rs");
 
     // Check for enabled toggle
     assert!(
@@ -156,7 +163,7 @@ fn test_i_ai_007_user_control() {
 #[test]
 fn test_contract_file_exists() {
     assert!(
-        Path::new("docs/contracts/feature_ai_learning.yml").exists(),
+        doc_exists("docs/contracts/feature_ai_learning.yml"),
         "AI learning contract file must exist"
     );
 }
@@ -164,9 +171,7 @@ fn test_contract_file_exists() {
 /// Test contract is registered in index
 #[test]
 fn test_contract_registered() {
-    let index = fs::read_to_string(
-        "docs/contracts/CONTRACT_INDEX.yml"
-    ).expect("Could not read CONTRACT_INDEX.yml");
+    let index = read_doc("docs/contracts/CONTRACT_INDEX.yml");
 
     assert!(
         index.contains("feature_ai_learning"),
@@ -184,9 +189,7 @@ fn test_contract_registered() {
 
 #[test]
 fn test_no_std_compatibility() {
-    let prediction_rs = fs::read_to_string(
-        "crates/mbot-core/src/learning/prediction.rs"
-    ).expect("Could not read prediction.rs");
+    let prediction_rs = read_src("src/learning/prediction.rs");
 
     // Should not directly use std:: (except in cfg blocks)
     let std_uses: Vec<&str> = prediction_rs
@@ -194,7 +197,7 @@ fn test_no_std_compatibility() {
         .filter(|line| line.contains("use std::") && !line.contains("#[cfg"))
         .collect();
 
-    // Check that std is only used in cfg(not(feature = "no_std")) blocks
+    // Check that std is only used in cfg-guarded blocks
     for line in std_uses {
         let context: Vec<&str> = prediction_rs
             .lines()
@@ -205,12 +208,12 @@ fn test_no_std_compatibility() {
             // Check a few lines before for cfg attribute
             let has_cfg = (idx.saturating_sub(5)..idx)
                 .any(|i| context.get(i)
-                     .map(|l| l.contains("cfg(not(feature = \"no_std\"))"))
+                     .map(|l| l.contains("cfg(feature = \"std\")") || l.contains("cfg(not(feature = \"no_std\"))"))
                      .unwrap_or(false));
 
             assert!(
                 has_cfg,
-                "std:: usage must be guarded by cfg(not(feature = \"no_std\")): {}",
+                "std:: usage must be guarded by cfg(feature = \"std\"): {}",
                 line
             );
         }

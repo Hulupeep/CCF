@@ -3,17 +3,17 @@
 //! Handles saving and loading learned policies.
 //! Invariant I-AI-002: Learned policy must persist across sessions
 
-#![cfg_attr(feature = "no_std", no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{string::String, vec::Vec};
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use hashbrown::HashMap;
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{collections::HashMap, string::String, vec::Vec};
 
 /// Learned policy for a specific game

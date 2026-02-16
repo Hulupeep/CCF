@@ -11,13 +11,13 @@
 
 #![cfg_attr(feature = "no_std", allow(unused_imports))]
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{format, string::String, vec::Vec};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{format, string::String, vec::Vec};
 
 use super::{Personality, PersonalityMapper, PersonalityInfluence};

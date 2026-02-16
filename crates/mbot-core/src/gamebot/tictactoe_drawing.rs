@@ -10,19 +10,19 @@
 //! - ARCH-GAME-003: Safe pen movements (no harmful motions)
 //! - ART-001: Drawing precision from ArtBot primitives
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{vec, vec::Vec};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::vec::Vec;
 
 use crate::artbot::shapes::{DrawCommand, PaperBounds, Position};
 
 // Math functions - use libm for no_std, std for normal builds
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use libm::{cosf, fabsf, sinf};
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 mod math {
     #[inline]
     pub fn sinf(x: f32) -> f32 {
@@ -38,7 +38,7 @@ mod math {
     }
 }
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use math::*;
 
 use core::f32::consts::PI;
@@ -442,12 +442,12 @@ pub fn draw_o(
 }
 
 // Helper for no_std sqrt
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 fn sqrtf(x: f32) -> f32 {
     libm::sqrtf(x)
 }
 
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 fn sqrtf(x: f32) -> f32 {
     x.sqrt()
 }

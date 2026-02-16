@@ -3,9 +3,9 @@
 //! Implements RGB sensor color detection with calibration support
 //! Contract: feature_helperbot.yml (I-HELP-001 through I-HELP-004)
 
-#[cfg(feature = "no_std")]
+#[cfg(not(feature = "std"))]
 use alloc::{string::{String, ToString}, vec, vec::Vec};
-#[cfg(not(feature = "no_std"))]
+#[cfg(feature = "std")]
 use std::{string::{String, ToString}, vec::Vec};
 
 use serde::{Deserialize, Serialize};
