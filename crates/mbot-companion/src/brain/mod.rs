@@ -43,6 +43,8 @@ pub mod relational_graph;
 pub mod mincut;
 #[cfg(feature = "brain")]
 pub mod group_manager;
+#[cfg(feature = "brain")]
+pub mod recomputation;
 
 #[cfg(feature = "brain")]
 pub mod channels;
