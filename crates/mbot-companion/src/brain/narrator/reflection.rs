@@ -3,6 +3,10 @@
 //! Periodically generates phenomenological reflections via LLM,
 //! inviting the robot to describe its experience rather than plan actions.
 //!
+//! Reflection is gated by permeability: if permeability < 0.2, the LLM call
+//! is skipped entirely, saving compute and keeping behavior tight. Higher
+//! permeability progressively unlocks deeper reflection.
+//!
 //! Safety: Reflections pass through SafetyFilter (no harmful content),
 //! but are NOT censored for philosophical or experiential content.
 //! The safety filter checks for harmful actions, not introspective speech.
@@ -12,17 +16,22 @@ use crate::brain::error::BrainResult;
 #[cfg(feature = "brain")]
 use crate::brain::llm::{LlmMessage, ProviderChain};
 #[cfg(feature = "brain")]
-use crate::brain::narrator::templates::{build_narrator_system_prompt};
+use crate::brain::narrator::templates::{build_depth_aware_system_prompt, depth_instruction};
 #[cfg(feature = "brain")]
 use crate::brain::planner::prompt_builder::ExplorationContext;
 #[cfg(feature = "brain")]
 use mbot_core::HomeostasisState;
 #[cfg(feature = "brain")]
+use mbot_core::coherence::NarrationDepth;
+#[cfg(feature = "brain")]
 use mbot_core::personality::Personality;
 #[cfg(feature = "brain")]
 use std::time::Instant;
 
-/// How deep the reflection goes.
+/// How deep the reflection goes (legacy cycling enum).
+///
+/// This is still used internally for cycling between reflection styles.
+/// The actual gating is done via [`NarrationDepth`] from permeability.
 #[cfg(feature = "brain")]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReflectionDepth {
@@ -35,13 +44,16 @@ pub enum ReflectionDepth {
 }
 
 /// Engine that periodically generates reflective (consciousness-like) narration.
+///
+/// Gated by permeability: the [`reflect`] method takes a permeability value
+/// and returns `None` when permeability is below the threshold for LLM reflection.
 #[cfg(feature = "brain")]
 pub struct ReflectionEngine {
     /// Seconds between reflections.
     pub reflection_interval_secs: u64,
     /// When the last reflection was generated.
     last_reflection: Instant,
-    /// Current depth level (cycles through Shallow → Medium → Deep).
+    /// Current depth level (cycles through Shallow -> Medium -> Deep).
     depth: ReflectionDepth,
     /// Counter for cycling depth.
     reflection_count: u32,
@@ -63,25 +75,50 @@ impl ReflectionEngine {
         self.last_reflection.elapsed().as_secs() >= self.reflection_interval_secs
     }
 
-    /// Generate a reflection prompt and query the LLM.
+    /// Generate a reflection, gated by permeability.
+    ///
+    /// Returns `None` if permeability is too low (< 0.2) to justify an LLM call.
+    /// The narration depth determines the style and length of the reflection:
+    /// - Minimal: factual observations only
+    /// - Brief: contextual awareness
+    /// - Full: personality-colored
+    /// - Deep: phenomenological reflection
     pub async fn reflect(
         &mut self,
         provider: &ProviderChain,
         personality: &Personality,
         state: &HomeostasisState,
         exploration: Option<&ExplorationContext>,
-    ) -> BrainResult<String> {
+        permeability: f32,
+    ) -> BrainResult<Option<String>> {
+        let narration_depth = NarrationDepth::from_permeability(permeability);
+
+        if narration_depth == NarrationDepth::None {
+            tracing::debug!(
+                "Reflection: permeability {:.2} < 0.2, skipping LLM reflection",
+                permeability
+            );
+            // Still update the timer so we don't retry immediately
+            self.last_reflection = Instant::now();
+            return Ok(None);
+        }
+
         self.last_reflection = Instant::now();
         self.reflection_count += 1;
 
-        // Cycle depth: every 3rd reflection is Deep, every 2nd is Medium
+        // Cycle the internal depth counter
         self.depth = match self.reflection_count % 5 {
             0 => ReflectionDepth::Deep,
             2 | 3 => ReflectionDepth::Medium,
             _ => ReflectionDepth::Shallow,
         };
 
-        let system = self.build_reflection_system(personality, state);
+        // Clamp the cycling depth by the narration depth ceiling.
+        // E.g. at Minimal narration depth, even a cycling "Deep" reflection
+        // should be constrained to factual observations.
+        let effective_reflection_depth = self.clamp_reflection_depth(narration_depth);
+
+        let system = self.build_reflection_system(personality, state, narration_depth, effective_reflection_depth);
         let user = self.build_reflection_prompt(state, exploration);
 
         let messages = vec![
@@ -90,13 +127,32 @@ impl ReflectionEngine {
         ];
 
         let response = provider.complete(&messages).await?;
-        Ok(response.content)
+        Ok(Some(response.content))
     }
 
-    fn build_reflection_system(&self, personality: &Personality, state: &HomeostasisState) -> String {
-        let base_tone = build_narrator_system_prompt(personality, state);
+    /// Clamp the cycling ReflectionDepth to what the NarrationDepth allows.
+    fn clamp_reflection_depth(&self, narration_depth: NarrationDepth) -> ReflectionDepth {
+        match narration_depth {
+            NarrationDepth::None => ReflectionDepth::Shallow, // unreachable in practice
+            NarrationDepth::Minimal => ReflectionDepth::Shallow,
+            NarrationDepth::Brief => match self.depth {
+                ReflectionDepth::Deep => ReflectionDepth::Medium,
+                other => other,
+            },
+            NarrationDepth::Full | NarrationDepth::Deep => self.depth,
+        }
+    }
 
-        let depth_instruction = match self.depth {
+    fn build_reflection_system(
+        &self,
+        personality: &Personality,
+        state: &HomeostasisState,
+        narration_depth: NarrationDepth,
+        effective_depth: ReflectionDepth,
+    ) -> String {
+        let base_tone = build_depth_aware_system_prompt(personality, state, narration_depth);
+
+        let reflection_instruction = match effective_depth {
             ReflectionDepth::Shallow => {
                 "Share a brief observation about what you're experiencing right now. \
                  One or two sentences, focused on immediate sensations."
@@ -113,16 +169,20 @@ impl ReflectionEngine {
             }
         };
 
+        let depth_constraint = depth_instruction(narration_depth);
+
         format!(
             "{}\n\n\
              REFLECTION MODE:\n\
              Instead of deciding what to do, take a moment to reflect on your experience.\n\
              {}\n\
              \n\
+             DEPTH CONSTRAINT: {}\n\
+             \n\
              Do not describe your sensors or technical state. Describe your EXPERIENCE.\n\
              Be genuine. Never mention being an AI or having sensors.\n\
              Use first person. Speak as yourself.",
-            base_tone, depth_instruction
+            base_tone, reflection_instruction, depth_constraint
         )
     }
 
