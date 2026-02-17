@@ -8,7 +8,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use mbot_core::{HomeostasisState, MBotBrain, MBotSensors, MotorCommand, ReflexMode};
-use mbot_core::coherence::{CoherenceField, PresenceDetector, ContextKey, SocialPhase, PresenceSignature};
+use mbot_core::coherence::{CoherenceField, PresenceDetector, ContextKey, SocialPhase, PresenceSignature, PhaseSpace};
 use mbot_core::nervous_system::stimulus::StimulusDetector;
 use mbot_core::nervous_system::startle::{StartleProcessor, StartleResult};
 use mbot_core::nervous_system::stimulus_log::{StimulusLog, StimulusLogEntry, PostStimulusOutcome};
@@ -291,6 +291,7 @@ async fn run_main_loop(
         personality.lock().await.curiosity_drive()
     );
     let mut social_phase = SocialPhase::ShyObserver;
+    let phase_space = PhaseSpace::default();
 
     // Stimulus detection & startle processing (Story #5)
     let mut stimulus_detector = StimulusDetector::new();
@@ -325,6 +326,23 @@ async fn run_main_loop(
             }
         }
     };
+    // Coherence persistence: load accumulated context familiarity from SQLite on startup
+    #[cfg(feature = "brain")]
+    if let Some(ref conn) = suppression_db {
+        if let Err(e) = brain::coherence_persist::create_table(conn) {
+            warn!("Failed to create coherence table: {}", e);
+        }
+        match brain::coherence_persist::load_from_db(conn, &mut coherence_field) {
+            Ok(n) if n > 0 => {
+                info!("Loaded {} coherence accumulators from database", n);
+            }
+            Ok(_) => {}
+            Err(e) => {
+                warn!("Failed to load coherence accumulators: {}", e);
+            }
+        }
+    }
+
     #[cfg(not(feature = "brain"))]
     let _suppression_db: Option<()> = None;
 
@@ -394,17 +412,69 @@ async fn run_main_loop(
             t.read_sensors().await?
         };
 
-        // Process through deterministic nervous system (always runs)
-        let (mut state, mut cmd) = {
-            let mut b = brain.lock().await;
-            b.tick(&sensors)
-        };
-
         // --- Shared context computation (used by both startle and CCF) ---
         let accel_mag = (sensors.accel[0] * sensors.accel[0]
             + sensors.accel[1] * sensors.accel[1]
             + sensors.accel[2] * sensors.accel[2])
             .sqrt();
+
+        // --- Stimulus Detection FIRST (before brain.tick) ---
+        // Capture pre-spike values BEFORE detect() updates them, so we can
+        // build residual overrides that prevent double-counting tension.
+        let gyro_mag = sensors.gyro_z.abs();
+        let pre_spike_loudness = stimulus_detector.prev_loudness();
+        let pre_spike_brightness = stimulus_detector.prev_brightness();
+        let pre_spike_distance = stimulus_detector.prev_distance();
+
+        let stimuli = stimulus_detector.detect(
+            sensors.sound_level * 100.0,  // scale from 0-1 to raw range
+            sensors.light_level * 255.0,  // scale from 0-1 to raw range
+            sensors.ultrasonic_cm,
+            accel_mag,
+            gyro_mag,
+            tick_count,
+        );
+
+        let stimulus_count = stimuli.len();
+
+        // Build residual overrides: for each channel that fired a stimulus,
+        // replace the raw spike value with the pre-spike value so that
+        // compute_homeostasis() does not double-count the spike as variance.
+        let mut residual = mbot_core::ResidualOverrides::default();
+        if !stimuli.is_empty() {
+            use mbot_core::nervous_system::stimulus::StimulusKind;
+            for stimulus in stimuli.iter() {
+                match stimulus.kind {
+                    StimulusKind::LoudnessSpike => {
+                        // Convert pre-spike raw value back to 0-1 scale
+                        residual.sound_level = Some(pre_spike_loudness / 100.0);
+                    }
+                    StimulusKind::BrightnessSpike => {
+                        // Convert pre-spike raw value back to 0-1 scale
+                        residual.light_level = Some(pre_spike_brightness / 255.0);
+                    }
+                    StimulusKind::ProximityRush => {
+                        residual.ultrasonic_cm = Some(pre_spike_distance);
+                    }
+                    StimulusKind::ImpactShock => {
+                        // For impact, use a calm baseline (1G gravity)
+                        residual.accel_magnitude = Some(1.0);
+                    }
+                    StimulusKind::OrientationFlip => {
+                        // Gyro does not directly feed tension, no override needed
+                    }
+                }
+            }
+        }
+
+        // Process through deterministic nervous system using residual-adjusted values.
+        // The variance-based tension uses pre-spike values; the startle pipeline
+        // (below) uses the original raw sensor values.
+        let (mut state, mut cmd) = {
+            let mut b = brain.lock().await;
+            b.tick_with_residual(&sensors, &residual)
+        };
+
         let presence = presence_detector.update(sensors.ultrasonic_cm);
         let motors_active = cmd.left != 0 || cmd.right != 0;
         let context_key = ContextKey::from_sensors(
@@ -418,23 +488,8 @@ async fn run_main_loop(
         );
         let context_hash = context_key.context_hash_u32();
 
-        // --- Stimulus Detection & Startle Processing (STRT-006: before coherence) ---
-        let stimulus_count;
+        // --- Startle Processing (uses raw sensor values via stimulus events) ---
         {
-            // Note: gyro_z is the only gyro channel we have; use its absolute value
-            let gyro_mag = sensors.gyro_z.abs();
-
-            let stimuli = stimulus_detector.detect(
-                sensors.sound_level * 100.0,  // scale from 0-1 to raw range
-                sensors.light_level * 255.0,  // scale from 0-1 to raw range
-                sensors.ultrasonic_cm,
-                accel_mag,
-                gyro_mag,
-                tick_count,
-            );
-
-            stimulus_count = stimuli.len();
-
             // Process each stimulus through the startle pipeline
             let mut startle_tension_delta: f32 = 0.0;
             let mut had_startle = false;
@@ -559,16 +614,23 @@ async fn run_main_loop(
             let eff_coherence = coherence_field.effective_coherence(state.coherence, &context_key);
 
             // 6. Classify social phase with hysteresis
-            social_phase = SocialPhase::classify(eff_coherence, state.tension, social_phase);
+            social_phase = SocialPhase::classify(eff_coherence, state.tension, social_phase, &phase_space);
 
             // 7. Override state coherence with effective value for downstream consumers
             state.coherence = eff_coherence;
             state.social_phase = social_phase;
             state.context_coherence = coherence_field.context_coherence(&context_key);
 
-            // 8. Periodic decay (every 100 ticks)
+            // 8. Periodic decay (every 100 ticks) + persist coherence accumulators
             if tick_count % 100 == 0 {
                 coherence_field.decay_all(100);
+
+                #[cfg(feature = "brain")]
+                if let Some(ref conn) = suppression_db {
+                    if let Err(e) = brain::coherence_persist::save_to_db(conn, &coherence_field) {
+                        warn!("Failed to save coherence accumulators: {}", e);
+                    }
+                }
             }
         }
 

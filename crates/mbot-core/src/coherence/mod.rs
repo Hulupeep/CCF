@@ -592,9 +592,37 @@ pub struct CoherenceSnapshot {
     pub entries: HashMap<ContextKey, f32>,
 }
 
+// ─── Phase Space (configurable thresholds) ──────────────────────────
+
+/// Configurable thresholds for SocialPhase transitions.
+/// Uses hysteresis (Schmitt trigger): enter thresholds are stricter than exit
+/// to prevent oscillation at boundaries (CCF-004).
+#[derive(Clone, Debug)]
+pub struct PhaseSpace {
+    /// Coherence threshold to enter high-coherence quadrants (QB, PG).
+    pub coherence_high_enter: f32,
+    /// Coherence threshold to exit high-coherence quadrants.
+    pub coherence_high_exit: f32,
+    /// Tension threshold to enter high-tension quadrants (SR, PG).
+    pub tension_high_enter: f32,
+    /// Tension threshold to exit high-tension quadrants.
+    pub tension_high_exit: f32,
+}
+
+impl Default for PhaseSpace {
+    fn default() -> Self {
+        Self {
+            coherence_high_enter: 0.65,
+            coherence_high_exit: 0.55,
+            tension_high_enter: 0.45,
+            tension_high_exit: 0.35,
+        }
+    }
+}
+
 // ─── Social Phase (2D behavioral quadrant) ──────────────────────────
 
-/// Behavioral phase from the 2D (coherence × tension) space.
+/// Behavioral phase from the 2D (coherence x tension) space.
 /// Uses hysteresis to prevent oscillation at boundaries (CCF-004).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SocialPhase {
@@ -614,27 +642,25 @@ impl SocialPhase {
     /// `effective_coherence`: output of `CoherenceField::effective_coherence()`.
     /// `tension`: current tension from homeostasis.
     /// `previous`: the phase from the previous tick (for hysteresis).
+    /// `phase_space`: configurable thresholds for quadrant transitions.
     pub fn classify(
         effective_coherence: f32,
         tension: f32,
         previous: SocialPhase,
+        phase_space: &PhaseSpace,
     ) -> SocialPhase {
-        // Hysteresis thresholds: enter at outer bound, exit at inner bound
-        let (coherence_high_enter, coherence_high_exit) = (0.65, 0.55);
-        let (tension_high_enter, tension_high_exit) = (0.45, 0.35);
-
         let high_coherence = match previous {
             SocialPhase::QuietlyBeloved | SocialPhase::ProtectiveGuardian => {
-                effective_coherence >= coherence_high_exit
+                effective_coherence >= phase_space.coherence_high_exit
             }
-            _ => effective_coherence >= coherence_high_enter,
+            _ => effective_coherence >= phase_space.coherence_high_enter,
         };
 
         let high_tension = match previous {
             SocialPhase::StartledRetreat | SocialPhase::ProtectiveGuardian => {
-                tension >= tension_high_exit
+                tension >= phase_space.tension_high_exit
             }
-            _ => tension >= tension_high_enter,
+            _ => tension >= phase_space.tension_high_enter,
         };
 
         match (high_coherence, high_tension) {
@@ -646,14 +672,12 @@ impl SocialPhase {
     }
 
     /// Scale factor for expressive output in this phase [0.0, 1.0].
-    /// Shy Observer suppresses expression; Quietly Beloved allows full range.
+    ///
+    /// Legacy API -- delegates to [`permeability()`] with typical mid-range
+    /// values (coherence=0.5, tension=0.3) for backward compatibility.
+    /// New code should call `permeability()` directly for full control.
     pub fn expression_scale(&self) -> f32 {
-        match self {
-            SocialPhase::ShyObserver => 0.25,
-            SocialPhase::StartledRetreat => 0.15,
-            SocialPhase::QuietlyBeloved => 1.0,
-            SocialPhase::ProtectiveGuardian => 0.7,
-        }
+        permeability(0.5, 0.3, *self)
     }
 
     /// LED color tint for this phase (overlay on reflex mode color).
@@ -663,6 +687,85 @@ impl SocialPhase {
             SocialPhase::StartledRetreat => [80, 20, 20],   // Dark red
             SocialPhase::QuietlyBeloved => [60, 120, 200],  // Warm blue
             SocialPhase::ProtectiveGuardian => [200, 100, 0], // Amber
+        }
+    }
+}
+
+// ─── Output Permeability ─────────────────────────────────────────────
+
+/// Compute output permeability -- how much personality expression passes through.
+///
+/// The quadrant determines qualitative behavior. The exact position within
+/// the quadrant determines intensity. This scales all output channels
+/// (motor speed, LED intensity, sound probability, narration depth).
+///
+/// # Arguments
+///
+/// * `effective_coherence` - Output of [`CoherenceField::effective_coherence()`], [0.0, 1.0].
+/// * `_tension` - Current tension from homeostasis (reserved for future use).
+/// * `quadrant` - The current [`SocialPhase`] behavioral quadrant.
+///
+/// # Returns
+///
+/// A scalar in [0.0, 1.0] that scales all output channels.
+///
+/// # Ranges per quadrant
+///
+/// - **ShyObserver**: 0.0-0.3 (scaled by coherence within quadrant)
+/// - **StartledRetreat**: fixed 0.1 (reflexive, not expression)
+/// - **QuietlyBeloved**: 0.5-1.0 (high expression, scaled by coherence)
+/// - **ProtectiveGuardian**: 0.4-0.6 (confident but focused)
+pub fn permeability(effective_coherence: f32, _tension: f32, quadrant: SocialPhase) -> f32 {
+    match quadrant {
+        SocialPhase::ShyObserver => {
+            effective_coherence * 0.3 // max 0.3
+        }
+        SocialPhase::StartledRetreat => {
+            0.1 // fixed low -- protective reflex, not expression
+        }
+        SocialPhase::QuietlyBeloved => {
+            0.5 + effective_coherence * 0.5 // range 0.5-1.0
+        }
+        SocialPhase::ProtectiveGuardian => {
+            0.4 + effective_coherence * 0.2 // range 0.4-0.6
+        }
+    }
+}
+
+/// Narration depth levels gated by permeability.
+///
+/// Determines how much LLM reflection the robot performs based on
+/// the current output permeability. Lower permeability means less
+/// narration overhead (saving compute and keeping behavior tighter).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum NarrationDepth {
+    /// permeability < 0.2: No LLM reflection.
+    None,
+    /// permeability 0.2-0.4: Factual observations only.
+    Minimal,
+    /// permeability 0.4-0.6: Contextual awareness.
+    Brief,
+    /// permeability 0.6-0.8: Personality-colored narration.
+    Full,
+    /// permeability > 0.8: Phenomenological reflection.
+    Deep,
+}
+
+impl NarrationDepth {
+    /// Map a permeability scalar to a narration depth level.
+    ///
+    /// Thresholds: 0.2, 0.4, 0.6, 0.8.
+    pub fn from_permeability(p: f32) -> Self {
+        if p < 0.2 {
+            NarrationDepth::None
+        } else if p < 0.4 {
+            NarrationDepth::Minimal
+        } else if p < 0.6 {
+            NarrationDepth::Brief
+        } else if p < 0.8 {
+            NarrationDepth::Full
+        } else {
+            NarrationDepth::Deep
         }
     }
 }
@@ -998,56 +1101,152 @@ mod tests {
 
     #[test]
     fn test_social_phase_shy_observer() {
-        let phase = SocialPhase::classify(0.1, 0.1, SocialPhase::ShyObserver);
+        let ps = PhaseSpace::default();
+        let phase = SocialPhase::classify(0.1, 0.1, SocialPhase::ShyObserver, &ps);
         assert_eq!(phase, SocialPhase::ShyObserver);
     }
 
     #[test]
     fn test_social_phase_quietly_beloved() {
-        let phase = SocialPhase::classify(0.8, 0.1, SocialPhase::ShyObserver);
+        let ps = PhaseSpace::default();
+        let phase = SocialPhase::classify(0.8, 0.1, SocialPhase::ShyObserver, &ps);
         assert_eq!(phase, SocialPhase::QuietlyBeloved);
     }
 
     #[test]
     fn test_social_phase_startled_retreat() {
-        let phase = SocialPhase::classify(0.1, 0.7, SocialPhase::ShyObserver);
+        let ps = PhaseSpace::default();
+        let phase = SocialPhase::classify(0.1, 0.7, SocialPhase::ShyObserver, &ps);
         assert_eq!(phase, SocialPhase::StartledRetreat);
     }
 
     #[test]
     fn test_social_phase_protective_guardian() {
-        let phase = SocialPhase::classify(0.8, 0.7, SocialPhase::ShyObserver);
+        let ps = PhaseSpace::default();
+        let phase = SocialPhase::classify(0.8, 0.7, SocialPhase::ShyObserver, &ps);
         assert_eq!(phase, SocialPhase::ProtectiveGuardian);
     }
 
     #[test]
     fn test_social_phase_hysteresis() {
+        let ps = PhaseSpace::default();
+
         // Enter QuietlyBeloved at coherence 0.65
-        let phase = SocialPhase::classify(0.66, 0.1, SocialPhase::ShyObserver);
+        let phase = SocialPhase::classify(0.66, 0.1, SocialPhase::ShyObserver, &ps);
         assert_eq!(phase, SocialPhase::QuietlyBeloved);
 
         // Stay in QuietlyBeloved at coherence 0.56 (above exit threshold 0.55)
-        let phase = SocialPhase::classify(0.56, 0.1, SocialPhase::QuietlyBeloved);
+        let phase = SocialPhase::classify(0.56, 0.1, SocialPhase::QuietlyBeloved, &ps);
         assert_eq!(phase, SocialPhase::QuietlyBeloved);
 
         // Exit QuietlyBeloved at coherence 0.54 (below exit threshold 0.55)
-        let phase = SocialPhase::classify(0.54, 0.1, SocialPhase::QuietlyBeloved);
+        let phase = SocialPhase::classify(0.54, 0.1, SocialPhase::QuietlyBeloved, &ps);
         assert_eq!(phase, SocialPhase::ShyObserver);
     }
 
     #[test]
     fn test_social_phase_tension_hysteresis() {
+        let ps = PhaseSpace::default();
+
         // Enter StartledRetreat at tension 0.45
-        let phase = SocialPhase::classify(0.1, 0.46, SocialPhase::ShyObserver);
+        let phase = SocialPhase::classify(0.1, 0.46, SocialPhase::ShyObserver, &ps);
         assert_eq!(phase, SocialPhase::StartledRetreat);
 
         // Stay in StartledRetreat at tension 0.36 (above exit threshold 0.35)
-        let phase = SocialPhase::classify(0.1, 0.36, SocialPhase::StartledRetreat);
+        let phase = SocialPhase::classify(0.1, 0.36, SocialPhase::StartledRetreat, &ps);
         assert_eq!(phase, SocialPhase::StartledRetreat);
 
         // Exit StartledRetreat at tension 0.34 (below exit threshold 0.35)
-        let phase = SocialPhase::classify(0.1, 0.34, SocialPhase::StartledRetreat);
+        let phase = SocialPhase::classify(0.1, 0.34, SocialPhase::StartledRetreat, &ps);
         assert_eq!(phase, SocialPhase::ShyObserver);
+    }
+
+    #[test]
+    fn test_custom_thresholds_stricter() {
+        // Stricter coherence threshold: QB is harder to reach
+        let strict = PhaseSpace {
+            coherence_high_enter: 0.80,
+            coherence_high_exit: 0.70,
+            ..PhaseSpace::default()
+        };
+
+        // 0.70 coherence: enough for default QB, but not enough for strict
+        let phase = SocialPhase::classify(0.70, 0.1, SocialPhase::ShyObserver, &strict);
+        assert_eq!(phase, SocialPhase::ShyObserver,
+            "coherence 0.70 should NOT enter QB with strict threshold 0.80");
+
+        // 0.85 coherence: above even the strict threshold
+        let phase = SocialPhase::classify(0.85, 0.1, SocialPhase::ShyObserver, &strict);
+        assert_eq!(phase, SocialPhase::QuietlyBeloved,
+            "coherence 0.85 should enter QB with strict threshold 0.80");
+
+        // Hysteresis exit: stay in QB at 0.75 (above strict exit 0.70)
+        let phase = SocialPhase::classify(0.75, 0.1, SocialPhase::QuietlyBeloved, &strict);
+        assert_eq!(phase, SocialPhase::QuietlyBeloved,
+            "coherence 0.75 should stay in QB (above exit 0.70)");
+
+        // Drop below strict exit: leave QB
+        let phase = SocialPhase::classify(0.65, 0.1, SocialPhase::QuietlyBeloved, &strict);
+        assert_eq!(phase, SocialPhase::ShyObserver,
+            "coherence 0.65 should exit QB (below exit 0.70)");
+    }
+
+    #[test]
+    fn test_custom_thresholds_looser() {
+        // Looser coherence threshold: QB is easier to reach
+        let loose = PhaseSpace {
+            coherence_high_enter: 0.40,
+            coherence_high_exit: 0.30,
+            ..PhaseSpace::default()
+        };
+
+        // 0.42 coherence: not enough for default QB (0.65), but enough for loose
+        let phase = SocialPhase::classify(0.42, 0.1, SocialPhase::ShyObserver, &loose);
+        assert_eq!(phase, SocialPhase::QuietlyBeloved,
+            "coherence 0.42 should enter QB with loose threshold 0.40");
+
+        // With default thresholds, same value stays ShyObserver
+        let ps = PhaseSpace::default();
+        let phase = SocialPhase::classify(0.42, 0.1, SocialPhase::ShyObserver, &ps);
+        assert_eq!(phase, SocialPhase::ShyObserver,
+            "coherence 0.42 should NOT enter QB with default threshold 0.65");
+    }
+
+    #[test]
+    fn test_default_matches_previous() {
+        // Verify PhaseSpace::default() produces identical results to the old
+        // hardcoded behavior (coherence: 0.65/0.55, tension: 0.45/0.35).
+        let ps = PhaseSpace::default();
+
+        // Spot-check the default values
+        assert!((ps.coherence_high_enter - 0.65).abs() < f32::EPSILON);
+        assert!((ps.coherence_high_exit - 0.55).abs() < f32::EPSILON);
+        assert!((ps.tension_high_enter - 0.45).abs() < f32::EPSILON);
+        assert!((ps.tension_high_exit - 0.35).abs() < f32::EPSILON);
+
+        // Full quadrant sweep with default thresholds
+        let cases: &[(f32, f32, SocialPhase, SocialPhase)] = &[
+            // (coherence, tension, previous, expected)
+            (0.1, 0.1, SocialPhase::ShyObserver, SocialPhase::ShyObserver),
+            (0.8, 0.1, SocialPhase::ShyObserver, SocialPhase::QuietlyBeloved),
+            (0.1, 0.7, SocialPhase::ShyObserver, SocialPhase::StartledRetreat),
+            (0.8, 0.7, SocialPhase::ShyObserver, SocialPhase::ProtectiveGuardian),
+            // Hysteresis: stay in QB above exit
+            (0.56, 0.1, SocialPhase::QuietlyBeloved, SocialPhase::QuietlyBeloved),
+            // Hysteresis: exit QB below exit
+            (0.54, 0.1, SocialPhase::QuietlyBeloved, SocialPhase::ShyObserver),
+            // Hysteresis: stay in SR above tension exit
+            (0.1, 0.36, SocialPhase::StartledRetreat, SocialPhase::StartledRetreat),
+            // Hysteresis: exit SR below tension exit
+            (0.1, 0.34, SocialPhase::StartledRetreat, SocialPhase::ShyObserver),
+        ];
+
+        for &(coh, ten, prev, expected) in cases {
+            let result = SocialPhase::classify(coh, ten, prev, &ps);
+            assert_eq!(result, expected,
+                "coh={} ten={} prev={:?}: got {:?}, expected {:?}",
+                coh, ten, prev, result, expected);
+        }
     }
 
     #[test]
@@ -1219,5 +1418,142 @@ mod tests {
     fn test_context_hash_nonzero() {
         let key = ContextKey::from_sensors(0.3, 0.3, PresenceSignature::Static, 0.5, false, 0.0, 0.0);
         assert_ne!(key.context_hash_u32(), 0, "hash should not be zero");
+    }
+
+    // --- Permeability function tests ---
+
+    #[test]
+    fn test_permeability_shy_observer_range() {
+        // ShyObserver: effective_coherence * 0.3, so range [0.0, 0.3]
+        let p_zero = permeability(0.0, 0.3, SocialPhase::ShyObserver);
+        assert!((p_zero - 0.0).abs() < f32::EPSILON,
+                "SO at coherence 0.0 should be 0.0, got {}", p_zero);
+
+        let p_max = permeability(1.0, 0.3, SocialPhase::ShyObserver);
+        assert!((p_max - 0.3).abs() < f32::EPSILON,
+                "SO at coherence 1.0 should be 0.3, got {}", p_max);
+
+        let p_mid = permeability(0.5, 0.3, SocialPhase::ShyObserver);
+        assert!((p_mid - 0.15).abs() < f32::EPSILON,
+                "SO at coherence 0.5 should be 0.15, got {}", p_mid);
+    }
+
+    #[test]
+    fn test_permeability_startled_retreat_fixed() {
+        // StartledRetreat: always 0.1 regardless of coherence or tension
+        for coh in &[0.0_f32, 0.25, 0.5, 0.75, 1.0] {
+            for ten in &[0.0_f32, 0.5, 1.0] {
+                let p = permeability(*coh, *ten, SocialPhase::StartledRetreat);
+                assert!((p - 0.1).abs() < f32::EPSILON,
+                        "SR should always be 0.1, got {} at coh={} ten={}", p, coh, ten);
+            }
+        }
+    }
+
+    #[test]
+    fn test_permeability_quietly_beloved_range() {
+        // QuietlyBeloved: 0.5 + effective_coherence * 0.5, so range [0.5, 1.0]
+        let p_zero = permeability(0.0, 0.3, SocialPhase::QuietlyBeloved);
+        assert!((p_zero - 0.5).abs() < f32::EPSILON,
+                "QB at coherence 0.0 should be 0.5, got {}", p_zero);
+
+        let p_max = permeability(1.0, 0.3, SocialPhase::QuietlyBeloved);
+        assert!((p_max - 1.0).abs() < f32::EPSILON,
+                "QB at coherence 1.0 should be 1.0, got {}", p_max);
+
+        let p_mid = permeability(0.5, 0.3, SocialPhase::QuietlyBeloved);
+        assert!((p_mid - 0.75).abs() < f32::EPSILON,
+                "QB at coherence 0.5 should be 0.75, got {}", p_mid);
+    }
+
+    #[test]
+    fn test_permeability_protective_guardian_range() {
+        // ProtectiveGuardian: 0.4 + effective_coherence * 0.2, so range [0.4, 0.6]
+        let p_zero = permeability(0.0, 0.3, SocialPhase::ProtectiveGuardian);
+        assert!((p_zero - 0.4).abs() < f32::EPSILON,
+                "PG at coherence 0.0 should be 0.4, got {}", p_zero);
+
+        let p_max = permeability(1.0, 0.3, SocialPhase::ProtectiveGuardian);
+        assert!((p_max - 0.6).abs() < f32::EPSILON,
+                "PG at coherence 1.0 should be 0.6, got {}", p_max);
+
+        let p_mid = permeability(0.5, 0.3, SocialPhase::ProtectiveGuardian);
+        assert!((p_mid - 0.5).abs() < f32::EPSILON,
+                "PG at coherence 0.5 should be 0.5, got {}", p_mid);
+    }
+
+    #[test]
+    fn test_permeability_ordering() {
+        // For the same coherence, QB > PG > SO > SR
+        let coh = 0.7;
+        let ten = 0.3;
+        let qb = permeability(coh, ten, SocialPhase::QuietlyBeloved);
+        let pg = permeability(coh, ten, SocialPhase::ProtectiveGuardian);
+        let so = permeability(coh, ten, SocialPhase::ShyObserver);
+        let sr = permeability(coh, ten, SocialPhase::StartledRetreat);
+
+        assert!(qb > pg, "QB({}) should be > PG({})", qb, pg);
+        assert!(pg > so, "PG({}) should be > SO({})", pg, so);
+        assert!(so > sr, "SO({}) should be > SR({})", so, sr);
+    }
+
+    #[test]
+    fn test_narration_depth_thresholds() {
+        // Boundary checks for each depth level
+        assert_eq!(NarrationDepth::from_permeability(0.0), NarrationDepth::None);
+        assert_eq!(NarrationDepth::from_permeability(0.19), NarrationDepth::None);
+        assert_eq!(NarrationDepth::from_permeability(0.2), NarrationDepth::Minimal);
+        assert_eq!(NarrationDepth::from_permeability(0.39), NarrationDepth::Minimal);
+        assert_eq!(NarrationDepth::from_permeability(0.4), NarrationDepth::Brief);
+        assert_eq!(NarrationDepth::from_permeability(0.59), NarrationDepth::Brief);
+        assert_eq!(NarrationDepth::from_permeability(0.6), NarrationDepth::Full);
+        assert_eq!(NarrationDepth::from_permeability(0.79), NarrationDepth::Full);
+        assert_eq!(NarrationDepth::from_permeability(0.8), NarrationDepth::Deep);
+        assert_eq!(NarrationDepth::from_permeability(1.0), NarrationDepth::Deep);
+    }
+
+    #[test]
+    fn test_narration_depth_matches_quadrants() {
+        // Verify that typical quadrant permeabilities map to sensible narration depths
+        // ShyObserver at max coherence: p=0.3 -> Minimal
+        assert_eq!(
+            NarrationDepth::from_permeability(permeability(1.0, 0.3, SocialPhase::ShyObserver)),
+            NarrationDepth::Minimal
+        );
+        // StartledRetreat: p=0.1 -> None
+        assert_eq!(
+            NarrationDepth::from_permeability(permeability(0.5, 0.5, SocialPhase::StartledRetreat)),
+            NarrationDepth::None
+        );
+        // QuietlyBeloved at max coherence: p=1.0 -> Deep
+        assert_eq!(
+            NarrationDepth::from_permeability(permeability(1.0, 0.1, SocialPhase::QuietlyBeloved)),
+            NarrationDepth::Deep
+        );
+        // ProtectiveGuardian at mid coherence: p=0.5 -> Brief
+        assert_eq!(
+            NarrationDepth::from_permeability(permeability(0.5, 0.5, SocialPhase::ProtectiveGuardian)),
+            NarrationDepth::Brief
+        );
+    }
+
+    #[test]
+    fn test_expression_scale_still_works() {
+        // Backward compatibility: expression_scale delegates to permeability(0.5, 0.3, self)
+        // Verify the ordering is preserved: QB > PG > SO > SR
+        let qb = SocialPhase::QuietlyBeloved.expression_scale();
+        let pg = SocialPhase::ProtectiveGuardian.expression_scale();
+        let so = SocialPhase::ShyObserver.expression_scale();
+        let sr = SocialPhase::StartledRetreat.expression_scale();
+
+        assert!(qb > pg, "QB({}) should be > PG({})", qb, pg);
+        assert!(pg > so, "PG({}) should be > SO({})", pg, so);
+        assert!(so > sr, "SO({}) should be > SR({})", so, sr);
+
+        // Verify specific values match permeability(0.5, 0.3, quadrant)
+        assert!((qb - permeability(0.5, 0.3, SocialPhase::QuietlyBeloved)).abs() < f32::EPSILON);
+        assert!((pg - permeability(0.5, 0.3, SocialPhase::ProtectiveGuardian)).abs() < f32::EPSILON);
+        assert!((so - permeability(0.5, 0.3, SocialPhase::ShyObserver)).abs() < f32::EPSILON);
+        assert!((sr - permeability(0.5, 0.3, SocialPhase::StartledRetreat)).abs() < f32::EPSILON);
     }
 }
