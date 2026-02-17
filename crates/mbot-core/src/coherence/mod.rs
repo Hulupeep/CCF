@@ -180,6 +180,60 @@ pub struct ContextKey {
 }
 
 impl ContextKey {
+    /// Compute a deterministic u32 hash of this context key.
+    ///
+    /// Used by the startle suppression system to key (StimulusKind, context_hash)
+    /// pairs without requiring std HashMap.
+    pub fn context_hash_u32(&self) -> u32 {
+        // FNV-1a from the variant indices. Deterministic and no_std compatible.
+        let mut h: u32 = 2166136261;
+
+        let b = match self.brightness {
+            BrightnessBand::Dark => 0u32,
+            BrightnessBand::Dim => 1,
+            BrightnessBand::Bright => 2,
+        };
+        h ^= b; h = h.wrapping_mul(16777619);
+
+        let n = match self.noise {
+            NoiseBand::Quiet => 0u32,
+            NoiseBand::Moderate => 1,
+            NoiseBand::Loud => 2,
+        };
+        h ^= n; h = h.wrapping_mul(16777619);
+
+        let p = match self.presence {
+            PresenceSignature::Absent => 0u32,
+            PresenceSignature::Static => 1,
+            PresenceSignature::Approaching => 2,
+            PresenceSignature::Retreating => 3,
+        };
+        h ^= p; h = h.wrapping_mul(16777619);
+
+        let m = match self.motion {
+            MotionContext::Stationary => 0u32,
+            MotionContext::SelfMoving => 1,
+            MotionContext::BeingHandled => 2,
+        };
+        h ^= m; h = h.wrapping_mul(16777619);
+
+        let o = match self.orientation {
+            Orientation::Upright => 0u32,
+            Orientation::Tilted => 1,
+        };
+        h ^= o; h = h.wrapping_mul(16777619);
+
+        let t = match self.time_period {
+            TimePeriod::Morning => 0u32,
+            TimePeriod::Afternoon => 1,
+            TimePeriod::Evening => 2,
+            TimePeriod::Night => 3,
+        };
+        h ^= t; h = h.wrapping_mul(16777619);
+
+        h
+    }
+
     /// Build a context key from current sensor readings.
     ///
     /// `light_level`: 0.0-1.0 from CyberPi brightness.
@@ -1140,5 +1194,30 @@ mod tests {
             acc.positive_interaction(1.0, i, true);
         }
         assert!(acc.value <= 1.0, "value={}", acc.value);
+    }
+
+    #[test]
+    fn test_context_hash_deterministic() {
+        let key = ContextKey::from_sensors(0.3, 0.1, PresenceSignature::Static, 0.5, false, 0.0, 0.0);
+        let h1 = key.context_hash_u32();
+        let h2 = key.context_hash_u32();
+        assert_eq!(h1, h2, "same key must produce same hash");
+    }
+
+    #[test]
+    fn test_context_hash_differs_by_context() {
+        let dark_quiet = ContextKey::from_sensors(0.05, 0.05, PresenceSignature::Absent, 0.5, false, 0.0, 0.0);
+        let bright_loud = ContextKey::from_sensors(0.8, 0.8, PresenceSignature::Approaching, 0.5, false, 0.0, 0.0);
+        assert_ne!(
+            dark_quiet.context_hash_u32(),
+            bright_loud.context_hash_u32(),
+            "different contexts must produce different hashes"
+        );
+    }
+
+    #[test]
+    fn test_context_hash_nonzero() {
+        let key = ContextKey::from_sensors(0.3, 0.3, PresenceSignature::Static, 0.5, false, 0.0, 0.0);
+        assert_ne!(key.context_hash_u32(), 0, "hash should not be zero");
     }
 }

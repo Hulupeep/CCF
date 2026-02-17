@@ -296,10 +296,37 @@ async fn run_main_loop(
     let mut stimulus_detector = StimulusDetector::new();
     let mut startle_processor = StartleProcessor::new();
     let mut stimulus_log = StimulusLog::new();
+    let mut startle_freeze_remaining: u32 = 0;
 
     // Suppression learning sync (Story #8)
     #[cfg(feature = "brain")]
     let mut suppression_sync = brain::suppression_sync::SuppressionSync::new();
+
+    // Suppression persistence: load learned rules from SQLite on startup
+    #[cfg(feature = "brain")]
+    let suppression_db = {
+        let db_path = "mbot_brain.db";
+        match rusqlite::Connection::open(db_path) {
+            Ok(conn) => {
+                match brain::suppression_sync::SuppressionSync::load_from_db(&conn, &mut startle_processor.suppression_map) {
+                    Ok(n) if n > 0 => {
+                        info!("Loaded {} suppression rules from database", n);
+                    }
+                    Ok(_) => {}
+                    Err(e) => {
+                        warn!("Failed to load suppression rules: {}", e);
+                    }
+                }
+                Some(conn)
+            }
+            Err(e) => {
+                warn!("Failed to open suppression DB: {}", e);
+                None
+            }
+        }
+    };
+    #[cfg(not(feature = "brain"))]
+    let _suppression_db: Option<()> = None;
 
     // Print a welcome banner so the user knows what they're looking at
     println!();
@@ -373,13 +400,27 @@ async fn run_main_loop(
             b.tick(&sensors)
         };
 
+        // --- Shared context computation (used by both startle and CCF) ---
+        let accel_mag = (sensors.accel[0] * sensors.accel[0]
+            + sensors.accel[1] * sensors.accel[1]
+            + sensors.accel[2] * sensors.accel[2])
+            .sqrt();
+        let presence = presence_detector.update(sensors.ultrasonic_cm);
+        let motors_active = cmd.left != 0 || cmd.right != 0;
+        let context_key = ContextKey::from_sensors(
+            sensors.light_level,
+            sensors.sound_level,
+            presence,
+            accel_mag,
+            motors_active,
+            0.0, // roll — wire from CyberPi when available
+            0.0, // pitch — wire from CyberPi when available
+        );
+        let context_hash = context_key.context_hash_u32();
+
         // --- Stimulus Detection & Startle Processing (STRT-006: before coherence) ---
         let stimulus_count;
         {
-            let accel_mag = (sensors.accel[0] * sensors.accel[0]
-                + sensors.accel[1] * sensors.accel[1]
-                + sensors.accel[2] * sensors.accel[2])
-                .sqrt();
             // Note: gyro_z is the only gyro channel we have; use its absolute value
             let gyro_mag = sensors.gyro_z.abs();
 
@@ -402,7 +443,6 @@ async fn run_main_loop(
             {
                 let pers = personality.lock().await;
                 for stimulus in stimuli.iter() {
-                    let context_hash = 0u32; // will be replaced with real context_key hash after CCF
                     let result = startle_processor.process_stimulus(
                         stimulus,
                         context_hash,
@@ -427,7 +467,7 @@ async fn run_main_loop(
                     });
 
                     if result.suppressed {
-                        println!("  [STARTLE] {} suppressed (factor={:.2}, delta={:.3})",
+                        println!("  [STARTLE] {} suppressed (factor={:.2}, delta={:.3}, ctx=0x{:08x})",
                             match stimulus.kind {
                                 mbot_core::nervous_system::stimulus::StimulusKind::LoudnessSpike => "Loud",
                                 mbot_core::nervous_system::stimulus::StimulusKind::BrightnessSpike => "Bright",
@@ -435,9 +475,9 @@ async fn run_main_loop(
                                 mbot_core::nervous_system::stimulus::StimulusKind::ImpactShock => "Impact",
                                 mbot_core::nervous_system::stimulus::StimulusKind::OrientationFlip => "Flip",
                             },
-                            result.suppression_factor, result.tension_delta);
+                            result.suppression_factor, result.tension_delta, context_hash);
                     } else if result.tension_delta > 0.01 {
-                        println!("  [STARTLE] {} FULL RESPONSE (delta={:.3})",
+                        println!("  [STARTLE] {} FULL RESPONSE (delta={:.3}, ctx=0x{:08x})",
                             match stimulus.kind {
                                 mbot_core::nervous_system::stimulus::StimulusKind::LoudnessSpike => "Loud",
                                 mbot_core::nervous_system::stimulus::StimulusKind::BrightnessSpike => "Bright",
@@ -445,7 +485,7 @@ async fn run_main_loop(
                                 mbot_core::nervous_system::stimulus::StimulusKind::ImpactShock => "Impact",
                                 mbot_core::nervous_system::stimulus::StimulusKind::OrientationFlip => "Flip",
                             },
-                            result.tension_delta);
+                            result.tension_delta, context_hash);
                     }
                 }
             }
@@ -474,6 +514,10 @@ async fn run_main_loop(
                 if let Some(hz) = behavior.buzzer_override {
                     cmd.buzzer_hz = hz;
                 }
+                // Start freeze timer (persists across ticks)
+                if behavior.freeze_ticks > 0 {
+                    startle_freeze_remaining = behavior.freeze_ticks;
+                }
                 if behavior.is_visible() {
                     println!("  [BEHAVIOR] Startle behavior: motors={:?} led={:?} buzzer={:?} freeze={}",
                         behavior.motor_override, behavior.led_override,
@@ -481,33 +525,21 @@ async fn run_main_loop(
                 }
             }
 
+            // Freeze motor output while startle freeze is active
+            if startle_freeze_remaining > 0 {
+                cmd.left = 0;
+                cmd.right = 0;
+                startle_freeze_remaining -= 1;
+            }
+
             // Evaluate pending stimulus outcomes
-            let had_collision = state.tension > 0.85; // proxy for collision detection
+            let had_collision = state.tension > 0.85; // heuristic: no dedicated bumper sensor
             stimulus_log.evaluate_pending(tick_count, had_collision, state.tension);
         }
 
         // --- Contextual Coherence Fields (post-tick processing) ---
         {
-            // 1. Update presence detector with ultrasonic reading
-            let presence = presence_detector.update(sensors.ultrasonic_cm);
-
-            // 2. Compute context key from current sensors
-            let accel_mag = (sensors.accel[0] * sensors.accel[0]
-                + sensors.accel[1] * sensors.accel[1]
-                + sensors.accel[2] * sensors.accel[2])
-                .sqrt();
-            let motors_active = cmd.left != 0 || cmd.right != 0;
-            let context_key = ContextKey::from_sensors(
-                sensors.light_level,
-                sensors.sound_level,
-                presence,
-                accel_mag,
-                motors_active,
-                0.0, // roll — wire from CyberPi when available
-                0.0, // pitch — wire from CyberPi when available
-            );
-
-            // 3. Update accumulator for current context
+            // Context key and presence already computed above
             let alone = presence == PresenceSignature::Absent;
             let is_positive = state.tension < 0.5;
             {
@@ -554,6 +586,13 @@ async fn run_main_loop(
             if sync_result.rules_upserted > 0 || sync_result.rules_removed > 0 {
                 println!("  [LEARN] +{} rules, -{} rules (from {} observations)",
                     sync_result.rules_upserted, sync_result.rules_removed, sync_result.ingested);
+
+                // Persist learned rules to SQLite after changes
+                if let Some(ref conn) = suppression_db {
+                    if let Err(e) = suppression_sync.save_to_db(conn, &startle_processor.suppression_map) {
+                        warn!("Failed to save suppression rules: {}", e);
+                    }
+                }
             }
         }
 
