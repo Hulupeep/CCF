@@ -9,6 +9,10 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use mbot_core::{HomeostasisState, MBotBrain, MBotSensors, MotorCommand, ReflexMode};
 use mbot_core::coherence::{CoherenceField, PresenceDetector, ContextKey, SocialPhase, PresenceSignature};
+use mbot_core::nervous_system::stimulus::StimulusDetector;
+use mbot_core::nervous_system::startle::{StartleProcessor, StartleResult};
+use mbot_core::nervous_system::stimulus_log::{StimulusLog, StimulusLogEntry, PostStimulusOutcome};
+use mbot_core::nervous_system::behavior::StartleBehavior;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
@@ -288,6 +292,15 @@ async fn run_main_loop(
     );
     let mut social_phase = SocialPhase::ShyObserver;
 
+    // Stimulus detection & startle processing (Story #5)
+    let mut stimulus_detector = StimulusDetector::new();
+    let mut startle_processor = StartleProcessor::new();
+    let mut stimulus_log = StimulusLog::new();
+
+    // Suppression learning sync (Story #8)
+    #[cfg(feature = "brain")]
+    let mut suppression_sync = brain::suppression_sync::SuppressionSync::new();
+
     // Print a welcome banner so the user knows what they're looking at
     println!();
     println!("==========================================================");
@@ -360,6 +373,119 @@ async fn run_main_loop(
             b.tick(&sensors)
         };
 
+        // --- Stimulus Detection & Startle Processing (STRT-006: before coherence) ---
+        let stimulus_count;
+        {
+            let accel_mag = (sensors.accel[0] * sensors.accel[0]
+                + sensors.accel[1] * sensors.accel[1]
+                + sensors.accel[2] * sensors.accel[2])
+                .sqrt();
+            // Note: gyro_z is the only gyro channel we have; use its absolute value
+            let gyro_mag = sensors.gyro_z.abs();
+
+            let stimuli = stimulus_detector.detect(
+                sensors.sound_level * 100.0,  // scale from 0-1 to raw range
+                sensors.light_level * 255.0,  // scale from 0-1 to raw range
+                sensors.ultrasonic_cm,
+                accel_mag,
+                gyro_mag,
+                tick_count,
+            );
+
+            stimulus_count = stimuli.len();
+
+            // Process each stimulus through the startle pipeline
+            let mut startle_tension_delta: f32 = 0.0;
+            let mut had_startle = false;
+            let mut strongest_factor: f32 = 0.0;
+            let mut strongest_result: Option<StartleResult> = None;
+            {
+                let pers = personality.lock().await;
+                for stimulus in stimuli.iter() {
+                    let context_hash = 0u32; // will be replaced with real context_key hash after CCF
+                    let result = startle_processor.process_stimulus(
+                        stimulus,
+                        context_hash,
+                        pers.startle_sensitivity(),
+                    );
+                    startle_tension_delta += result.tension_delta;
+                    had_startle = true;
+
+                    // Track the strongest (least suppressed) startle for behavior mapping
+                    if result.suppression_factor > strongest_factor {
+                        strongest_factor = result.suppression_factor;
+                        strongest_result = Some(result);
+                    }
+
+                    // Log the stimulus for the companion learner
+                    stimulus_log.log(StimulusLogEntry {
+                        stimulus: *stimulus,
+                        context_hash,
+                        suppression_applied: result.suppression_factor,
+                        tension_delta: result.tension_delta,
+                        post_stimulus_outcome: PostStimulusOutcome::Pending,
+                    });
+
+                    if result.suppressed {
+                        println!("  [STARTLE] {} suppressed (factor={:.2}, delta={:.3})",
+                            match stimulus.kind {
+                                mbot_core::nervous_system::stimulus::StimulusKind::LoudnessSpike => "Loud",
+                                mbot_core::nervous_system::stimulus::StimulusKind::BrightnessSpike => "Bright",
+                                mbot_core::nervous_system::stimulus::StimulusKind::ProximityRush => "Rush",
+                                mbot_core::nervous_system::stimulus::StimulusKind::ImpactShock => "Impact",
+                                mbot_core::nervous_system::stimulus::StimulusKind::OrientationFlip => "Flip",
+                            },
+                            result.suppression_factor, result.tension_delta);
+                    } else if result.tension_delta > 0.01 {
+                        println!("  [STARTLE] {} FULL RESPONSE (delta={:.3})",
+                            match stimulus.kind {
+                                mbot_core::nervous_system::stimulus::StimulusKind::LoudnessSpike => "Loud",
+                                mbot_core::nervous_system::stimulus::StimulusKind::BrightnessSpike => "Bright",
+                                mbot_core::nervous_system::stimulus::StimulusKind::ProximityRush => "Rush",
+                                mbot_core::nervous_system::stimulus::StimulusKind::ImpactShock => "Impact",
+                                mbot_core::nervous_system::stimulus::StimulusKind::OrientationFlip => "Flip",
+                            },
+                            result.tension_delta);
+                    }
+                }
+            }
+
+            // Apply startle tension delta to state (override)
+            if had_startle {
+                state.tension = (state.tension + startle_tension_delta).clamp(0.0, 1.0);
+                state.reflex = ReflexMode::from_tension(state.tension);
+            }
+
+            // Apply strongest startle behavior to motor command (Story #9)
+            if had_startle && strongest_factor >= 0.45 {
+                let pers = personality.lock().await;
+                let behavior = StartleBehavior::from_startle(
+                    &strongest_result.unwrap(),
+                    pers.movement_expressiveness(),
+                    pers.sound_expressiveness(),
+                );
+                if let Some((l, r)) = behavior.motor_override {
+                    cmd.left = l;
+                    cmd.right = r;
+                }
+                if let Some(color) = behavior.led_override {
+                    cmd.led_color = color;
+                }
+                if let Some(hz) = behavior.buzzer_override {
+                    cmd.buzzer_hz = hz;
+                }
+                if behavior.is_visible() {
+                    println!("  [BEHAVIOR] Startle behavior: motors={:?} led={:?} buzzer={:?} freeze={}",
+                        behavior.motor_override, behavior.led_override,
+                        behavior.buzzer_override, behavior.freeze_ticks);
+                }
+            }
+
+            // Evaluate pending stimulus outcomes
+            let had_collision = state.tension > 0.85; // proxy for collision detection
+            stimulus_log.evaluate_pending(tick_count, had_collision, state.tension);
+        }
+
         // --- Contextual Coherence Fields (post-tick processing) ---
         {
             // 1. Update presence detector with ultrasonic reading
@@ -411,6 +537,23 @@ async fn run_main_loop(
             // 8. Periodic decay (every 100 ticks)
             if tick_count % 100 == 0 {
                 coherence_field.decay_all(100);
+            }
+        }
+
+        // --- Suppression Learning Sync (Story #8) ---
+        #[cfg(feature = "brain")]
+        {
+            let pers = personality.lock().await;
+            let sync_result = suppression_sync.sync(
+                &mut stimulus_log,
+                &mut startle_processor,
+                tick_count,
+                pers.curiosity_drive(),
+                pers.startle_sensitivity(),
+            );
+            if sync_result.rules_upserted > 0 || sync_result.rules_removed > 0 {
+                println!("  [LEARN] +{} rules, -{} rules (from {} observations)",
+                    sync_result.rules_upserted, sync_result.rules_removed, sync_result.ingested);
             }
         }
 
@@ -585,7 +728,7 @@ async fn run_main_loop(
         // Print status periodically (every second)
         if tick_count % (freq as u64) == 0 {
             print_status(&sensors, &state, tick_count, total_loop_time, max_loop_time,
-                         coherence_field.context_count());
+                         coherence_field.context_count(), stimulus_count);
         }
 
         // Maintain loop timing - only warn about slow loops occasionally, not every tick.
@@ -619,6 +762,7 @@ fn print_status(
     _total_time: Duration,
     _max_time: Duration,
     context_count: usize,
+    stimulus_count: usize,
 ) {
     // Describe the emotional mode in plain language
     let (mode_name, mode_desc) = match state.reflex {
@@ -748,6 +892,12 @@ fn print_status(
         "  Contexts:  {} situations learned",
         context_count,
     );
+    if stimulus_count > 0 {
+        println!(
+            "  Stimuli:   {} detected this tick  <-- startled!",
+            stimulus_count,
+        );
+    }
     println!("  -----------------------------------------------");
     println!("  Tick: {}  |  Press Ctrl+C to stop", tick_count);
 }

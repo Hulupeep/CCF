@@ -434,6 +434,9 @@ pub mod multi_robot;
 #[cfg(feature = "std")]
 pub mod performance;
 
+// === NERVOUS SYSTEM — STIMULUS DETECTION & STARTLE SUPPRESSION ===
+pub mod nervous_system;
+
 // === CONTEXTUAL COHERENCE FIELDS MODULE ===
 pub mod coherence;
 

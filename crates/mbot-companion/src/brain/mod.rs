@@ -25,6 +25,10 @@ pub mod autonomy;
 pub mod narrator;
 #[cfg(feature = "brain")]
 pub mod stt;
+#[cfg(feature = "brain")]
+pub mod suppression_learner;
+#[cfg(feature = "brain")]
+pub mod suppression_sync;
 
 #[cfg(feature = "brain")]
 pub mod channels;
