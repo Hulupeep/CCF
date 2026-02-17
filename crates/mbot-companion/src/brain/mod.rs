@@ -39,6 +39,8 @@ pub mod episodes;
 pub mod habits;
 #[cfg(feature = "brain")]
 pub mod relational_graph;
+#[cfg(feature = "brain")]
+pub mod mincut;
 
 #[cfg(feature = "brain")]
 pub mod channels;
