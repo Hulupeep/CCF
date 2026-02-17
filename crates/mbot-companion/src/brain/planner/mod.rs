@@ -27,6 +27,20 @@ use prompt_builder::PromptBuilder;
 #[cfg(feature = "brain")]
 use safety::SafetyFilter;
 
+/// Exploration sub-commands the LLM can request.
+#[cfg(feature = "brain")]
+#[derive(Debug, Clone)]
+pub enum ExploreCommand {
+    /// Begin scanning surroundings.
+    Scan,
+    /// Drive toward target sector.
+    MoveToSector(usize),
+    /// Pause exploration for reflection.
+    Pause,
+    /// Resume exploration after pause.
+    Resume,
+}
+
 /// Actions the brain can suggest
 #[cfg(feature = "brain")]
 #[derive(Debug, Clone)]
@@ -39,6 +53,8 @@ pub enum BrainAction {
     Speak(String),
     /// Start a named activity
     StartActivity(String),
+    /// Exploration command
+    Explore(ExploreCommand),
     /// No action needed
     Noop,
 }

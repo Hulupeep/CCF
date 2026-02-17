@@ -79,7 +79,7 @@ impl SafetyFilter {
             }
 
             // These are always safe
-            BrainAction::StartActivity(_) | BrainAction::Noop => Some(action),
+            BrainAction::StartActivity(_) | BrainAction::Noop | BrainAction::Explore(_) => Some(action),
         }
     }
 }

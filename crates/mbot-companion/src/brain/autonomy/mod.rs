@@ -13,6 +13,8 @@ pub mod cron;
 pub mod context;
 #[cfg(feature = "brain")]
 pub mod actions;
+#[cfg(feature = "brain")]
+pub mod explore;
 
 #[cfg(feature = "brain")]
 use crate::brain::error::{BrainError, BrainResult};

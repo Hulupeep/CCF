@@ -39,6 +39,12 @@ pub struct RobotState {
     pub speaking: bool,
     pub last_response: String,
     pub last_transcript: String,
+    /// Social phase from contextual coherence field
+    pub social_phase: String,
+    /// Accumulated coherence for the current context
+    pub context_coherence: f32,
+    /// Number of distinct contexts tracked
+    pub context_count: usize,
 }
 
 /// Motor override set by voice commands, consumed by the main loop.
@@ -56,6 +62,35 @@ pub struct SharedVoiceState {
     pub robot: RobotState,
     /// Motor override from voice commands (set by voice API, read by main loop)
     pub motor_override: Option<MotorOverride>,
+    /// Pending narration text from exploration/reflection (set by main loop, consumed by voice API).
+    pub pending_narration: Option<String>,
+    /// Exploration state for dashboard/WS clients.
+    pub exploration: Option<ExplorationState>,
+}
+
+/// Exploration state broadcast to connected clients.
+#[derive(Clone, Serialize, Deserialize, Default)]
+pub struct ExplorationState {
+    pub phase: String,
+    pub sectors_mapped: usize,
+    pub grid_visited: usize,
+    pub discovery_count: u32,
+    pub episode_count: u32,
+    pub nav_confidence: f32,
+    /// Flattened grid occupancy: 100 values, row-major. 0=unknown, 1=free, 2=obstacle, 3=interesting.
+    pub grid: Vec<u8>,
+    /// Robot position in grid [x, y].
+    pub robot_pos: [usize; 2],
+    /// Robot heading in degrees.
+    pub robot_heading: f32,
+    /// Sector distances (12 values).
+    pub sector_distances: Vec<f32>,
+    /// Recent narration lines.
+    pub narration_log: Vec<String>,
+    /// Current reflection text (if reflecting).
+    pub reflection: Option<String>,
+    /// Q-learning average reward.
+    pub avg_reward: f32,
 }
 
 impl Default for SharedVoiceState {
@@ -66,6 +101,8 @@ impl Default for SharedVoiceState {
                 ..Default::default()
             },
             motor_override: None,
+            pending_narration: None,
+            exploration: None,
         }
     }
 }
@@ -273,11 +310,22 @@ pub async fn start_voice_api(
 // Handlers
 // ---------------------------------------------------------------------------
 
+/// Combined state response including robot state and exploration data.
+#[derive(Serialize)]
+struct FullState {
+    #[serde(flatten)]
+    robot: RobotState,
+    exploration: Option<ExplorationState>,
+}
+
 async fn handle_get_state(
     state: SharedState,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let s = state.lock().await;
-    Ok(warp::reply::json(&s.robot))
+    Ok(warp::reply::json(&FullState {
+        robot: s.robot.clone(),
+        exploration: s.exploration.clone(),
+    }))
 }
 
 async fn handle_post_voice(
@@ -489,7 +537,11 @@ async fn handle_ws(ws: warp::ws::WebSocket, state: SharedState) {
     loop {
         tick.tick().await;
         let s = state.lock().await;
-        let json = serde_json::to_string(&s.robot).unwrap_or_default();
+        let full = FullState {
+            robot: s.robot.clone(),
+            exploration: s.exploration.clone(),
+        };
+        let json = serde_json::to_string(&full).unwrap_or_default();
         if tx.send(warp::ws::Message::text(json)).await.is_err() {
             break;
         }

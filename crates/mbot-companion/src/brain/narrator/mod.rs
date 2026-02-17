@@ -2,6 +2,8 @@
 
 #[cfg(feature = "brain")]
 pub mod templates;
+#[cfg(feature = "brain")]
+pub mod reflection;
 
 #[cfg(feature = "brain")]
 use crate::brain::error::BrainResult;

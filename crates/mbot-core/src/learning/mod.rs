@@ -27,6 +27,7 @@ pub use policy::{Policy, PolicyStorage};
 pub use reward::{RewardFunction, UserFeedback, FeedbackRating};
 pub use metrics::{LearningMetrics, LearningConfig};
 
+
 // Re-export prediction types for convenience
 pub use prediction::{
     PredictiveEngine,
@@ -117,6 +118,128 @@ impl Action {
         }
     }
 }
+
+// ─── Navigation Q-Learning Helpers ─────────────────────────────────
+
+/// Navigation action types for exploration Q-learning.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum NavAction {
+    TurnLeft30,
+    TurnRight30,
+    Forward,
+    BackUp,
+    Scan,
+}
+
+impl NavAction {
+    /// All possible navigation actions.
+    pub fn all() -> [NavAction; 5] {
+        [
+            NavAction::TurnLeft30,
+            NavAction::TurnRight30,
+            NavAction::Forward,
+            NavAction::BackUp,
+            NavAction::Scan,
+        ]
+    }
+
+    /// Convert to learning::Action for Q-table lookup.
+    pub fn to_action(&self) -> Action {
+        match self {
+            NavAction::TurnLeft30 => Action::new("nav_turn_left_30".into(), (0, 0)),
+            NavAction::TurnRight30 => Action::new("nav_turn_right_30".into(), (0, 0)),
+            NavAction::Forward => Action::new("nav_forward".into(), (0, 0)),
+            NavAction::BackUp => Action::new("nav_backup".into(), (0, 0)),
+            NavAction::Scan => Action::new("nav_scan".into(), (0, 0)),
+        }
+    }
+
+    /// All actions as learning::Action values.
+    pub fn all_actions() -> Vec<Action> {
+        Self::all().iter().map(|a| a.to_action()).collect()
+    }
+}
+
+/// Obstacle proximity level for state encoding.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ObstacleLevel {
+    None,
+    Far,
+    Near,
+    Touching,
+}
+
+/// Energy level for state encoding.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum EnergyLevel {
+    Low,
+    Medium,
+    High,
+}
+
+/// Build a navigation State from exploration context.
+pub fn nav_state(
+    target_sector: usize,
+    obstacle: ObstacleLevel,
+    energy: EnergyLevel,
+    reflex_mode: &str,
+) -> State {
+    #[cfg(not(feature = "std"))]
+    use alloc::format;
+
+    let board = format!(
+        "sec:{}|obs:{}|nrg:{}|rfx:{}",
+        target_sector,
+        match obstacle {
+            ObstacleLevel::None => "none",
+            ObstacleLevel::Far => "far",
+            ObstacleLevel::Near => "near",
+            ObstacleLevel::Touching => "touch",
+        },
+        match energy {
+            EnergyLevel::Low => "lo",
+            EnergyLevel::Medium => "med",
+            EnergyLevel::High => "hi",
+        },
+        reflex_mode,
+    );
+    State::new("navigation".into(), board)
+}
+
+/// Classify ultrasonic distance to ObstacleLevel.
+/// Note: distance_cm <= 0.0 or < 2.0 means sensor error/not connected — treated as None.
+pub fn classify_obstacle(distance_cm: f32) -> ObstacleLevel {
+    if distance_cm < 2.0 {
+        // Sensor error or not connected (CyberPi returns 0 when no ultrasonic module)
+        ObstacleLevel::None
+    } else if distance_cm < 10.0 {
+        ObstacleLevel::Touching
+    } else if distance_cm < 30.0 {
+        ObstacleLevel::Near
+    } else if distance_cm < 80.0 {
+        ObstacleLevel::Far
+    } else {
+        ObstacleLevel::None
+    }
+}
+
+/// Classify energy to EnergyLevel.
+pub fn classify_energy(energy: f32) -> EnergyLevel {
+    if energy < 0.3 {
+        EnergyLevel::Low
+    } else if energy < 0.7 {
+        EnergyLevel::Medium
+    } else {
+        EnergyLevel::High
+    }
+}
+
+/// Navigation rewards.
+pub const NAV_REWARD_NEW_CELL: f32 = 1.0;
+pub const NAV_REWARD_REVISIT: f32 = 0.2;
+pub const NAV_REWARD_COLLISION: f32 = -0.5;
+pub const NAV_REWARD_TIMEOUT: f32 = -0.2;
+pub const NAV_REWARD_SCAN: f32 = 0.3;
 
 /// Main reinforcement learning interface
 pub trait ReinforcementLearner {

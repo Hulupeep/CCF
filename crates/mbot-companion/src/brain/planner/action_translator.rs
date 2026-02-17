@@ -1,7 +1,7 @@
 //! Action Translator - parses LLM text into BrainAction enum
 
 #[cfg(feature = "brain")]
-use crate::brain::planner::BrainAction;
+use crate::brain::planner::{BrainAction, ExploreCommand};
 #[cfg(feature = "brain")]
 use mbot_core::MotorCommand;
 
@@ -77,6 +77,29 @@ impl ActionTranslator {
                         delta,
                     });
                 }
+            }
+        }
+
+        if upper.starts_with("EXPLORE:") {
+            let sub = line[8..].trim().to_uppercase();
+            if sub.starts_with("SCAN") {
+                return Some(BrainAction::Explore(ExploreCommand::Scan));
+            }
+            if sub.starts_with("MOVE") {
+                // EXPLORE: MOVE <sector>
+                let parts: Vec<&str> = sub.split_whitespace().collect();
+                if parts.len() >= 2 {
+                    if let Ok(sector) = parts[1].parse::<usize>() {
+                        return Some(BrainAction::Explore(ExploreCommand::MoveToSector(sector)));
+                    }
+                }
+                return Some(BrainAction::Explore(ExploreCommand::Scan));
+            }
+            if sub.starts_with("PAUSE") || sub.starts_with("REFLECT") {
+                return Some(BrainAction::Explore(ExploreCommand::Pause));
+            }
+            if sub.starts_with("RESUME") {
+                return Some(BrainAction::Explore(ExploreCommand::Resume));
             }
         }
 

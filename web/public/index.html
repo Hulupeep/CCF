@@ -3,498 +3,1584 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 mBot2 RuVector Dashboard</title>
+    <title>mBot2 RuVector</title>
     <style>
         :root {
-            --bg-dark: #0a0a1a;
-            --bg-panel: #12122a;
+            --bg: #0a0a1a;
+            --panel: #12122a;
             --border: #2a2a4a;
             --text: #e0e0ff;
-            --text-dim: #8080a0;
+            --dim: #9999bb;
             --accent: #00ff88;
             --calm: #00aaff;
             --active: #00ff88;
             --spike: #ffaa00;
             --protect: #ff4444;
+            --sidebar-w: 320px;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            background: var(--bg-dark);
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-            padding: 20px;
+            font-size: 16px;
+            line-height: 1.5;
         }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 24px;
+        /* === TOP BAR === */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 24px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
         }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
+        .topbar h1 { font-size: 22px; white-space: nowrap; }
+        .conn-controls { display: flex; align-items: center; gap: 10px; }
+        .conn-btn {
+            padding: 10px 20px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
         }
-
-        .panel {
-            background: var(--bg-panel);
+        .conn-btn:hover { border-color: var(--accent); background: rgba(0,255,136,0.05); }
+        .conn-btn.active { border-color: var(--accent); background: rgba(0,255,136,0.08); }
+        .conn-btn.disconnect { border-color: var(--protect); color: var(--protect); }
+        .conn-btn.disconnect:hover { background: rgba(255,68,68,0.1); }
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 15px;
+            background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
         }
-
-        .panel h2 {
-            font-size: 14px;
-            color: var(--text-dim);
-            margin-bottom: 15px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .status-pill .dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--dim);
         }
+        .status-pill .dot.sim { background: var(--spike); }
+        .status-pill .dot.live { background: var(--accent); animation: blink 2s infinite; }
+        .status-pill .dot.connecting { background: var(--spike); animation: blink 0.5s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-        .mode-display {
+        /* === SIMULATED BANNER === */
+        .sim-banner {
+            background: rgba(255,170,0,0.12);
+            border-bottom: 1px solid rgba(255,170,0,0.3);
             text-align: center;
-            padding: 30px;
+            padding: 10px 20px;
+            font-size: 15px;
+            color: var(--spike);
+            font-weight: 600;
+        }
+        .sim-banner.hidden { display: none; }
+
+        /* === MAIN LAYOUT === */
+        .main {
+            display: grid;
+            grid-template-columns: var(--sidebar-w) 1fr;
+            min-height: calc(100vh - 100px);
         }
 
-        .mode-icon {
-            font-size: 80px;
-            margin-bottom: 10px;
-            animation: pulse 1s infinite;
+        /* === SIDEBAR === */
+        .sidebar {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
         }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        .sidebar h3 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--dim);
+            margin-bottom: 14px;
+            margin-top: 24px;
         }
+        .sidebar h3:first-child { margin-top: 0; }
 
-        .mode-name {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 10px;
+        /* Sensor rows */
+        .sensor-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(42,42,74,0.5);
+            font-size: 16px;
         }
+        .sensor-row:last-child { border-bottom: none; }
+        .sensor-name { color: var(--dim); }
+        .sensor-val { font-weight: bold; min-width: 60px; text-align: right; }
+        .sensor-unit { color: var(--dim); font-size: 13px; margin-left: 3px; }
 
-        .mode-Calm { color: var(--calm); }
-        .mode-Active { color: var(--active); }
-        .mode-Spike { color: var(--spike); }
-        .mode-Protect { color: var(--protect); animation: shake 0.1s infinite; }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(3px); }
-        }
-
-        .meter {
-            margin-bottom: 15px;
-        }
-
-        .meter-label {
+        /* Personality sliders */
+        .slider-group { margin-bottom: 16px; }
+        .slider-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 12px;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+        .slider-header .label { color: var(--dim); }
+        .slider-header .val { color: var(--accent); font-weight: bold; }
+        .slider-desc { font-size: 13px; color: var(--dim); margin-bottom: 6px; opacity: 0.8; }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg);
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            border: none;
+            cursor: pointer;
         }
 
-        .meter-bar {
-            height: 24px;
-            background: var(--bg-dark);
-            border-radius: 12px;
+        /* Preset + action buttons */
+        .preset-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .preset-btn {
+            padding: 8px 6px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            color: var(--dim);
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .preset-btn:hover { border-color: var(--accent); color: var(--text); }
+        .preset-btn.active { border-color: var(--accent); background: rgba(0,255,136,0.08); color: var(--accent); }
+        .apply-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: var(--accent);
+            color: var(--bg);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .apply-btn:hover { opacity: 0.85; }
+
+        /* === CENTER CONTENT === */
+        .center {
+            padding: 24px 28px;
+            overflow-y: auto;
+            max-height: calc(100vh - 100px);
+        }
+
+        /* Mode display */
+        .mode-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        .mode-badge {
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            flex-shrink: 0;
+        }
+        .mode-badge.Calm { background: rgba(0,170,255,0.15); color: var(--calm); border: 2px solid rgba(0,170,255,0.3); }
+        .mode-badge.Active { background: rgba(0,255,136,0.15); color: var(--active); border: 2px solid rgba(0,255,136,0.3); }
+        .mode-badge.Spike { background: rgba(255,170,0,0.15); color: var(--spike); border: 2px solid rgba(255,170,0,0.3); }
+        .mode-badge.Protect { background: rgba(255,68,68,0.15); color: var(--protect); border: 2px solid rgba(255,68,68,0.3); }
+        .mode-desc { font-size: 16px; color: var(--dim); line-height: 1.6; }
+
+        /* State bars */
+        .state-bars { margin-bottom: 28px; }
+        .bar-row {
+            display: grid;
+            grid-template-columns: 110px 1fr 55px;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .bar-label { font-size: 16px; color: var(--dim); }
+        .bar-track {
+            height: 22px;
+            background: var(--bg);
+            border-radius: 11px;
             overflow: hidden;
             position: relative;
         }
-
-        .meter-fill {
+        .bar-fill {
             height: 100%;
-            border-radius: 12px;
-            transition: width 0.1s ease, background 0.3s ease;
-            position: relative;
+            border-radius: 11px;
+            transition: width 0.15s ease;
         }
-
-        .meter-fill::after {
-            content: '';
+        .bar-fill.tension { background: linear-gradient(90deg, var(--calm), var(--active), var(--spike), var(--protect)); }
+        .bar-fill.coherence { background: linear-gradient(90deg, var(--protect), var(--spike), var(--active), var(--calm)); }
+        .bar-fill.energy { background: linear-gradient(90deg, var(--protect), var(--spike), var(--accent)); }
+        .bar-fill.curiosity { background: var(--accent); }
+        .bar-val { font-size: 16px; font-weight: bold; text-align: right; }
+        .bar-track .threshold {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            animation: shimmer 2s infinite;
+            top: 0; bottom: 0;
+            width: 2px;
+            background: rgba(255,255,255,0.25);
+            z-index: 1;
         }
 
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+        /* Teach box — replaces old "annotation" */
+        .teach-box {
+            background: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 28px;
         }
-
-        .tension-fill { background: linear-gradient(90deg, var(--calm), var(--active), var(--spike), var(--protect)); }
-        .coherence-fill { background: linear-gradient(90deg, var(--protect), var(--spike), var(--active), var(--calm)); }
-        .energy-fill { background: linear-gradient(90deg, var(--protect), var(--spike), var(--accent)); }
-        .curiosity-fill { background: var(--accent); }
-        .distance-fill { background: var(--calm); }
-
-        .sensor-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .sensor {
-            text-align: center;
-            padding: 15px;
-            background: var(--bg-dark);
-            border-radius: 8px;
-        }
-
-        .sensor-icon {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .sensor-value {
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .sensor-label {
-            font-size: 11px;
-            color: var(--text-dim);
-        }
-
-        .status-bar {
+        .teach-box h4 {
+            font-size: 16px;
+            color: var(--accent);
+            margin-bottom: 10px;
             display: flex;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background: var(--bg-panel);
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 12px;
-            color: var(--text-dim);
-        }
-
-        .status-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: blink 1s infinite;
-        }
-
-        .status-dot.connected { background: var(--accent); }
-        .status-dot.disconnected { background: var(--protect); animation: none; }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .robot-viz {
-            display: flex;
-            justify-content: center;
             align-items: center;
-            height: 200px;
-            position: relative;
+            gap: 8px;
+        }
+        .teach-box p {
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--text);
+        }
+        .teach-box .cause { color: var(--spike); font-weight: 600; }
+        .teach-box .effect { color: var(--accent); font-weight: 600; }
+
+        /* Experiment cards */
+        .experiments { margin-bottom: 28px; }
+        .experiments h4 {
+            font-size: 16px;
+            color: var(--accent);
+            margin-bottom: 14px;
+        }
+        .exp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+        .exp-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+        }
+        .exp-card h5 {
+            font-size: 17px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+        .exp-card p { font-size: 15px; color: var(--dim); line-height: 1.6; margin-bottom: 8px; }
+        .exp-card .watch {
+            font-size: 14px;
+            color: var(--accent);
+            border-top: 1px solid var(--border);
+            padding-top: 8px;
+            margin-top: 6px;
+            line-height: 1.5;
         }
 
-        .robot-body {
-            width: 100px;
-            height: 80px;
-            background: var(--bg-dark);
-            border: 3px solid var(--border);
-            border-radius: 15px;
-            position: relative;
+        /* Event log */
+        .event-log {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 28px;
+        }
+        .event-log h4 {
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--dim);
+            margin-bottom: 10px;
+        }
+        .event-list {
+            max-height: 160px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .event-list .ev {
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(42,42,74,0.3);
+        }
+        .event-list .ev:last-child { border-bottom: none; }
+        .ev-time { color: var(--dim); }
+        .ev-mode { color: var(--spike); }
+        .ev-sensor { color: var(--calm); }
+
+        /* How it works */
+        .learn {
+            background: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 28px;
+        }
+        .learn summary {
+            padding: 16px 20px;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: bold;
+            color: var(--dim);
+        }
+        .learn summary:hover { color: var(--text); }
+        .learn .content {
+            padding: 0 20px 20px;
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--dim);
+        }
+        .learn .content h5 {
+            color: var(--text);
+            margin: 18px 0 8px;
+            font-size: 17px;
+        }
+        .learn .content p { margin-bottom: 10px; }
+        .learn .content .mode-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        .learn .content .mode-table td, .learn .content .mode-table th {
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        .learn .content .mode-table th { color: var(--text); font-weight: 700; }
+        .learn .content .example {
+            background: var(--bg);
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin: 10px 0;
+            font-size: 15px;
+            line-height: 1.7;
         }
 
-        .robot-eye {
-            width: 20px;
-            height: 20px;
-            background: var(--calm);
-            border-radius: 50%;
-            position: absolute;
-            top: 15px;
+        /* === EXPLORATION PANELS === */
+        .explore-section {
+            margin-bottom: 28px;
+        }
+        .explore-section h4 {
+            font-size: 16px;
+            color: var(--accent);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .explore-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 900px) {
+            .explore-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Grid Map (10x10) */
+        .grid-map-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+        }
+        .grid-map-panel h5 { font-size: 15px; margin-bottom: 10px; color: var(--text); }
+        .grid-map-canvas {
+            width: 100%;
+            aspect-ratio: 1;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+        }
+        .grid-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            position: relative;
             transition: background 0.3s;
         }
+        .grid-cell.unknown { background: rgba(42,42,74,0.4); }
+        .grid-cell.free { background: rgba(0,170,255,0.2); }
+        .grid-cell.obstacle { background: rgba(255,68,68,0.5); }
+        .grid-cell.interesting { background: rgba(0,255,136,0.4); }
+        .grid-cell.robot {
+            background: var(--accent) !important;
+            box-shadow: 0 0 8px var(--accent);
+        }
+        .grid-cell.robot::after {
+            content: '';
+            position: absolute;
+            top: 15%; left: 35%;
+            width: 30%; height: 50%;
+            background: var(--bg);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+        .grid-map-legend {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--dim);
+            flex-wrap: wrap;
+        }
+        .grid-map-legend span::before {
+            content: '';
+            display: inline-block;
+            width: 10px; height: 10px;
+            border-radius: 2px;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .grid-map-legend .leg-unknown::before { background: rgba(42,42,74,0.6); }
+        .grid-map-legend .leg-free::before { background: rgba(0,170,255,0.3); }
+        .grid-map-legend .leg-obstacle::before { background: rgba(255,68,68,0.5); }
+        .grid-map-legend .leg-interesting::before { background: rgba(0,255,136,0.4); }
+        .grid-map-legend .leg-robot::before { background: var(--accent); }
 
-        .robot-eye.left { left: 20px; }
-        .robot-eye.right { right: 20px; }
+        /* Sector Radar */
+        .radar-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+        }
+        .radar-panel h5 { font-size: 15px; margin-bottom: 10px; color: var(--text); }
+        .radar-canvas-wrap {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+        .radar-canvas-wrap canvas {
+            width: 100%;
+            max-width: 260px;
+            aspect-ratio: 1;
+        }
 
-        .robot-wheel {
-            width: 15px;
-            height: 40px;
-            background: var(--text-dim);
-            border-radius: 5px;
+        /* Learning Curve */
+        .learning-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+        }
+        .learning-panel h5 { font-size: 15px; margin-bottom: 10px; color: var(--text); }
+        .learning-canvas-wrap canvas {
+            width: 100%;
+            height: 120px;
+        }
+        .learning-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--dim);
+        }
+        .learning-stats .stat-val { color: var(--accent); font-weight: bold; }
+
+        /* Narration Log */
+        .narration-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px;
+        }
+        .narration-panel h5 { font-size: 15px; margin-bottom: 10px; color: var(--text); }
+        .narration-list {
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .narration-list .nar {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(42,42,74,0.3);
+        }
+        .narration-list .nar:last-child { border-bottom: none; }
+        .nar-tick { color: var(--dim); font-size: 12px; }
+        .nar-text { color: var(--spike); font-style: italic; }
+
+        /* Reflection Bubble */
+        .reflection-bubble {
+            background: linear-gradient(135deg, rgba(0,170,255,0.08), rgba(0,255,136,0.08));
+            border: 2px solid rgba(0,170,255,0.25);
+            border-radius: 16px;
+            padding: 18px 22px;
+            margin-bottom: 16px;
+            position: relative;
+            transition: opacity 0.5s;
+        }
+        .reflection-bubble.hidden { display: none; }
+        .reflection-bubble h5 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--calm);
+            margin-bottom: 8px;
+        }
+        .reflection-bubble p {
+            font-size: 16px;
+            line-height: 1.7;
+            color: var(--text);
+            font-style: italic;
+        }
+        .reflection-bubble::before {
+            content: '';
             position: absolute;
             bottom: -10px;
+            left: 30px;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, rgba(0,170,255,0.08), rgba(0,255,136,0.08));
+            border-right: 2px solid rgba(0,170,255,0.25);
+            border-bottom: 2px solid rgba(0,170,255,0.25);
+            transform: rotate(45deg);
         }
 
-        .robot-wheel.left { left: -10px; }
-        .robot-wheel.right { right: -10px; }
+        /* Explore phase badge */
+        .explore-phase {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .explore-phase.Idle { background: rgba(42,42,74,0.5); color: var(--dim); }
+        .explore-phase.Scanning { background: rgba(0,170,255,0.15); color: var(--calm); }
+        .explore-phase.MovingTo { background: rgba(0,255,136,0.15); color: var(--accent); }
+        .explore-phase.Arrived { background: rgba(255,170,0,0.15); color: var(--spike); }
 
-        .robot-pen {
-            width: 8px;
-            height: 30px;
-            background: linear-gradient(to bottom, #666, #222);
-            position: absolute;
-            bottom: -35px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 2px 2px 4px 4px;
-            transition: height 0.2s;
+        .explore-teach {
+            font-size: 13px;
+            color: var(--dim);
+            margin-top: 6px;
+            line-height: 1.5;
+            font-style: italic;
         }
 
-        .robot-pen.up { height: 20px; bottom: -25px; }
+        /* Social Phase Badge */
+        .phase-badge {
+            display: inline-block;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .phase-badge.ShyObserver { background: rgba(100,100,140,0.2); color: #9999bb; border: 2px solid rgba(100,100,140,0.3); }
+        .phase-badge.StartledRetreat { background: rgba(255,68,68,0.15); color: var(--protect); border: 2px solid rgba(255,68,68,0.3); }
+        .phase-badge.QuietlyBeloved { background: rgba(60,120,200,0.15); color: #58a6ff; border: 2px solid rgba(60,120,200,0.3); }
+        .phase-badge.ProtectiveGuardian { background: rgba(255,170,0,0.15); color: var(--spike); border: 2px solid rgba(255,170,0,0.3); }
 
-        .distance-ring {
-            position: absolute;
-            border: 2px dashed var(--calm);
-            border-radius: 50%;
-            opacity: 0.3;
-            transition: all 0.3s;
+        .phase-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        .phase-desc { font-size: 14px; color: var(--dim); line-height: 1.5; }
+        .context-info {
+            font-size: 13px;
+            color: var(--dim);
+            margin-bottom: 20px;
+        }
+        .context-info .ctx-val { color: var(--accent); font-weight: bold; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            padding: 14px 24px;
+            background: var(--accent);
+            color: var(--bg);
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            transform: translateX(300px);
+            transition: transform 0.3s;
+            z-index: 100;
+        }
+        .toast.show { transform: translateX(0); }
+
+        /* Tick counter */
+        .tick { font-size: 14px; color: var(--dim); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main { grid-template-columns: 1fr; }
+            .sidebar {
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+            .center { max-height: none; }
+            .topbar { flex-wrap: wrap; gap: 8px; }
         }
     </style>
 </head>
 <body>
-    <h1>🤖 mBot2 RuVector Neural Dashboard</h1>
-
-    <div style="text-align: center; margin-bottom: 20px;">
-        <a href="index.html" style="color: var(--text); text-decoration: none; margin: 0 15px; font-size: 14px; font-weight: bold;">🧠 Visualizer</a>
-        <a href="personality-mixer.html" style="color: var(--accent); text-decoration: none; margin: 0 15px; font-size: 14px;">🎨 Mixer</a>
-        <a href="projects.html" style="color: var(--accent); text-decoration: none; margin: 0 15px; font-size: 14px;">🚀 Projects</a>
-        <a href="help.html" style="color: var(--accent); text-decoration: none; margin: 0 15px; font-size: 14px;">📚 Help</a>
-        <a href="download.html" style="color: var(--accent); text-decoration: none; margin: 0 15px; font-size: 14px;">📥 Download</a>
-    </div>
-
-    <div class="dashboard">
-        <!-- Mode Display -->
-        <div class="panel mode-display">
-            <h2>Reflex Mode</h2>
-            <div class="mode-icon" id="mode-icon">😌</div>
-            <div class="mode-name mode-Calm" id="mode-name">Calm</div>
-            <div class="mode-desc" id="mode-desc">Wandering peacefully</div>
-        </div>
-
-        <!-- Robot Visualization -->
-        <div class="panel">
-            <h2>Robot State</h2>
-            <div class="robot-viz" id="robot-viz">
-                <div class="distance-ring" id="distance-ring" style="width: 180px; height: 180px;"></div>
-                <div class="robot-body">
-                    <div class="robot-eye left" id="eye-left"></div>
-                    <div class="robot-eye right" id="eye-right"></div>
-                    <div class="robot-wheel left"></div>
-                    <div class="robot-wheel right"></div>
-                    <div class="robot-pen" id="robot-pen"></div>
-                </div>
+    <!-- Top bar -->
+    <div class="topbar">
+        <h1>mBot2 RuVector</h1>
+        <div class="conn-controls">
+            <button class="conn-btn" id="btn-ble" onclick="connectRobot('ble')">Bluetooth</button>
+            <button class="conn-btn" id="btn-serial" onclick="connectRobot('serial')">USB</button>
+            <button class="conn-btn disconnect" id="btn-disconnect" onclick="disconnectRobot()" style="display:none">Disconnect</button>
+            <div class="status-pill">
+                <div class="dot sim" id="status-dot"></div>
+                <span id="status-label">Simulated</span>
             </div>
-        </div>
-
-        <!-- Homeostasis Meters -->
-        <div class="panel">
-            <h2>Homeostasis</h2>
-
-            <div class="meter">
-                <div class="meter-label">
-                    <span>Tension</span>
-                    <span id="tension-value">0.00</span>
-                </div>
-                <div class="meter-bar">
-                    <div class="meter-fill tension-fill" id="tension-bar" style="width: 0%"></div>
-                </div>
-            </div>
-
-            <div class="meter">
-                <div class="meter-label">
-                    <span>Coherence</span>
-                    <span id="coherence-value">1.00</span>
-                </div>
-                <div class="meter-bar">
-                    <div class="meter-fill coherence-fill" id="coherence-bar" style="width: 100%"></div>
-                </div>
-            </div>
-
-            <div class="meter">
-                <div class="meter-label">
-                    <span>Energy</span>
-                    <span id="energy-value">1.00</span>
-                </div>
-                <div class="meter-bar">
-                    <div class="meter-fill energy-fill" id="energy-bar" style="width: 100%"></div>
-                </div>
-            </div>
-
-            <div class="meter">
-                <div class="meter-label">
-                    <span>Curiosity</span>
-                    <span id="curiosity-value">0.50</span>
-                </div>
-                <div class="meter-bar">
-                    <div class="meter-fill curiosity-fill" id="curiosity-bar" style="width: 50%"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sensors -->
-        <div class="panel">
-            <h2>Sensors</h2>
-            <div class="sensor-grid">
-                <div class="sensor">
-                    <div class="sensor-icon">📏</div>
-                    <div class="sensor-value" id="distance-value">--</div>
-                    <div class="sensor-label">Distance (cm)</div>
-                </div>
-                <div class="sensor">
-                    <div class="sensor-icon">🌀</div>
-                    <div class="sensor-value" id="gyro-value">--</div>
-                    <div class="sensor-label">Gyro (°/s)</div>
-                </div>
-                <div class="sensor">
-                    <div class="sensor-icon">🔊</div>
-                    <div class="sensor-value" id="sound-value">--</div>
-                    <div class="sensor-label">Sound</div>
-                </div>
-                <div class="sensor">
-                    <div class="sensor-icon">💡</div>
-                    <div class="sensor-value" id="light-value">--</div>
-                    <div class="sensor-label">Light</div>
-                </div>
-            </div>
-
-            <div class="meter" style="margin-top: 20px;">
-                <div class="meter-label">
-                    <span>Distance</span>
-                    <span id="distance-bar-value">-- cm</span>
-                </div>
-                <div class="meter-bar">
-                    <div class="meter-fill distance-fill" id="distance-bar" style="width: 50%"></div>
-                </div>
-            </div>
+            <span class="tick">Tick <span id="tick-num">0</span></span>
         </div>
     </div>
 
-    <div class="status-bar">
-        <div>
-            <span class="status-dot disconnected" id="status-dot"></span>
-            <span id="status-text">Connecting...</span>
-        </div>
-        <div>Tick: <span id="tick-value">0</span></div>
-        <div>Encoders: L=<span id="enc-left">0</span> R=<span id="enc-right">0</span></div>
+    <!-- Simulated data banner -->
+    <div class="sim-banner" id="sim-banner">
+        SIMULATED DATA — This is a demo showing how the robot's brain works. Connect your real mBot2 to see live sensor readings!
     </div>
+
+    <div class="main">
+        <!-- Left sidebar: Sensors + Personality -->
+        <div class="sidebar">
+            <h3>Robot's Senses</h3>
+            <div class="sensor-row"><span class="sensor-name">Brightness</span><span><span class="sensor-val" id="s-brightness">--</span><span class="sensor-unit">lux</span></span></div>
+            <div class="sensor-row"><span class="sensor-name">Loudness</span><span><span class="sensor-val" id="s-loudness">--</span><span class="sensor-unit">dB</span></span></div>
+            <div class="sensor-row"><span class="sensor-name">Distance</span><span><span class="sensor-val" id="s-distance">--</span><span class="sensor-unit">cm</span></span></div>
+            <div class="sensor-row"><span class="sensor-name">Battery</span><span><span class="sensor-val" id="s-battery">--</span><span class="sensor-unit">%</span></span></div>
+            <div class="sensor-row"><span class="sensor-name">Roll</span><span><span class="sensor-val" id="s-roll">--</span><span class="sensor-unit">deg</span></span></div>
+            <div class="sensor-row"><span class="sensor-name">Pitch</span><span><span class="sensor-val" id="s-pitch">--</span><span class="sensor-unit">deg</span></span></div>
+            <div class="sensor-row"><span class="sensor-name">Yaw</span><span><span class="sensor-val" id="s-yaw">--</span><span class="sensor-unit">deg</span></span></div>
+
+            <h3>Personality</h3>
+
+            <div class="slider-group">
+                <div class="slider-header"><span class="label">Curiosity</span><span class="val" id="v-curiosity_drive">0.50</span></div>
+                <div class="slider-desc">Cautious ... Adventurous</div>
+                <input type="range" min="0" max="100" value="50" data-param="curiosity_drive">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span class="label">Startle Sensitivity</span><span class="val" id="v-startle_sensitivity">0.50</span></div>
+                <div class="slider-desc">Brave ... Jumpy</div>
+                <input type="range" min="0" max="100" value="50" data-param="startle_sensitivity">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span class="label">Recovery Speed</span><span class="val" id="v-recovery_speed">0.50</span></div>
+                <div class="slider-desc">Slow to calm down ... Instantly calm</div>
+                <input type="range" min="0" max="100" value="50" data-param="recovery_speed">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span class="label">Movement</span><span class="val" id="v-movement_expressiveness">0.50</span></div>
+                <div class="slider-desc">Subtle ... Big dramatic moves</div>
+                <input type="range" min="0" max="100" value="50" data-param="movement_expressiveness">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span class="label">Sound</span><span class="val" id="v-sound_expressiveness">0.50</span></div>
+                <div class="slider-desc">Quiet ... Chatty</div>
+                <input type="range" min="0" max="100" value="50" data-param="sound_expressiveness">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span class="label">Light</span><span class="val" id="v-light_expressiveness">0.50</span></div>
+                <div class="slider-desc">Dim LEDs ... Bright flashy LEDs</div>
+                <input type="range" min="0" max="100" value="50" data-param="light_expressiveness">
+            </div>
+
+            <h3>Presets</h3>
+            <div class="preset-row" id="preset-row"></div>
+            <button class="apply-btn" onclick="applyPersonality()">Apply to Robot</button>
+        </div>
+
+        <!-- Center: Brain state -->
+        <div class="center">
+            <!-- Mode -->
+            <div class="mode-section">
+                <div class="mode-badge Calm" id="mode-badge">CALM</div>
+                <div class="mode-desc" id="mode-desc">The robot is relaxed and happy. Nothing scary is happening, so it's resting and saving energy.</div>
+            </div>
+
+            <!-- Social Phase -->
+            <div class="phase-section">
+                <div class="phase-badge ShyObserver" id="phase-badge">SHY OBSERVER</div>
+                <div class="phase-desc" id="phase-desc">The robot is cautious — it hasn't earned trust in this situation yet.</div>
+            </div>
+            <div class="context-info">
+                Context Familiarity: <span class="ctx-val" id="ctx-coh-val">0%</span>
+                &nbsp;&bull;&nbsp;
+                Situations Learned: <span class="ctx-val" id="ctx-count-val">0</span>
+                <span style="margin-left:8px;font-size:12px;color:var(--dim);cursor:help" title="The robot earns trust separately in each situation. A familiar room feels different than a new one. Bright+quiet+nobody = one situation. Dim+noisy+someone close = a different one.">(?)</span>
+            </div>
+
+            <!-- State bars -->
+            <div class="state-bars">
+                <div class="bar-row">
+                    <span class="bar-label">Tension</span>
+                    <div class="bar-track">
+                        <div class="threshold" style="left:23.5%;" title="Active threshold (0.20)"></div>
+                        <div class="threshold" style="left:55%;" title="Spike threshold (0.55)"></div>
+                        <div class="threshold" style="left:85%;" title="Protect threshold (0.85)"></div>
+                        <div class="bar-fill tension" id="bar-tension" style="width:0%"></div>
+                    </div>
+                    <span class="bar-val" id="val-tension">0.00</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">Coherence</span>
+                    <div class="bar-track">
+                        <div class="bar-fill coherence" id="bar-coherence" style="width:100%"></div>
+                    </div>
+                    <span class="bar-val" id="val-coherence">1.00</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">Energy</span>
+                    <div class="bar-track">
+                        <div class="bar-fill energy" id="bar-energy" style="width:100%"></div>
+                    </div>
+                    <span class="bar-val" id="val-energy">1.00</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">Curiosity</span>
+                    <div class="bar-track">
+                        <div class="bar-fill curiosity" id="bar-curiosity" style="width:50%"></div>
+                    </div>
+                    <span class="bar-val" id="val-curiosity">0.50</span>
+                </div>
+            </div>
+
+            <!-- Teaching box — explains what's happening in real time -->
+            <div class="teach-box">
+                <h4>What's Happening Right Now?</h4>
+                <p id="annotation-text">Waiting for data...</p>
+            </div>
+
+            <!-- Exploration Section -->
+            <div class="explore-section" id="explore-section">
+                <h4>Autonomous Exploration <span class="explore-phase Idle" id="explore-phase">Idle</span></h4>
+                <p class="explore-teach" id="explore-teach">The robot is building a picture of the room from what it can sense. Watch the grid fill in as it discovers new areas!</p>
+
+                <!-- Reflection Bubble (shown during reflection) -->
+                <div class="reflection-bubble hidden" id="reflection-bubble">
+                    <h5>The Robot is Reflecting...</h5>
+                    <p id="reflection-text"></p>
+                </div>
+
+                <div class="explore-grid">
+                    <!-- Grid Map -->
+                    <div class="grid-map-panel">
+                        <h5>Room Map (10 x 10 grid)</h5>
+                        <div class="grid-map-canvas" id="grid-map"></div>
+                        <div class="grid-map-legend">
+                            <span class="leg-unknown">Unknown</span>
+                            <span class="leg-free">Visited</span>
+                            <span class="leg-obstacle">Obstacle</span>
+                            <span class="leg-interesting">Interesting</span>
+                            <span class="leg-robot">Robot</span>
+                        </div>
+                    </div>
+
+                    <!-- Sector Radar -->
+                    <div class="radar-panel">
+                        <h5>Sector Radar (12 directions)</h5>
+                        <div class="radar-canvas-wrap">
+                            <canvas id="radar-canvas" width="260" height="260"></canvas>
+                        </div>
+                        <p class="explore-teach">Each wedge shows how far the robot can see in that direction. Brighter = visited more.</p>
+                    </div>
+                </div>
+
+                <div class="explore-grid">
+                    <!-- Learning Curve -->
+                    <div class="learning-panel">
+                        <h5>Learning Progress</h5>
+                        <div class="learning-canvas-wrap">
+                            <canvas id="learning-canvas" width="400" height="120"></canvas>
+                        </div>
+                        <div class="learning-stats">
+                            <span>Episodes: <span class="stat-val" id="stat-episodes">0</span></span>
+                            <span>Discoveries: <span class="stat-val" id="stat-discoveries">0</span></span>
+                            <span>Avg Reward: <span class="stat-val" id="stat-reward">0.00</span></span>
+                            <span>Confidence: <span class="stat-val" id="stat-confidence">0%</span></span>
+                        </div>
+                        <p class="explore-teach">Each time the robot tries something, it gets a little smarter. Watch the reward line climb!</p>
+                    </div>
+
+                    <!-- Narration Log -->
+                    <div class="narration-panel">
+                        <h5>What the Robot Says</h5>
+                        <div class="narration-list" id="narration-list">
+                            <div class="nar"><span class="nar-text">Waiting for exploration to begin...</span></div>
+                        </div>
+                        <p class="explore-teach">The robot narrates its discoveries aloud, colored by its personality.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Experiments -->
+            <div class="experiments">
+                <h4>Try These Experiments!</h4>
+                <div class="exp-grid">
+                    <div class="exp-card">
+                        <h5>The Startle Test</h5>
+                        <p>Clap your hands loudly near the robot! This is like a sudden surprise.</p>
+                        <div class="watch">What to watch: The Tension bar shoots up and the mode jumps to "Spike" (orange). Then watch it slowly calm back down. Try changing Recovery Speed to see what happens!</div>
+                    </div>
+                    <div class="exp-card">
+                        <h5>Approach and Retreat</h5>
+                        <p>Slowly move your hand toward the robot's distance sensor, then pull away.</p>
+                        <div class="watch">What to watch: As you get closer, tension rises. Pull away and it falls. Try it with high Startle Sensitivity vs. low — big difference!</div>
+                    </div>
+                    <div class="exp-card">
+                        <h5>Personality Face-Off</h5>
+                        <p>Load the "Timid" preset, clap near the robot. Then load "Zen" and clap again.</p>
+                        <div class="watch">What to watch: Timid freaks out and takes forever to calm down. Zen barely notices! Same sound, different personality = completely different behavior.</div>
+                    </div>
+                    <div class="exp-card">
+                        <h5>Energy Drain</h5>
+                        <p>Keep clapping every few seconds for 30+ seconds. Don't let the robot rest!</p>
+                        <div class="watch">What to watch: The Energy bar slowly drains! When energy gets low, the robot gets sluggish. Stop and watch energy recover during Calm mode.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event log -->
+            <div class="event-log">
+                <h4>Event Log</h4>
+                <div class="event-list" id="event-list">
+                    <div class="ev"><span class="ev-time">[--:--:--]</span> Dashboard started. Waiting for brain data...</div>
+                </div>
+            </div>
+
+            <!-- How it works -->
+            <details class="learn">
+                <summary>How Does the Robot's Brain Work?</summary>
+                <div class="content">
+                    <p>
+                        The mBot2's brain is inspired by <strong style="color:var(--text)">how real animals work</strong>.
+                        Just like a cat gets tense when it hears a loud noise, then slowly relaxes when
+                        everything is quiet again, our robot does the same thing!
+                    </p>
+
+                    <h5>The Big Idea: Senses -> Feelings -> Behavior</h5>
+                    <div class="example">
+                        <strong>1.</strong> The robot's sensors detect the world around it (light, sound, distance, motion)<br>
+                        <strong>2.</strong> These inputs raise or lower its <strong>Tension</strong> (like stress)<br>
+                        <strong>3.</strong> The tension level picks which <strong>Mode</strong> the robot is in<br>
+                        <strong>4.</strong> The mode + personality together decide how the robot <strong>acts</strong>
+                    </div>
+
+                    <h5>Four Modes</h5>
+                    <table class="mode-table">
+                        <tr><th>Mode</th><th>Tension</th><th>What the Robot Does</th></tr>
+                        <tr><td style="color:var(--calm)">Calm</td><td>Low</td><td>Relaxed, moving slowly, saving energy. Like a happy cat napping.</td></tr>
+                        <tr><td style="color:var(--active)">Active</td><td>Medium</td><td>Curious and exploring! Looking around, interested in things.</td></tr>
+                        <tr><td style="color:var(--spike)">Spike</td><td>High</td><td>Startled! Quick reactions, might back up or investigate. Like hearing a loud bang.</td></tr>
+                        <tr><td style="color:var(--protect)">Protect</td><td>Very High</td><td>Scared! Backing away, waiting for things to be safe again.</td></tr>
+                    </table>
+
+                    <h5>Four Feelings</h5>
+                    <p>
+                        <strong style="color:var(--text)">Tension</strong> &mdash; How stressed the robot feels.
+                        Loud sounds, things getting close, and sudden changes all make it more tense.
+                    </p>
+                    <p>
+                        <strong style="color:var(--text)">Coherence</strong> &mdash; How "together" the robot feels.
+                        When tension is steady, the robot moves smoothly. When tension keeps changing quickly, it gets confused and jerky.
+                    </p>
+                    <p>
+                        <strong style="color:var(--text)">Energy</strong> &mdash; Stamina, like a battery for feelings.
+                        Being stressed uses up energy. Being calm recharges it. Low energy = sluggish robot.
+                    </p>
+                    <p>
+                        <strong style="color:var(--text)">Curiosity</strong> &mdash; How much the robot wants to explore.
+                        It's highest when the robot is Active (moderate tension). Too calm = bored. Too scared = no exploring.
+                    </p>
+
+                    <h5>Why Personality Matters</h5>
+                    <p>
+                        Two robots hearing the same loud clap will react completely differently based on personality!
+                        A "Timid" robot jumps to Protect mode and takes ages to calm down.
+                        A "Zen" robot barely notices and stays Calm.
+                        <strong style="color:var(--text)">Same input, different personality, totally different behavior.</strong>
+                        That's what makes this a real nervous system, not just simple if/then rules!
+                    </p>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
 
     <script>
-        const modeIcons = {
-            Calm: '😌',
-            Active: '🔍',
-            Spike: '⚡',
-            Protect: '🛡️'
+    // --- State ---
+    let ws = null;
+    let reconnectTimer = null;
+    let prev = null;
+    const events = [];
+    const MAX_EVENTS = 50;
+    let isConnecting = false;
+    let robotConnected = false;
+
+    const personalityParams = {
+        curiosity_drive: 0.5,
+        startle_sensitivity: 0.5,
+        recovery_speed: 0.5,
+        movement_expressiveness: 0.5,
+        sound_expressiveness: 0.5,
+        light_expressiveness: 0.5,
+    };
+
+    const presets = [
+        { id: 'mellow', name: 'Mellow', params: { curiosity_drive: 0.4, startle_sensitivity: 0.2, recovery_speed: 0.8, movement_expressiveness: 0.3, sound_expressiveness: 0.2, light_expressiveness: 0.5 }},
+        { id: 'curious', name: 'Curious', params: { curiosity_drive: 0.9, startle_sensitivity: 0.6, recovery_speed: 0.5, movement_expressiveness: 0.7, sound_expressiveness: 0.6, light_expressiveness: 0.8 }},
+        { id: 'zen', name: 'Zen', params: { curiosity_drive: 0.3, startle_sensitivity: 0.1, recovery_speed: 0.9, movement_expressiveness: 0.2, sound_expressiveness: 0.1, light_expressiveness: 0.3 }},
+        { id: 'excitable', name: 'Excitable', params: { curiosity_drive: 0.8, startle_sensitivity: 0.8, recovery_speed: 0.4, movement_expressiveness: 0.9, sound_expressiveness: 0.9, light_expressiveness: 0.9 }},
+        { id: 'timid', name: 'Timid', params: { curiosity_drive: 0.4, startle_sensitivity: 0.8, recovery_speed: 0.2, movement_expressiveness: 0.4, sound_expressiveness: 0.2, light_expressiveness: 0.4 }},
+        { id: 'adventurous', name: 'Adventure', params: { curiosity_drive: 0.9, startle_sensitivity: 0.3, recovery_speed: 0.7, movement_expressiveness: 0.8, sound_expressiveness: 0.7, light_expressiveness: 0.8 }},
+    ];
+
+    const modeDescs = {
+        Calm:    'The robot is relaxed and happy. Nothing scary is happening, so it\'s resting and saving energy.',
+        Active:  'Something caught the robot\'s attention! It\'s curious and exploring, looking around to see what\'s going on.',
+        Spike:   'Whoa! Something surprised the robot. It\'s reacting fast — it might back away or check out what happened.',
+        Protect: 'The robot is scared! Tension is really high, so it\'s backing away and waiting for things to feel safe again.',
+    };
+
+    const phaseDescs = {
+        ShyObserver:        'The robot is cautious — it hasn\'t earned trust in this situation yet.',
+        StartledRetreat:    'Something scary in an unfamiliar place! The robot is withdrawn and protective.',
+        QuietlyBeloved:     'The robot feels safe here. It\'s been in this situation many times and trusts it.',
+        ProtectiveGuardian: 'A tense moment, but in a familiar place. History gives the robot resilience.',
+    };
+
+    const phaseLabels = {
+        ShyObserver:        'SHY OBSERVER',
+        StartledRetreat:    'STARTLED RETREAT',
+        QuietlyBeloved:     'QUIETLY BELOVED',
+        ProtectiveGuardian: 'PROTECTIVE GUARDIAN',
+    };
+
+    // --- Init ---
+    function init() {
+        document.querySelectorAll('input[type="range"]').forEach(slider => {
+            const param = slider.dataset.param;
+            slider.addEventListener('input', () => {
+                const val = slider.value / 100;
+                personalityParams[param] = val;
+                document.getElementById('v-' + param).textContent = val.toFixed(2);
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            });
+        });
+
+        const row = document.getElementById('preset-row');
+        presets.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = 'preset-btn';
+            btn.textContent = p.name;
+            btn.onclick = () => loadPreset(p);
+            row.appendChild(btn);
+        });
+
+        connectWS();
+        checkExistingConnection();
+    }
+
+    function loadPreset(preset) {
+        for (const [key, val] of Object.entries(preset.params)) {
+            personalityParams[key] = val;
+            const slider = document.querySelector(`[data-param="${key}"]`);
+            if (slider) slider.value = val * 100;
+            const disp = document.getElementById('v-' + key);
+            if (disp) disp.textContent = val.toFixed(2);
+        }
+        document.querySelectorAll('.preset-btn').forEach(b => {
+            b.classList.toggle('active', b.textContent === preset.name);
+        });
+        showToast(preset.name + ' loaded');
+    }
+
+    function applyPersonality() {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'personality_update', params: personalityParams }));
+            showToast('Personality applied!');
+        } else {
+            showToast('Not connected to server');
+        }
+    }
+
+    // --- WebSocket ---
+    async function connectWS() {
+        let wsPort = 8082;
+        try {
+            const cfg = await fetch('/api/config');
+            const data = await cfg.json();
+            if (data.ws_port) wsPort = data.ws_port;
+        } catch(e) {}
+
+        if (ws) { try { ws.close(); } catch(e) {} }
+        ws = new WebSocket('ws://' + location.hostname + ':' + wsPort);
+
+        ws.onopen = () => {
+            if (reconnectTimer) { clearInterval(reconnectTimer); reconnectTimer = null; }
         };
 
-        const modeDescs = {
-            Calm: 'Wandering peacefully',
-            Active: 'Exploring with interest',
-            Spike: 'Excited response!',
-            Protect: 'Backing away from danger!'
+        ws.onclose = () => {
+            if (!reconnectTimer) {
+                reconnectTimer = setInterval(connectWS, 3000);
+            }
         };
 
-        const modeColors = {
-            Calm: '#00aaff',
-            Active: '#00ff88',
-            Spike: '#ffaa00',
-            Protect: '#ff4444'
-        };
+        ws.onerror = () => { try { ws.close(); } catch(e) {} };
 
-        let ws;
-        let reconnectInterval;
-
-        function connect() {
-            ws = new WebSocket('ws://localhost:8081');
-
-            ws.onopen = () => {
-                document.getElementById('status-dot').className = 'status-dot connected';
-                document.getElementById('status-text').textContent = 'Connected';
-                if (reconnectInterval) {
-                    clearInterval(reconnectInterval);
-                    reconnectInterval = null;
-                }
-            };
-
-            ws.onclose = () => {
-                document.getElementById('status-dot').className = 'status-dot disconnected';
-                document.getElementById('status-text').textContent = 'Disconnected - Reconnecting...';
-                if (!reconnectInterval) {
-                    reconnectInterval = setInterval(connect, 2000);
-                }
-            };
-
-            ws.onerror = () => {
-                ws.close();
-            };
-
-            ws.onmessage = (event) => {
+        ws.onmessage = (event) => {
+            try {
                 const data = JSON.parse(event.data);
-                updateDashboard(data);
+                if (data.type === 'companion_log') {
+                    addEvent(data.line, 'sensor');
+                    return;
+                }
+                if (data.type === 'personality_applied') return;
+                if (data.tick !== undefined) updateDashboard(data);
+            } catch(e) {
+                console.error('WS message error:', e);
+            }
+        };
+    }
+
+    // --- Check if companion is already connected on page load ---
+    async function checkExistingConnection() {
+        try {
+            const res = await fetch('/api/status');
+            const data = await res.json();
+            if (data.connected) {
+                robotConnected = true;
+                isConnecting = false;
+                setStatus('live', 'Connected via ' + (data.transport || 'unknown'));
+                document.getElementById('sim-banner').classList.add('hidden');
+                document.getElementById('btn-disconnect').style.display = '';
+                addEvent('Already connected via ' + (data.transport || '?'), 'mode');
+            } else if (data.running) {
+                isConnecting = true;
+                document.getElementById('btn-disconnect').style.display = '';
+                setStatus('connecting', 'Connecting...');
+                addEvent('Companion is starting...', 'sensor');
+                pollRobotStatus();
+            }
+        } catch(e) {}
+    }
+
+    // --- Robot connection ---
+    async function connectRobot(mode) {
+        if (isConnecting) {
+            showToast('Already connecting... please wait');
+            return;
+        }
+        if (robotConnected) {
+            showToast('Already connected! Disconnect first.');
+            return;
+        }
+        isConnecting = true;
+        setStatus('connecting', 'Connecting...');
+        addEvent('Starting companion with --' + mode, 'sensor');
+
+        try {
+            const res = await fetch('/api/connect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                addEvent(data.message, 'sensor');
+                document.getElementById('btn-disconnect').style.display = '';
+                pollRobotStatus();
+            } else {
+                // Show the error prominently
+                showToast(data.message);
+                addEvent(data.message, 'sensor');
+                // If already running, start polling — it may already be connected
+                if (data.message.includes('already running')) {
+                    document.getElementById('btn-disconnect').style.display = '';
+                    pollRobotStatus();
+                } else {
+                    setStatus('sim', 'Simulated');
+                    isConnecting = false;
+                }
+            }
+        } catch (e) {
+            showToast('Server not running');
+            addEvent('Server error: ' + e.message, 'sensor');
+            setStatus('sim', 'Simulated');
+            isConnecting = false;
+        }
+    }
+
+    async function disconnectRobot() {
+        try {
+            await fetch('/api/disconnect', { method: 'POST' });
+            addEvent('Companion stopped', 'sensor');
+            showToast('Disconnected');
+        } catch(e) {}
+        robotConnected = false;
+        isConnecting = false;
+        setStatus('sim', 'Simulated');
+        document.getElementById('sim-banner').classList.remove('hidden');
+        document.getElementById('btn-disconnect').style.display = 'none';
+    }
+
+    function pollRobotStatus() {
+        let attempts = 0;
+        const iv = setInterval(async () => {
+            attempts++;
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                if (data.connected) {
+                    clearInterval(iv);
+                    robotConnected = true;
+                    isConnecting = false;
+                    setStatus('live', 'Connected via ' + (data.transport || 'unknown'));
+                    document.getElementById('sim-banner').classList.add('hidden');
+                    addEvent('CyberPi connected via ' + (data.transport || '?'), 'mode');
+                } else if (!data.running) {
+                    clearInterval(iv);
+                    isConnecting = false;
+                    setStatus('sim', 'Simulated');
+                    // Show why it failed
+                    const lastLine = (data.recent_output || []).slice(-3).join(' ');
+                    addEvent('Companion exited. ' + lastLine, 'sensor');
+                    document.getElementById('btn-disconnect').style.display = 'none';
+                } else if (attempts > 180) {
+                    // 3 minutes - first compile can be slow
+                    clearInterval(iv);
+                    isConnecting = false;
+                    setStatus('sim', 'Timeout');
+                    addEvent('Could not find CyberPi after 3 minutes', 'sensor');
+                } else {
+                    // Show progress while waiting
+                    const lastLines = data.recent_output || [];
+                    const last = lastLines[lastLines.length - 1] || '';
+                    if (last.includes('Compiling') || last.includes('Finished')) {
+                        setStatus('connecting', 'Compiling...');
+                    } else if (last.includes('Scanning') || last.includes('Found')) {
+                        setStatus('connecting', 'Scanning...');
+                    } else {
+                        setStatus('connecting', 'Connecting... (' + attempts + 's)');
+                    }
+                }
+            } catch(e) { console.error('pollRobotStatus error:', e); }
+        }, 1000);
+    }
+
+    function setStatus(state, label) {
+        const dot = document.getElementById('status-dot');
+        dot.className = 'dot ' + state;
+        document.getElementById('status-label').textContent = label;
+    }
+
+    // --- Dashboard update ---
+    function updateDashboard(d) {
+        if (d.simulated && !robotConnected) {
+            document.getElementById('sim-banner').classList.remove('hidden');
+            if (!isConnecting) setStatus('sim', 'Simulated');
+        }
+
+        document.getElementById('tick-num').textContent = d.tick;
+
+        const badge = document.getElementById('mode-badge');
+        badge.textContent = d.mode;
+        badge.className = 'mode-badge ' + d.mode;
+        document.getElementById('mode-desc').textContent = modeDescs[d.mode] || '';
+
+        // Social phase
+        const phase = d.socialPhase || 'ShyObserver';
+        const phaseBadge = document.getElementById('phase-badge');
+        phaseBadge.textContent = phaseLabels[phase] || phase;
+        phaseBadge.className = 'phase-badge ' + phase;
+        document.getElementById('phase-desc').textContent = phaseDescs[phase] || '';
+        setText('ctx-coh-val', Math.round((d.contextCoherence || 0) * 100) + '%');
+        setText('ctx-count-val', d.contextCount || 0);
+
+        updateBar('tension', d.tension);
+        updateBar('coherence', d.coherence);
+        updateBar('energy', d.energy);
+        updateBar('curiosity', d.curiosity);
+
+        setText('s-brightness', d.brightness);
+        setText('s-loudness', d.loudness);
+        setText('s-distance', d.distance);
+        setText('s-battery', d.battery);
+        setText('s-roll', d.roll);
+        setText('s-pitch', d.pitch);
+        setText('s-yaw', d.yaw);
+
+        updateAnnotation(d);
+
+        if (d.events) {
+            d.events.forEach(ev => {
+                if (ev.type === 'mode_change') {
+                    addEvent('Mode changed: ' + ev.from + ' -> ' + ev.to, 'mode');
+                }
+            });
+        }
+
+        if (prev) {
+            if (d.loudness > 40 && prev.loudness < 25) {
+                addEvent('Loud sound detected: ' + d.loudness + ' dB', 'sensor');
+            }
+            if (d.distance < 20 && prev.distance > 30) {
+                addEvent('Something got close: ' + d.distance + ' cm', 'sensor');
+            }
+            if (d.energy < 0.3 && prev.energy >= 0.3) {
+                addEvent('Low energy! Robot is getting tired.', 'sensor');
+            }
+        }
+
+        // Update exploration panels if data is present
+        if (d.exploration) {
+            try { updateExplorationPanels(d.exploration); }
+            catch(ex) { console.error('Exploration panel error:', ex); }
+            document.getElementById('explore-section').style.display = '';
+        } else if (!d.simulated) {
+            // Real robot connected but no exploration data yet
+            document.getElementById('explore-section').style.display = '';
+            const phaseBadge = document.getElementById('explore-phase');
+            if (phaseBadge) { phaseBadge.textContent = 'Live'; phaseBadge.className = 'explore-phase MovingTo'; }
+            const teachEl = document.getElementById('explore-teach');
+            if (teachEl) teachEl.textContent = 'Connected to real hardware. Exploration data will appear when the brain layer starts.';
+        }
+
+        prev = { ...d };
+    }
+
+    function updateBar(name, value) {
+        document.getElementById('bar-' + name).style.width = (value * 100) + '%';
+        document.getElementById('val-' + name).textContent = value.toFixed(2);
+    }
+
+    function setText(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val !== undefined ? val : '--';
+    }
+
+    // --- Annotation (teaches what's happening) ---
+    function updateAnnotation(d) {
+        const parts = [];
+
+        if (d.distance < 25) {
+            parts.push('<span class="cause">Something is really close (' + d.distance + ' cm)!</span> That\'s making the robot nervous.');
+        } else if (d.loudness > 35) {
+            parts.push('<span class="cause">It\'s noisy (' + d.loudness + ' dB)!</span> The loud sound is stressing the robot out.');
+        } else {
+            parts.push('Everything is quiet and nothing is nearby — <span class="effect">the robot feels safe</span>.');
+        }
+
+        if (prev) {
+            const delta = d.tension - prev.tension;
+            if (delta > 0.005) {
+                parts.push('Tension is <span class="cause">going up</span> because of the stimulation.');
+            } else if (delta < -0.005) {
+                parts.push('Tension is <span class="effect">going down</span> — the robot is calming down.');
+            } else {
+                parts.push('Tension is holding steady right now.');
+            }
+        }
+
+        if (d.energy < 0.4) {
+            parts.push('Energy is low (' + d.energy.toFixed(2) + ') — all that stress has tired the robot out!');
+        } else if (d.tension < 0.2 && d.energy < 0.95) {
+            parts.push('Energy is slowly recharging while the robot rests.');
+        }
+
+        if (d.curiosity > 0.6) {
+            parts.push('<span class="effect">Curiosity is high</span> — the robot wants to go explore!');
+        }
+
+        document.getElementById('annotation-text').innerHTML = parts.join(' ');
+    }
+
+    // --- Event log ---
+    function addEvent(text, type) {
+        const time = new Date().toLocaleTimeString();
+        const cls = type === 'mode' ? 'ev-mode' : 'ev-sensor';
+        events.unshift({ time, text, cls });
+        if (events.length > MAX_EVENTS) events.pop();
+
+        const list = document.getElementById('event-list');
+        const html = events.map(e =>
+            `<div class="ev"><span class="ev-time">[${e.time}]</span> <span class="${e.cls}">${e.text}</span></div>`
+        ).join('');
+        list.innerHTML = html;
+    }
+
+    // --- Toast ---
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2000);
+    }
+
+    // --- Exploration panels ---
+    let gridInitialized = false;
+    let prevNarrationCount = 0;
+
+    function initGridMap() {
+        const container = document.getElementById('grid-map');
+        if (!container || gridInitialized) return;
+        container.innerHTML = '';
+        for (let y = 0; y < 10; y++) {
+            for (let x = 0; x < 10; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell unknown';
+                cell.id = 'gc-' + y + '-' + x;
+                container.appendChild(cell);
+            }
+        }
+        gridInitialized = true;
+    }
+
+    function updateExplorationPanels(exp) {
+        if (!gridInitialized) initGridMap();
+
+        // Phase badge
+        const phaseBadge = document.getElementById('explore-phase');
+        if (phaseBadge) {
+            phaseBadge.textContent = exp.phase;
+            phaseBadge.className = 'explore-phase ' + exp.phase;
+        }
+
+        // Phase description
+        const teachEl = document.getElementById('explore-teach');
+        if (teachEl) {
+            const phaseDescs = {
+                Idle: 'The robot is resting. When curiosity rises high enough, it will start exploring!',
+                Scanning: 'The robot is looking around, measuring distances in every direction to build its radar map.',
+                MovingTo: 'The robot picked a direction and is driving toward it. Watch the grid fill in!',
+                ChoosingTarget: 'The robot is deciding where to go next based on what it has learned.',
+                Arrived: 'The robot reached its destination! It will scan the area and choose where to go next.',
             };
+            teachEl.textContent = phaseDescs[exp.phase] || 'The robot is exploring the room autonomously.';
         }
 
-        function updateDashboard(data) {
-            // Mode
-            const mode = data.mode;
-            document.getElementById('mode-icon').textContent = modeIcons[mode];
-            document.getElementById('mode-name').textContent = mode;
-            document.getElementById('mode-name').className = `mode-name mode-${mode}`;
-            document.getElementById('mode-desc').textContent = modeDescs[mode];
-
-            // Meters
-            document.getElementById('tension-value').textContent = data.tension.toFixed(2);
-            document.getElementById('tension-bar').style.width = `${data.tension * 100}%`;
-
-            document.getElementById('coherence-value').textContent = data.coherence.toFixed(2);
-            document.getElementById('coherence-bar').style.width = `${data.coherence * 100}%`;
-
-            document.getElementById('energy-value').textContent = data.energy.toFixed(2);
-            document.getElementById('energy-bar').style.width = `${data.energy * 100}%`;
-
-            document.getElementById('curiosity-value').textContent = data.curiosity.toFixed(2);
-            document.getElementById('curiosity-bar').style.width = `${data.curiosity * 100}%`;
-
-            // Sensors
-            document.getElementById('distance-value').textContent = data.distance.toFixed(1);
-            document.getElementById('gyro-value').textContent = data.gyro.toFixed(1);
-            document.getElementById('sound-value').textContent = data.sound.toFixed(2);
-            document.getElementById('light-value').textContent = data.light.toFixed(2);
-
-            document.getElementById('distance-bar-value').textContent = `${data.distance.toFixed(1)} cm`;
-            document.getElementById('distance-bar').style.width = `${Math.min(100, data.distance)}%`;
-
-            // Status
-            document.getElementById('tick-value').textContent = data.tick;
-            document.getElementById('enc-left').textContent = data.encoderLeft;
-            document.getElementById('enc-right').textContent = data.encoderRight;
-
-            // Robot visualization
-            const eyeColor = modeColors[mode];
-            document.getElementById('eye-left').style.background = eyeColor;
-            document.getElementById('eye-right').style.background = eyeColor;
-
-            // Distance ring
-            const ringSize = Math.min(200, Math.max(50, data.distance * 2));
-            const ring = document.getElementById('distance-ring');
-            ring.style.width = `${ringSize}px`;
-            ring.style.height = `${ringSize}px`;
-            ring.style.borderColor = modeColors[mode];
-            ring.style.opacity = data.distance < 30 ? 0.8 : 0.3;
+        // Grid Map
+        const occupancyClasses = ['unknown', 'free', 'obstacle', 'interesting'];
+        const robotGx = Math.round(exp.robot_pos[0]);
+        const robotGy = Math.round(exp.robot_pos[1]);
+        for (let y = 0; y < 10; y++) {
+            for (let x = 0; x < 10; x++) {
+                const cell = document.getElementById('gc-' + y + '-' + x);
+                if (!cell) continue;
+                const idx = y * 10 + x;
+                const occ = exp.grid[idx] || 0;
+                const isRobot = (x === robotGx && y === robotGy);
+                cell.className = 'grid-cell ' + (isRobot ? 'robot' : occupancyClasses[occ]);
+                // Rotate robot arrow to heading
+                if (isRobot && cell.style !== undefined) {
+                    const afterRotate = (exp.robot_heading || 0) - 90; // CSS triangle points up
+                    cell.style.setProperty('--heading', afterRotate + 'deg');
+                }
+            }
         }
 
-        // Start connection
-        connect();
+        // Sector Radar
+        drawRadar(exp.sector_distances, exp.sector_visits || [], exp.robot_heading || 0);
+
+        // Learning Curve
+        drawLearningCurve(exp.reward_history || []);
+
+        // Stats
+        setText('stat-episodes', exp.episode_count || 0);
+        setText('stat-discoveries', exp.discovery_count || 0);
+        setText('stat-reward', (exp.avg_reward || 0).toFixed(2));
+        setText('stat-confidence', Math.round((exp.nav_confidence || 0) * 100) + '%');
+
+        // Narration Log
+        if (exp.narration_log && exp.narration_log.length > prevNarrationCount) {
+            const list = document.getElementById('narration-list');
+            if (list) {
+                const html = exp.narration_log.slice().reverse().map(n =>
+                    `<div class="nar"><span class="nar-tick">[tick ${n.tick}]</span> <span class="nar-text">"${n.text}"</span></div>`
+                ).join('');
+                list.innerHTML = html;
+            }
+            prevNarrationCount = exp.narration_log.length;
+        }
+
+        // Reflection Bubble
+        const bubble = document.getElementById('reflection-bubble');
+        const reflText = document.getElementById('reflection-text');
+        if (bubble && reflText) {
+            if (exp.reflection) {
+                bubble.classList.remove('hidden');
+                reflText.textContent = exp.reflection;
+            } else {
+                bubble.classList.add('hidden');
+            }
+        }
+    }
+
+    function drawRadar(distances, visits, heading) {
+        const canvas = document.getElementById('radar-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        const maxR = Math.min(cx, cy) - 10;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Background rings
+        ctx.strokeStyle = 'rgba(42,42,74,0.4)';
+        ctx.lineWidth = 1;
+        for (let r = 1; r <= 3; r++) {
+            ctx.beginPath();
+            ctx.arc(cx, cy, maxR * r / 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Sector lines
+        ctx.strokeStyle = 'rgba(42,42,74,0.3)';
+        for (let i = 0; i < 12; i++) {
+            const angle = (i * 30 - 90) * Math.PI / 180;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(angle) * maxR, cy + Math.sin(angle) * maxR);
+            ctx.stroke();
+        }
+
+        // Draw sector wedges
+        for (let i = 0; i < 12; i++) {
+            const dist = distances[i] || 999;
+            const visitCount = visits[i] || 0;
+            const normalizedDist = Math.min(1, dist / 300);
+            const r = normalizedDist * maxR;
+
+            // Color based on visit count (brighter = more visited)
+            const brightness = Math.min(1, visitCount / 10);
+            const startAngle = ((i * 30 - 15 - 90) * Math.PI / 180);
+            const endAngle = ((i * 30 + 15 - 90) * Math.PI / 180);
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r, startAngle, endAngle);
+            ctx.closePath();
+
+            if (visitCount > 0) {
+                ctx.fillStyle = `rgba(0, 255, 136, ${0.1 + brightness * 0.4})`;
+            } else {
+                ctx.fillStyle = 'rgba(42, 42, 74, 0.3)';
+            }
+            ctx.fill();
+
+            // Edge
+            ctx.strokeStyle = `rgba(0, 255, 136, ${0.2 + brightness * 0.3})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        // Robot heading indicator
+        const headingRad = (heading - 90) * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(headingRad) * 20, cy + Math.sin(headingRad) * 20);
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Center dot
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#00ff88';
+        ctx.fill();
+    }
+
+    function drawLearningCurve(rewardHistory) {
+        const canvas = document.getElementById('learning-canvas');
+        if (!canvas || rewardHistory.length < 2) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width;
+        const h = canvas.height;
+        const pad = 10;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Background grid
+        ctx.strokeStyle = 'rgba(42,42,74,0.3)';
+        ctx.lineWidth = 1;
+        for (let y = 0; y <= 4; y++) {
+            const yy = pad + (h - 2 * pad) * y / 4;
+            ctx.beginPath();
+            ctx.moveTo(pad, yy);
+            ctx.lineTo(w - pad, yy);
+            ctx.stroke();
+        }
+
+        // Plot reward line
+        const maxPoints = rewardHistory.length;
+        const xStep = (w - 2 * pad) / Math.max(1, maxPoints - 1);
+        const maxReward = Math.max(...rewardHistory, 1);
+
+        ctx.beginPath();
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 2;
+        for (let i = 0; i < maxPoints; i++) {
+            const x = pad + i * xStep;
+            const y = h - pad - (rewardHistory[i] / maxReward) * (h - 2 * pad);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Fill under the line
+        ctx.lineTo(pad + (maxPoints - 1) * xStep, h - pad);
+        ctx.lineTo(pad, h - pad);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(0, 255, 136, 0.08)';
+        ctx.fill();
+    }
+
+    // --- Start ---
+    init();
     </script>
 </body>
 </html>

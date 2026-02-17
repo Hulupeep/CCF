@@ -8,6 +8,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
 use mbot_core::{HomeostasisState, MBotBrain, MBotSensors, MotorCommand, ReflexMode};
+use mbot_core::coherence::{CoherenceField, PresenceDetector, ContextKey, SocialPhase, PresenceSignature};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
@@ -54,6 +55,11 @@ struct Args {
     #[cfg(feature = "voice")]
     #[arg(long)]
     voice: bool,
+
+    /// Enable autonomous room exploration (requires --brain)
+    #[cfg(feature = "brain")]
+    #[arg(long)]
+    explore: bool,
 
     /// Start HTTP voice API server for phone-based voice interaction
     #[cfg(feature = "voice-api")]
@@ -227,6 +233,18 @@ async fn main() -> Result<()> {
     // Create personality
     let personality = Arc::new(Mutex::new(mbot_core::personality::Personality::default()));
 
+    // Create exploration engine if requested
+    #[cfg(feature = "brain")]
+    let explorer = if args.explore {
+        if !args.brain {
+            anyhow::bail!("--explore requires --brain");
+        }
+        info!("Autonomous exploration: ON");
+        Some(Arc::new(Mutex::new(brain::autonomy::explore::ExploreAction::new())))
+    } else {
+        None
+    };
+
     // Run main loop
     run_main_loop(
         transport,
@@ -238,6 +256,8 @@ async fn main() -> Result<()> {
         personality,
         #[cfg(feature = "voice-api")]
         voice_shared,
+        #[cfg(feature = "brain")]
+        explorer,
     ).await
 }
 
@@ -249,6 +269,7 @@ async fn run_main_loop(
     #[cfg(feature = "brain")] brain_layer: Option<Arc<Mutex<brain::BrainLayer>>>,
     personality: Arc<Mutex<mbot_core::personality::Personality>>,
     #[cfg(feature = "voice-api")] voice_shared: Option<Arc<Mutex<brain::voice_api::SharedVoiceState>>>,
+    #[cfg(feature = "brain")] explorer: Option<Arc<Mutex<brain::autonomy::explore::ExploreAction>>>,
 ) -> Result<()> {
     let tick_duration = Duration::from_secs_f64(1.0 / freq as f64);
     let mut last_tick = Instant::now();
@@ -259,6 +280,13 @@ async fn run_main_loop(
     let mut max_loop_time = Duration::ZERO;
     let mut slow_tick_count = 0u64;
     let mut last_slow_warn = Instant::now();
+
+    // Contextual Coherence Fields
+    let mut presence_detector = PresenceDetector::new();
+    let mut coherence_field = CoherenceField::new_with_personality(
+        personality.lock().await.curiosity_drive()
+    );
+    let mut social_phase = SocialPhase::ShyObserver;
 
     // Print a welcome banner so the user knows what they're looking at
     println!();
@@ -304,6 +332,11 @@ async fn run_main_loop(
     if brain_layer.is_some() {
         println!("  Brain layer: ON (LLM reasoning active)");
     }
+    #[cfg(feature = "brain")]
+    if explorer.is_some() {
+        println!("  Exploration: ON (autonomous room explorer active)");
+        println!("  The robot will scan, navigate, learn, and narrate its discoveries.");
+    }
     #[cfg(feature = "voice-api")]
     if voice_shared.is_some() {
         println!("  Voice API: ON - open http://<laptop-ip>:8080 on your phone");
@@ -322,10 +355,64 @@ async fn run_main_loop(
         };
 
         // Process through deterministic nervous system (always runs)
-        let (state, mut cmd) = {
+        let (mut state, mut cmd) = {
             let mut b = brain.lock().await;
             b.tick(&sensors)
         };
+
+        // --- Contextual Coherence Fields (post-tick processing) ---
+        {
+            // 1. Update presence detector with ultrasonic reading
+            let presence = presence_detector.update(sensors.ultrasonic_cm);
+
+            // 2. Compute context key from current sensors
+            let accel_mag = (sensors.accel[0] * sensors.accel[0]
+                + sensors.accel[1] * sensors.accel[1]
+                + sensors.accel[2] * sensors.accel[2])
+                .sqrt();
+            let motors_active = cmd.left != 0 || cmd.right != 0;
+            let context_key = ContextKey::from_sensors(
+                sensors.light_level,
+                sensors.sound_level,
+                presence,
+                accel_mag,
+                motors_active,
+                0.0, // roll — wire from CyberPi when available
+                0.0, // pitch — wire from CyberPi when available
+            );
+
+            // 3. Update accumulator for current context
+            let alone = presence == PresenceSignature::Absent;
+            let is_positive = state.tension < 0.5;
+            {
+                let pers = personality.lock().await;
+                let acc = coherence_field.get_or_create(&context_key);
+                if is_positive {
+                    acc.positive_interaction(pers.recovery_speed(), tick_count, alone);
+                } else if state.tension > 0.7 {
+                    acc.negative_interaction(pers.startle_sensitivity(), tick_count);
+                }
+            }
+
+            // 4. Set fallback (degraded mode) from instant coherence
+            coherence_field.set_fallback(Some(state.coherence));
+
+            // 5. Compute effective coherence (asymmetric gate)
+            let eff_coherence = coherence_field.effective_coherence(state.coherence, &context_key);
+
+            // 6. Classify social phase with hysteresis
+            social_phase = SocialPhase::classify(eff_coherence, state.tension, social_phase);
+
+            // 7. Override state coherence with effective value for downstream consumers
+            state.coherence = eff_coherence;
+            state.social_phase = social_phase;
+            state.context_coherence = coherence_field.context_coherence(&context_key);
+
+            // 8. Periodic decay (every 100 ticks)
+            if tick_count % 100 == 0 {
+                coherence_field.decay_all(100);
+            }
+        }
 
         // Higher-order brain layer (advisory, runs alongside deterministic system)
         #[cfg(feature = "brain")]
@@ -349,6 +436,9 @@ async fn run_main_loop(
                                 brain::planner::BrainAction::StartActivity(name) => {
                                     tracing::debug!("Brain starts activity: {}", name);
                                 }
+                                brain::planner::BrainAction::Explore(explore_cmd) => {
+                                    tracing::debug!("Brain exploration command: {:?}", explore_cmd);
+                                }
                                 brain::planner::BrainAction::Noop => {}
                             }
                         }
@@ -360,29 +450,104 @@ async fn run_main_loop(
             }
         }
 
-        // Voice API: when active, robot is stationary by default.
-        // Only voice commands move it (via motor override).
+        // Exploration engine: autonomous room exploration (runs after brain, before voice override)
+        // Priority: Protect mode > Voice Override > Explorer > Brain LLM > Default
+        #[cfg(feature = "brain")]
+        if let Some(ref exp) = explorer {
+            // Only let explorer drive when NOT in Protect mode
+            if state.reflex != ReflexMode::Protect {
+                let mut exp_guard = exp.lock().await;
+                let heading_deg = {
+                    let b = brain.lock().await;
+                    b.heading() * 180.0 / std::f32::consts::PI
+                };
+                if let Some(explore_cmd) = exp_guard.tick(
+                    state.curiosity,
+                    state.energy,
+                    state.tension,
+                    sensors.ultrasonic_cm,
+                    heading_deg,
+                    tick_count,
+                ) {
+                    cmd = explore_cmd;
+                }
+
+                // Process exploration events for narration
+                let events = exp_guard.take_events();
+                for event in &events {
+                    match event {
+                        mbot_core::exploration::ExplorationEvent::CellDiscovered { x, y, .. } => {
+                            tracing::info!("Exploration: discovered cell ({}, {})", x, y);
+                        }
+                        mbot_core::exploration::ExplorationEvent::ObstacleFound { distance_cm, heading_deg } => {
+                            tracing::info!("Exploration: obstacle at {:.0}cm, heading {:.0}°", distance_cm, heading_deg);
+                        }
+                        mbot_core::exploration::ExplorationEvent::ScanComplete { sectors_updated } => {
+                            tracing::debug!("Exploration: scan complete, {} sectors updated", sectors_updated);
+                        }
+                        mbot_core::exploration::ExplorationEvent::TargetChosen { sector, heading_deg } => {
+                            tracing::info!("Exploration: heading to sector {} ({:.0}°)", sector, heading_deg);
+                        }
+                        mbot_core::exploration::ExplorationEvent::Arrived { x, y } => {
+                            tracing::info!("Exploration: arrived at ({}, {})", x, y);
+                        }
+                        mbot_core::exploration::ExplorationEvent::ReflectionPause => {
+                            tracing::info!("Exploration: pausing for reflection...");
+                        }
+                    }
+                }
+
+                // Update voice API shared state with exploration data
+                #[cfg(feature = "voice-api")]
+                if let Some(ref vs) = voice_shared {
+                    let mut vs_guard = vs.lock().await;
+                    let grid_summary = exp_guard.grid_map.summary();
+                    let sector_summary = exp_guard.sector_map.summary();
+                    let metrics = exp_guard.learning_metrics();
+                    vs_guard.exploration = Some(brain::voice_api::ExplorationState {
+                        phase: exp_guard.phase_name().to_string(),
+                        sectors_mapped: sector_summary.mapped,
+                        grid_visited: grid_summary.visited,
+                        discovery_count: exp_guard.discovery_count,
+                        episode_count: exp_guard.episode_count,
+                        nav_confidence: metrics.convergence_score,
+                        grid: exp_guard.grid_map.cells.iter().flatten().map(|c| match c.occupancy {
+                            mbot_core::exploration::Occupancy::Unknown => 0,
+                            mbot_core::exploration::Occupancy::Free => 1,
+                            mbot_core::exploration::Occupancy::Obstacle => 2,
+                            mbot_core::exploration::Occupancy::Interesting => 3,
+                        }).collect(),
+                        robot_pos: [grid_summary.robot_x, grid_summary.robot_y],
+                        robot_heading: grid_summary.heading_deg,
+                        sector_distances: exp_guard.sector_map.sectors.iter().map(|s| s.min_distance_cm).collect(),
+                        narration_log: Vec::new(), // filled by narration system
+                        reflection: None,
+                        avg_reward: metrics.average_reward,
+                    });
+                }
+            }
+        }
+
+        // Voice API: voice commands can override motors.
+        // When no voice override is active, let the explorer (or homeostasis) keep driving.
         #[cfg(feature = "voice-api")]
         if let Some(ref vs) = voice_shared {
             let mut vs_guard = vs.lock().await;
-            let override_active = if let Some(ref mut ov) = vs_guard.motor_override {
+            if let Some(ref mut ov) = vs_guard.motor_override {
                 // Start timer on first read (avoids TTS/speak eating into duration)
                 if ov.expires_at.is_none() {
                     ov.expires_at = Some(Instant::now() + Duration::from_millis(ov.duration_ms));
                 }
                 match ov.expires_at {
                     Some(t) if Instant::now() < t => {
+                        // Voice override takes priority over explorer
                         cmd = ov.cmd.clone();
-                        true
                     }
-                    _ => false,
+                    _ => {
+                        // Override expired, clear it (explorer/homeostasis cmd stays)
+                        vs_guard.motor_override = None;
+                    }
                 }
-            } else {
-                false
-            };
-            if !override_active {
-                vs_guard.motor_override = None;
-                cmd = MotorCommand::default();
             }
         }
 
@@ -406,6 +571,9 @@ async fn run_main_loop(
             vs_guard.robot.energy = state.energy;
             vs_guard.robot.coherence = state.coherence;
             vs_guard.robot.curiosity = state.curiosity;
+            vs_guard.robot.social_phase = format!("{:?}", state.social_phase);
+            vs_guard.robot.context_coherence = state.context_coherence;
+            vs_guard.robot.context_count = coherence_field.context_count();
         }
 
         // Track timing
@@ -416,7 +584,8 @@ async fn run_main_loop(
 
         // Print status periodically (every second)
         if tick_count % (freq as u64) == 0 {
-            print_status(&sensors, &state, tick_count, total_loop_time, max_loop_time);
+            print_status(&sensors, &state, tick_count, total_loop_time, max_loop_time,
+                         coherence_field.context_count());
         }
 
         // Maintain loop timing - only warn about slow loops occasionally, not every tick.
@@ -449,6 +618,7 @@ fn print_status(
     tick_count: u64,
     _total_time: Duration,
     _max_time: Duration,
+    context_count: usize,
 ) {
     // Describe the emotional mode in plain language
     let (mode_name, mode_desc) = match state.reflex {
@@ -456,6 +626,13 @@ fn print_status(
         ReflexMode::Active => ("ACTIVE", "curious, exploring"),
         ReflexMode::Spike => ("SPIKE", "startled, alert!"),
         ReflexMode::Protect => ("PROTECT", "scared, backing away"),
+    };
+
+    let (phase_name, phase_desc) = match state.social_phase {
+        SocialPhase::ShyObserver => ("SHY", "cautious, earning trust"),
+        SocialPhase::StartledRetreat => ("STARTLED", "withdrawn, protective"),
+        SocialPhase::QuietlyBeloved => ("BELOVED", "expressive, trusted"),
+        SocialPhase::ProtectiveGuardian => ("GUARDIAN", "protective, familiar"),
     };
 
     // Build simple bar: 5 chars wide, filled proportionally
@@ -483,7 +660,8 @@ fn print_status(
     }
 
     println!();
-    println!("  MOOD: {}  ({})", mode_name, mode_desc);
+    println!("  MOOD:  {}  ({})", mode_name, mode_desc);
+    println!("  PHASE: {}  ({})", phase_name, phase_desc);
     println!("  -----------------------------------------------");
     println!(
         "  Tension:   {} {:.0}%  {}",
@@ -560,6 +738,15 @@ fn print_status(
         sensors.quad_rgb[0][0],
         sensors.quad_rgb[0][1],
         sensors.quad_rgb[0][2],
+    );
+    println!(
+        "  Context:   {} {:.0}%  (familiarity with current situation)",
+        bar(state.context_coherence),
+        state.context_coherence * 100.0,
+    );
+    println!(
+        "  Contexts:  {} situations learned",
+        context_count,
     );
     println!("  -----------------------------------------------");
     println!("  Tick: {}  |  Press Ctrl+C to stop", tick_count);

@@ -95,13 +95,44 @@ impl QLearner {
             .insert(action_key, value);
     }
 
-    /// Get max Q-value for a state across all actions
+    /// Get max Q-value for a state across specified actions.
     fn get_max_q(&self, state: &State, actions: &[Action]) -> f32 {
+        if actions.is_empty() {
+            return self.get_max_q_from_table(state);
+        }
         actions
             .iter()
             .map(|a| self.get_q_value(state, a))
             .fold(f32::NEG_INFINITY, f32::max)
             .max(0.0)
+    }
+
+    /// Get max Q-value for a state by scanning all actions recorded in the Q-table.
+    /// This avoids the empty-actions bug where an empty slice always returns 0.0.
+    fn get_max_q_from_table(&self, state: &State) -> f32 {
+        let state_key = state.to_key();
+        match self.q_table.get(&state_key) {
+            Some(actions) if !actions.is_empty() => {
+                actions.values().copied().fold(f32::NEG_INFINITY, f32::max).max(0.0)
+            }
+            _ => 0.0,
+        }
+    }
+
+    /// Learn with explicit next-state available actions (proper Q-learning).
+    pub fn learn_with_actions(
+        &mut self,
+        state: &State,
+        action: &Action,
+        reward: f32,
+        next_state: &State,
+        next_actions: &[Action],
+    ) {
+        let current_q = self.get_q_value(state, action);
+        let next_max_q = self.get_max_q(next_state, next_actions);
+        let new_q = current_q + self.learning_rate *
+            (reward + self.config.discount_factor * next_max_q - current_q);
+        self.set_q_value(state, action, new_q);
     }
 
     /// Update epsilon (exploration rate) using decay - I-AI-004
@@ -189,9 +220,8 @@ impl ReinforcementLearner for QLearner {
         // Get current Q-value
         let current_q = self.get_q_value(state, action);
 
-        // Get max Q-value for next state
-        // Note: We'd need available actions for next_state, using empty vec as placeholder
-        let next_max_q = self.get_max_q(next_state, &[]);
+        // Get max Q-value for next state by scanning all known actions for that state
+        let next_max_q = self.get_max_q_from_table(next_state);
 
         // Q-learning update: Q(s,a) = Q(s,a) + α[r + γ*max_a'Q(s',a') - Q(s,a)]
         let new_q = current_q + self.learning_rate *

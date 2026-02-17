@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📥 Download to mBot2 - RuVector</title>
+    <title>Connect to mBot2 - RuVector</title>
     <style>
         :root {
             --bg-dark: #0a0a1a;
@@ -13,10 +13,10 @@
             --text-dim: #8080a0;
             --accent: #00ff88;
             --warning: #ffaa00;
+            --danger: #ff4466;
+            --blue: #4488ff;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             font-family: 'SF Mono', 'Fira Code', monospace;
             background: var(--bg-dark);
@@ -24,43 +24,14 @@
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .subtitle {
-            color: var(--text-dim);
-            font-size: 14px;
-        }
-
-        .nav {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .nav a {
-            color: var(--accent);
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 14px;
-        }
-
-        .nav a:hover {
-            text-decoration: underline;
-        }
-
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        h1 { font-size: 32px; margin-bottom: 10px; }
+        .subtitle { color: var(--text-dim); font-size: 14px; }
+        .nav { text-align: center; margin-bottom: 30px; }
+        .nav a { color: var(--accent); text-decoration: none; margin: 0 15px; font-size: 14px; }
+        .nav a:hover { text-decoration: underline; }
+        .nav a.active { color: var(--text); font-weight: bold; }
         .panel {
             background: var(--bg-panel);
             border: 1px solid var(--border);
@@ -68,422 +39,380 @@
             padding: 30px;
             margin-bottom: 20px;
         }
+        .panel h2 { font-size: 20px; color: var(--accent); margin-bottom: 20px; }
 
-        .panel h2 {
-            font-size: 20px;
-            color: var(--accent);
+        /* Connect buttons */
+        .connect-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
             margin-bottom: 20px;
         }
-
-        .panel h3 {
-            font-size: 16px;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-
-        .step {
-            margin-bottom: 25px;
-        }
-
-        .step-number {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            background: var(--accent);
-            color: var(--bg-dark);
-            border-radius: 50%;
+        .connect-card {
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 30px;
             text-align: center;
-            line-height: 30px;
-            font-weight: bold;
-            margin-right: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-
-        .step-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 8px;
+        .connect-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 255, 136, 0.15);
         }
-
-        .step-desc {
-            color: var(--text-dim);
-            line-height: 1.6;
-            margin-left: 40px;
+        .connect-card.active {
+            border-color: var(--accent);
+            background: rgba(0, 255, 136, 0.05);
         }
-
-        .code-block {
-            background: var(--bg-dark);
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            font-family: 'SF Mono', monospace;
-            font-size: 13px;
-            overflow-x: auto;
-            margin: 10px 0;
+        .connect-card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
-
-        .code-block code {
-            color: var(--accent);
+        .connect-card.disabled:hover {
+            border-color: var(--border);
+            transform: none;
+            box-shadow: none;
         }
+        .connect-icon { font-size: 48px; margin-bottom: 15px; }
+        .connect-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        .connect-desc { color: var(--text-dim); font-size: 13px; line-height: 1.5; }
 
-        .warning-box {
-            background: rgba(255, 170, 0, 0.1);
-            border: 1px solid var(--warning);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .warning-title {
-            color: var(--warning);
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .info-box {
-            background: rgba(0, 170, 255, 0.1);
-            border: 1px solid var(--calm);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-
-        .info-title {
-            color: var(--calm);
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px;
-            background: var(--bg-dark);
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-
-        .status-indicator {
+        /* Status bar */
+        .status-bar {
             display: flex;
             align-items: center;
             gap: 12px;
-        }
-
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--warning);
-        }
-
-        .status-dot.connected {
-            background: var(--accent);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: var(--bg-dark);
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
-        }
-
-        .btn:disabled {
-            background: var(--border);
-            color: var(--text-dim);
-            cursor: not-allowed;
-        }
-
-        .project-info {
-            display: flex;
-            justify-content: space-between;
-            padding: 15px;
+            padding: 16px 20px;
             background: var(--bg-dark);
             border-radius: 8px;
             margin-bottom: 20px;
         }
-
-        .project-info-item {
-            text-align: center;
+        .status-dot {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            background: var(--border);
+            flex-shrink: 0;
         }
+        .status-dot.connecting { background: var(--warning); animation: pulse 1s infinite; }
+        .status-dot.connected { background: var(--accent); animation: pulse 2s infinite; }
+        .status-dot.error { background: var(--danger); }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .status-text { flex: 1; font-size: 14px; }
 
-        .project-info-label {
-            font-size: 11px;
+        /* Log area */
+        .log-area {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 12px;
+            line-height: 1.6;
+            max-height: 200px;
+            overflow-y: auto;
             color: var(--text-dim);
-            text-transform: uppercase;
-            margin-bottom: 5px;
+            display: none;
         }
+        .log-area.visible { display: block; }
+        .log-line { margin-bottom: 2px; }
+        .log-ok { color: var(--accent); }
+        .log-warn { color: var(--warning); }
+        .log-err { color: var(--danger); }
 
-        .project-info-value {
-            font-size: 16px;
+        /* Big action button */
+        .action-row { text-align: center; margin: 25px 0; }
+        .btn-big {
+            padding: 16px 48px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
             font-weight: bold;
-            color: var(--accent);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .btn-big.primary {
+            background: var(--accent);
+            color: var(--bg-dark);
+        }
+        .btn-big.primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 136, 0.3);
+        }
+        .btn-big.danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-big:disabled {
+            background: var(--border);
+            color: var(--text-dim);
+            cursor: not-allowed;
+            transform: none;
         }
 
-        a {
-            color: var(--accent);
-            text-decoration: none;
+        /* Info sections */
+        .info-box {
+            background: rgba(68, 136, 255, 0.08);
+            border: 1px solid rgba(68, 136, 255, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 13px;
+            line-height: 1.6;
         }
+        .info-box strong { color: var(--blue); }
+        .tip-list { margin: 8px 0 0 20px; }
+        .tip-list li { margin-bottom: 4px; }
+        code { color: var(--accent); font-family: inherit; }
+        a { color: var(--accent); }
 
-        a:hover {
-            text-decoration: underline;
+        @media (max-width: 600px) {
+            .connect-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📥 Download to mBot2</h1>
-            <p class="subtitle">Build and flash your RuVector AI to CyberPi</p>
+            <h1>Connect to mBot2</h1>
+            <p class="subtitle">One click to bring your robot to life</p>
         </div>
 
         <div class="nav">
-            <a href="index.html">🧠 Visualizer</a>
-            <a href="personality-mixer.html">🎨 Mixer</a>
-            <a href="projects.html">🚀 Projects</a>
-            <a href="help.html" style="color: var(--accent); text-decoration: none; margin: 0 15px; font-size: 14px;">📚 Help</a>
-        <a href="download.html" style="color: var(--text); font-weight: bold;">📥 Download</a>
+            <a href="index.html">Visualizer</a>
+            <a href="personality-mixer.html">Mixer</a>
+            <a href="projects.html">Projects</a>
+            <a href="help.html">Help</a>
+            <a href="download.html" class="active">Connect</a>
         </div>
 
-        <!-- Current Project -->
+        <!-- Connection Mode -->
         <div class="panel">
-            <h2>Selected Project</h2>
-            <div class="project-info">
-                <div class="project-info-item">
-                    <div class="project-info-label">Project</div>
-                    <div class="project-info-value" id="project-name">All Features</div>
+            <h2>Choose Connection</h2>
+
+            <div class="connect-grid">
+                <div class="connect-card" id="card-ble" onclick="selectMode('ble')">
+                    <div class="connect-icon">Bluetooth</div>
+                    <div class="connect-title">Bluetooth (BLE)</div>
+                    <div class="connect-desc">
+                        Wireless. Turn on mBot2 and wait for it to fully boot
+                        (CyberPi shows home screen). Range ~10m.
+                    </div>
                 </div>
-                <div class="project-info-item">
-                    <div class="project-info-label">Build Target</div>
-                    <div class="project-info-value">mBot2 (CyberPi)</div>
-                </div>
-                <div class="project-info-item">
-                    <div class="project-info-label">Status</div>
-                    <div class="project-info-value">Ready</div>
+                <div class="connect-card" id="card-serial" onclick="selectMode('serial')">
+                    <div class="connect-icon">USB</div>
+                    <div class="connect-title">USB Cable (Serial)</div>
+                    <div class="connect-desc">
+                        Plug USB-C data cable from CyberPi to your laptop.
+                        Most reliable. Use a data cable, not charge-only.
+                    </div>
                 </div>
             </div>
 
-            <div class="connection-status">
-                <div class="status-indicator">
-                    <div class="status-dot" id="cyberpi-status"></div>
-                    <span id="cyberpi-text">CyberPi not detected</span>
-                </div>
-                <button class="btn btn-primary" id="connect-btn" onclick="detectCyberPi()">
-                    🔍 Detect CyberPi
+            <!-- Status -->
+            <div class="status-bar">
+                <div class="status-dot" id="status-dot"></div>
+                <span class="status-text" id="status-text">Select a connection method above</span>
+            </div>
+
+            <!-- Action button -->
+            <div class="action-row">
+                <button class="btn-big primary" id="connect-btn" onclick="doConnect()" disabled>
+                    Select a connection first
                 </button>
             </div>
+
+            <!-- Log output -->
+            <div class="log-area" id="log-area"></div>
         </div>
 
-        <!-- Build Instructions -->
-        <div class="panel">
-            <h2>🛠️ Build Instructions</h2>
-
-            <div class="warning-box">
-                <div class="warning-title">⚠️ Prerequisites Required</div>
-                <div>You must have Rust toolchain installed and configured for mBot2 development.</div>
+        <!-- Voice API panel -->
+        <div class="panel" id="voice-panel" style="display:none;">
+            <h2>Voice & Telegram</h2>
+            <p style="color: var(--text-dim); margin-bottom: 15px;">
+                Once connected, you can control the robot by voice or Telegram.
+            </p>
+            <div class="info-box">
+                <strong>Voice API</strong> is running at
+                <a id="voice-url" href="http://localhost:8088" target="_blank">http://localhost:8088</a>
+                — open this on your phone to use the chat UI.
             </div>
-
-            <div class="step">
-                <div class="step-title">
-                    <span class="step-number">1</span>
-                    Install Rust Toolchain
+            <div class="info-box">
+                <strong>Telegram</strong> — run the bridge in a separate terminal:
+                <div style="background: var(--bg-dark); padding: 10px; border-radius: 6px; margin-top: 8px;">
+                    <code>python3 -u tools/telegram_bridge.py</code>
                 </div>
-                <div class="step-desc">
-                    Install Rust and the embedded target for CyberPi (ARM Cortex-M4):
-                    <div class="code-block">
-<code>curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-rustup target add thumbv7em-none-eabihf</code>
-                    </div>
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-title">
-                    <span class="step-number">2</span>
-                    Build the Project
-                </div>
-                <div class="step-desc">
-                    Build the RuVector firmware for your selected project:
-                    <div class="code-block">
-<code># Full build with all features
-cargo build --release --target thumbv7em-none-eabihf
-
-# Or build specific crate
-cargo build -p mbot-companion --release --target thumbv7em-none-eabihf</code>
-                    </div>
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-title">
-                    <span class="step-number">3</span>
-                    Connect CyberPi
-                </div>
-                <div class="step-desc">
-                    Connect your mBot2's CyberPi to your computer via USB-C cable. The device should appear as a serial port.
-                    <div class="info-box">
-                        <div class="info-title">💡 Connection Tips</div>
-                        <ul style="margin-left: 20px; line-height: 1.8;">
-                            <li>Make sure CyberPi is powered on</li>
-                            <li>Use a data-capable USB-C cable (not charge-only)</li>
-                            <li>On Linux: Grant serial port permissions with <code style="color: var(--accent);">sudo usermod -a -G dialout $USER</code></li>
-                            <li>On macOS: Install CH340 driver if needed</li>
-                            <li>On Windows: Install CH340 driver from mBot2 website</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-title">
-                    <span class="step-number">4</span>
-                    Flash to CyberPi
-                </div>
-                <div class="step-desc">
-                    Use <code>probe-rs</code> or the CyberPi flash tool to upload the firmware:
-                    <div class="code-block">
-<code># Install probe-rs
-cargo install probe-rs --features cli
-
-# Flash the firmware
-probe-rs run --chip STM32F405RGT6 target/thumbv7em-none-eabihf/release/mbot-companion
-
-# Or use makeblock upload tool
-makeblock-upload -p /dev/ttyUSB0 target/thumbv7em-none-eabihf/release/mbot-companion.bin</code>
-                    </div>
-                </div>
-            </div>
-
-            <div class="step">
-                <div class="step-title">
-                    <span class="step-number">5</span>
-                    Verify & Test
-                </div>
-                <div class="step-desc">
-                    After flashing, the robot should boot with RuVector AI active. Test connection:
-                    <ul style="margin-left: 60px; margin-top: 10px; line-height: 1.8;">
-                        <li>Open the <a href="index.html">🧠 Visualizer</a> to see real-time brain activity</li>
-                        <li>Try the <a href="personality-mixer.html">🎨 Personality Mixer</a> to adjust parameters</li>
-                        <li>Check serial output for boot messages: <code style="color: var(--accent);">screen /dev/ttyUSB0 115200</code></li>
-                    </ul>
+                <div style="margin-top: 6px; color: var(--text-dim);">
+                    Needs <code>MBOT_TELEGRAM_TOKEN</code> in your <code>.env</code> file.
                 </div>
             </div>
         </div>
 
         <!-- Troubleshooting -->
         <div class="panel">
-            <h2>🔧 Troubleshooting</h2>
+            <h2>Troubleshooting</h2>
 
-            <h3>Build Errors</h3>
-            <div class="step-desc">
-                <strong>Error: linker not found</strong><br>
-                Install ARM GCC toolchain: <code>sudo apt install gcc-arm-none-eabi</code>
-            </div>
-            <div class="step-desc">
-                <strong>Error: can't find crate</strong><br>
-                Update dependencies: <code>cargo update</code>
-            </div>
-
-            <h3>Connection Issues</h3>
-            <div class="step-desc">
-                <strong>CyberPi not detected</strong><br>
-                1. Check USB cable is data-capable<br>
-                2. Try different USB port<br>
-                3. Restart CyberPi<br>
-                4. Check device manager / dmesg for serial device
+            <div class="info-box">
+                <strong>BLE: "not found"</strong>
+                <ul class="tip-list">
+                    <li>Wait for CyberPi to fully boot (shows home screen, ~15 seconds)</li>
+                    <li>Make sure Bluetooth is enabled on your laptop</li>
+                    <li>On Linux: <code>sudo apt install libdbus-1-dev</code> is needed for BLE</li>
+                    <li>Try again — BLE scanning can take a few seconds</li>
+                </ul>
             </div>
 
-            <h3>Flash Errors</h3>
-            <div class="step-desc">
-                <strong>Permission denied</strong><br>
-                Add your user to dialout group: <code>sudo usermod -a -G dialout $USER</code> (logout required)
-            </div>
-            <div class="step-desc">
-                <strong>Timeout during flash</strong><br>
-                1. Hold BOOT button on CyberPi while connecting USB<br>
-                2. Try lower baud rate: <code>--baud 115200</code><br>
-                3. Reset CyberPi and try again
+            <div class="info-box">
+                <strong>USB: "permission denied" or "port not found"</strong>
+                <ul class="tip-list">
+                    <li>Use a DATA cable, not a charge-only cable</li>
+                    <li>On Linux: <code>sudo usermod -a -G dialout $USER</code> then log out and back in</li>
+                    <li>On macOS/Windows: install CH340 driver from Makeblock</li>
+                    <li>Check port: <code>ls /dev/ttyUSB*</code> or <code>ls /dev/tty.usbserial*</code></li>
+                </ul>
             </div>
 
-            <h3>Runtime Issues</h3>
-            <div class="step-desc">
-                <strong>Robot not responding</strong><br>
-                1. Check serial output for panic messages<br>
-                2. Verify correct firmware binary was flashed<br>
-                3. Try reflashing with <code>--erase-all</code> option<br>
-                4. Check battery level on mBot2
-            </div>
-
-            <div class="info-box" style="margin-top: 25px;">
-                <div class="info-title">📚 Additional Resources</div>
-                <ul style="margin-left: 20px; line-height: 1.8;">
-                    <li><a href="https://github.com/Hulupeep/mbot_ruvector">GitHub Repository</a> - Source code and issues</li>
-                    <li><a href="https://github.com/Hulupeep/mbot-help">mBot Help Docs</a> - Tutorials and guides</li>
-                    <li><a href="https://www.makeblock.com/pages/mbot2-support">Official mBot2 Support</a> - Hardware documentation</li>
+            <div class="info-box">
+                <strong>Robot not responding to commands</strong>
+                <ul class="tip-list">
+                    <li>Check the log output above for errors</li>
+                    <li>Make sure CyberPi is powered on (not just the mBot2 chassis)</li>
+                    <li>Try power cycling the CyberPi</li>
+                    <li>If using BLE, make sure no other app is connected to it</li>
                 </ul>
             </div>
         </div>
     </div>
 
     <script>
-        // Get project from URL params
-        const urlParams = new URLSearchParams(window.location.search);
-        const projectId = urlParams.get('project') || 'all';
+        let selectedMode = null;
+        let companionProcess = null;
 
-        const projectNames = {
-            'all': 'All Features',
-            'artbot': 'ArtBot - Drawing Companion',
-            'personality': 'Personality System',
-            'gamebot': 'GameBot - Play Partner',
-            'sorter': 'LEGOSorter',
-            'learninglab': 'LearningLab - Education Kit',
-            'helperbot': 'HelperBot'
-        };
+        function selectMode(mode) {
+            selectedMode = mode;
+            document.querySelectorAll('.connect-card').forEach(c => c.classList.remove('active'));
+            document.getElementById('card-' + mode).classList.add('active');
 
-        document.getElementById('project-name').textContent = projectNames[projectId] || projectNames['all'];
-
-        // Simulate CyberPi detection
-        function detectCyberPi() {
-            const statusDot = document.getElementById('cyberpi-status');
-            const statusText = document.getElementById('cyberpi-text');
             const btn = document.getElementById('connect-btn');
+            btn.disabled = false;
+            if (mode === 'ble') {
+                btn.textContent = 'Connect via Bluetooth';
+            } else {
+                btn.textContent = 'Connect via USB';
+            }
+        }
 
+        function log(msg, level) {
+            const area = document.getElementById('log-area');
+            area.classList.add('visible');
+            const cls = level === 'ok' ? 'log-ok' : level === 'err' ? 'log-err' : level === 'warn' ? 'log-warn' : '';
+            const time = new Date().toLocaleTimeString();
+            area.innerHTML += `<div class="log-line ${cls}">[${time}] ${msg}</div>`;
+            area.scrollTop = area.scrollHeight;
+        }
+
+        function setStatus(state, text) {
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+            dot.className = 'status-dot ' + state;
+            txt.textContent = text;
+        }
+
+        async function doConnect() {
+            if (!selectedMode) return;
+
+            const btn = document.getElementById('connect-btn');
             btn.disabled = true;
-            statusText.textContent = 'Detecting...';
+            btn.textContent = 'Connecting...';
+            setStatus('connecting', 'Starting companion...');
+            log('Starting mbot-companion with --' + selectedMode + ' --voice-api ...', 'ok');
 
-            setTimeout(() => {
-                // Simulate detection (in real implementation, check serial ports)
-                const detected = Math.random() > 0.5;
+            try {
+                const res = await fetch('/api/connect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: selectedMode })
+                });
+                const data = await res.json();
 
-                if (detected) {
-                    statusDot.classList.add('connected');
-                    statusText.textContent = 'CyberPi detected on /dev/ttyUSB0';
-                    btn.textContent = '✓ Connected';
-                    btn.style.background = 'var(--accent)';
-                } else {
-                    statusText.textContent = 'CyberPi not found - Check connection';
+                if (data.ok) {
+                    log(data.message, 'ok');
+                    setStatus('connecting', 'Companion started, waiting for CyberPi...');
+                    btn.textContent = 'Disconnect';
                     btn.disabled = false;
-                    btn.textContent = '🔄 Try Again';
+                    btn.className = 'btn-big danger';
+                    btn.onclick = doDisconnect;
+
+                    // Poll for connection status
+                    pollStatus();
+                } else {
+                    log('Failed: ' + data.message, 'err');
+                    setStatus('error', data.message);
+                    btn.disabled = false;
+                    btn.textContent = 'Retry';
                 }
-            }, 2000);
+            } catch (e) {
+                log('Server error: ' + e.message, 'err');
+                log('Is the dashboard server running? Run: cd web && npm start', 'warn');
+                setStatus('error', 'Cannot reach dashboard server');
+                btn.disabled = false;
+                btn.textContent = 'Retry';
+            }
+        }
+
+        async function doDisconnect() {
+            try {
+                await fetch('/api/disconnect', { method: 'POST' });
+                log('Companion stopped.', 'warn');
+            } catch (e) {
+                log('Stop error: ' + e.message, 'err');
+            }
+            setStatus('', 'Disconnected');
+            const btn = document.getElementById('connect-btn');
+            btn.className = 'btn-big primary';
+            btn.textContent = 'Connect via ' + (selectedMode === 'ble' ? 'Bluetooth' : 'USB');
+            btn.onclick = doConnect;
+            btn.disabled = false;
+            document.getElementById('voice-panel').style.display = 'none';
+        }
+
+        async function pollStatus() {
+            let attempts = 0;
+            const maxAttempts = 30; // 30 seconds
+
+            const interval = setInterval(async () => {
+                attempts++;
+                try {
+                    const res = await fetch('/api/status');
+                    const data = await res.json();
+
+                    if (data.connected) {
+                        clearInterval(interval);
+                        setStatus('connected', 'Connected to CyberPi' + (data.transport ? ' via ' + data.transport : ''));
+                        log('CyberPi connected! Reading sensors...', 'ok');
+                        document.getElementById('voice-panel').style.display = 'block';
+
+                        // Log recent output
+                        if (data.recent_output) {
+                            data.recent_output.forEach(line => log(line, ''));
+                        }
+                    } else if (data.running && attempts < maxAttempts) {
+                        setStatus('connecting', 'Scanning for CyberPi... (' + attempts + 's)');
+                    } else if (!data.running) {
+                        clearInterval(interval);
+                        setStatus('error', 'Companion process exited');
+                        log('Companion exited. Check log for errors.', 'err');
+                        if (data.error) log(data.error, 'err');
+                    } else {
+                        clearInterval(interval);
+                        setStatus('error', 'Timeout waiting for CyberPi');
+                        log('Could not find CyberPi after 30s. Check troubleshooting below.', 'warn');
+                    }
+                } catch (e) {
+                    // Server might be restarting, keep trying
+                }
+            }, 1000);
         }
     </script>
 </body>

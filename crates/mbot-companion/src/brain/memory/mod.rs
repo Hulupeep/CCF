@@ -13,6 +13,8 @@ pub mod conversation;
 pub mod activity;
 #[cfg(feature = "brain")]
 pub mod followup;
+#[cfg(feature = "brain")]
+pub mod crystallization;
 
 #[cfg(feature = "brain")]
 use crate::brain::error::{BrainError, BrainResult};

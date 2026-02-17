@@ -124,6 +124,10 @@ pub struct HomeostasisState {
     pub energy: f32,
     /// Curiosity level (0.0-1.0)
     pub curiosity: f32,
+    /// Social phase from contextual coherence field
+    pub social_phase: coherence::SocialPhase,
+    /// Accumulated coherence for the current context [0.0, 1.0]
+    pub context_coherence: f32,
 }
 
 impl Default for HomeostasisState {
@@ -134,6 +138,8 @@ impl Default for HomeostasisState {
             reflex: ReflexMode::Calm,
             energy: 0.5,
             curiosity: 0.5,
+            social_phase: coherence::SocialPhase::ShyObserver,
+            context_coherence: 0.0,
         }
     }
 }
@@ -285,6 +291,9 @@ impl MBotBrain {
             reflex: ReflexMode::from_tension(self.tension_ema),
             energy: self.energy,
             curiosity,
+            // These are set by the companion's main loop after CCF processing
+            social_phase: coherence::SocialPhase::ShyObserver,
+            context_coherence: 0.0,
         }
     }
 
@@ -424,6 +433,12 @@ pub mod multi_robot;
 // === PERFORMANCE PROFILING AND OPTIMIZATION MODULE ===
 #[cfg(feature = "std")]
 pub mod performance;
+
+// === CONTEXTUAL COHERENCE FIELDS MODULE ===
+pub mod coherence;
+
+// === SPATIAL EXPLORATION MODULE ===
+pub mod exploration;
 
 // === REINFORCEMENT LEARNING MODULE ===
 pub mod learning;
