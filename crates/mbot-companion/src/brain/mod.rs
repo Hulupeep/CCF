@@ -45,6 +45,8 @@ pub mod mincut;
 pub mod group_manager;
 #[cfg(feature = "brain")]
 pub mod recomputation;
+#[cfg(feature = "brain")]
+pub mod consolidation;
 
 #[cfg(feature = "brain")]
 pub mod channels;
