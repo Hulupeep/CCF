@@ -26,6 +26,7 @@ pub struct SuppressionRule {
 }
 
 /// Fixed-size, no_std compatible map of suppression rules with LRU eviction.
+#[derive(Clone, Debug)]
 pub struct SuppressionMap {
     rules: [Option<SuppressionRule>; MAX_SUPPRESSION_RULES],
     len: usize,

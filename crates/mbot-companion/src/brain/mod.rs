@@ -29,6 +29,10 @@ pub mod stt;
 pub mod suppression_learner;
 #[cfg(feature = "brain")]
 pub mod suppression_sync;
+#[cfg(feature = "brain")]
+pub mod coherence_persist;
+#[cfg(feature = "brain")]
+pub mod downward;
 
 #[cfg(feature = "brain")]
 pub mod channels;
