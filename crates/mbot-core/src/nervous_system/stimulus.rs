@@ -142,6 +142,28 @@ impl StimulusDetector {
         }
     }
 
+    /// Previous loudness value used for delta calculation.
+    /// Returns the value from the tick before the most recent `detect()` call.
+    /// Useful for residual sensor streams that need pre-spike values.
+    pub fn prev_loudness(&self) -> f32 {
+        self.prev_loudness
+    }
+
+    /// Previous brightness value used for delta calculation.
+    pub fn prev_brightness(&self) -> f32 {
+        self.prev_brightness
+    }
+
+    /// Previous distance value used for delta calculation.
+    pub fn prev_distance(&self) -> f32 {
+        self.prev_distance
+    }
+
+    /// Whether the detector has been initialized (has seen at least one tick).
+    pub fn is_initialized(&self) -> bool {
+        self.initialized
+    }
+
     /// Detect stimulus events from current sensor readings.
     ///
     /// Returns up to 5 events (one per sensor channel). In practice,
@@ -392,5 +414,72 @@ mod tests {
         let _ = det.detect(0.0, 0.0, 100.0, 0.0, 0.0, 0);
         let events = det.detect(100.0, 0.0, 100.0, 0.0, 0.0, 42);
         assert_eq!(events.get(0).unwrap().tick, 42);
+    }
+
+    // === Previous Value Getters (Issue #11: Residual Sensor Stream) ===
+
+    #[test]
+    fn test_prev_values_before_init() {
+        let det = StimulusDetector::new();
+        // Before any detect() call, previous values are at their defaults
+        assert_eq!(det.prev_loudness(), 0.0);
+        assert_eq!(det.prev_brightness(), 0.0);
+        assert_eq!(det.prev_distance(), 100.0);
+        assert!(!det.is_initialized());
+    }
+
+    #[test]
+    fn test_prev_values_after_first_tick() {
+        let mut det = StimulusDetector::new();
+        let _ = det.detect(50.0, 120.0, 30.0, 0.0, 0.0, 0);
+
+        // After first tick, prev values are set to the first reading
+        assert_eq!(det.prev_loudness(), 50.0);
+        assert_eq!(det.prev_brightness(), 120.0);
+        assert_eq!(det.prev_distance(), 30.0);
+        assert!(det.is_initialized());
+    }
+
+    #[test]
+    fn test_prev_values_update_after_each_tick() {
+        let mut det = StimulusDetector::new();
+        let _ = det.detect(20.0, 50.0, 100.0, 0.0, 0.0, 0);
+        let _ = det.detect(80.0, 150.0, 40.0, 0.0, 0.0, 1);
+
+        // After second tick, prev values are set to the second reading
+        assert_eq!(det.prev_loudness(), 80.0);
+        assert_eq!(det.prev_brightness(), 150.0);
+        assert_eq!(det.prev_distance(), 40.0);
+    }
+
+    #[test]
+    fn test_prev_values_captured_before_detect_updates_them() {
+        // This test verifies the pattern used by the residual sensor stream:
+        // capture prev values BEFORE calling detect(), then detect() updates them.
+        let mut det = StimulusDetector::new();
+        let _ = det.detect(20.0, 50.0, 100.0, 0.0, 0.0, 0);
+
+        // Capture pre-spike values before second detect
+        let pre_loudness = det.prev_loudness();
+        let pre_brightness = det.prev_brightness();
+        let pre_distance = det.prev_distance();
+
+        assert_eq!(pre_loudness, 20.0);
+        assert_eq!(pre_brightness, 50.0);
+        assert_eq!(pre_distance, 100.0);
+
+        // Now detect with a spike
+        let events = det.detect(80.0, 200.0, 10.0, 0.0, 0.0, 1);
+        assert!(!events.is_empty(), "Should detect stimuli from the spike");
+
+        // After detect, prev values have been updated to the spike values
+        assert_eq!(det.prev_loudness(), 80.0);
+        assert_eq!(det.prev_brightness(), 200.0);
+        assert_eq!(det.prev_distance(), 10.0);
+
+        // But our captured values are still the pre-spike values
+        assert_eq!(pre_loudness, 20.0);
+        assert_eq!(pre_brightness, 50.0);
+        assert_eq!(pre_distance, 100.0);
     }
 }

@@ -72,6 +72,28 @@ pub struct MotorCommand {
     pub buzzer_hz: u16,
 }
 
+/// Residual sensor overrides for preventing double-counting of stimulus spikes.
+///
+/// When a stimulus event fires (e.g., LoudnessSpike), the same spike value would
+/// also inflate the variance-based tension in `compute_homeostasis()`. To prevent
+/// this double-counting, the main loop can run stimulus detection FIRST, then
+/// replace spiked sensor channels with their pre-spike values (from the detector's
+/// previous readings) for the homeostasis calculation.
+///
+/// Each field, when `Some`, overrides the corresponding sensor value in the
+/// `MBotSensors` passed to `compute_homeostasis()`.
+#[derive(Clone, Debug, Default)]
+pub struct ResidualOverrides {
+    /// Override sound_level with pre-spike value (0.0-1.0 scale)
+    pub sound_level: Option<f32>,
+    /// Override light_level with pre-spike value (0.0-1.0 scale)
+    pub light_level: Option<f32>,
+    /// Override ultrasonic_cm with pre-spike value
+    pub ultrasonic_cm: Option<f32>,
+    /// Override accelerometer magnitude (pre-computed, not raw accel array)
+    pub accel_magnitude: Option<f32>,
+}
+
 /// ArtBot - Drawing and artistic expression
 pub mod artbot;
 
@@ -207,17 +229,38 @@ impl MBotBrain {
         self.danger_distance = danger_dist;
     }
 
-    /// Main processing tick - takes sensors, returns motor commands
+    /// Main processing tick - takes sensors, returns motor commands.
+    ///
+    /// This uses the raw sensor values for both tension calculation and
+    /// motor command generation. For the residual sensor stream pattern
+    /// (which prevents double-counting tension from stimulus spikes),
+    /// use `tick_with_residual()` instead.
     pub fn tick(&mut self, sensors: &MBotSensors) -> (HomeostasisState, MotorCommand) {
+        self.tick_with_residual(sensors, &ResidualOverrides::default())
+    }
+
+    /// Main processing tick with residual sensor overrides.
+    ///
+    /// When a stimulus event fires (e.g., LoudnessSpike), the same spike
+    /// would also inflate the variance-based tension. To prevent this
+    /// double-counting, the caller runs stimulus detection FIRST, then
+    /// passes the pre-spike values as residual overrides. The startle
+    /// pipeline uses the original raw values; the variance calculation
+    /// uses these "residual" values instead.
+    pub fn tick_with_residual(
+        &mut self,
+        sensors: &MBotSensors,
+        residual: &ResidualOverrides,
+    ) -> (HomeostasisState, MotorCommand) {
         self.tick_count += 1;
 
         // Update position estimate from encoders
         self.update_odometry(sensors);
 
-        // Compute homeostasis
-        let state = self.compute_homeostasis(sensors);
+        // Compute homeostasis using residual-adjusted sensor values
+        let state = self.compute_homeostasis(sensors, residual);
 
-        // Generate motor command based on state
+        // Generate motor command based on state (uses raw sensors for reactive behavior)
         let cmd = self.generate_command(sensors, &state);
 
         // Update last values
@@ -228,27 +271,41 @@ impl MBotBrain {
         (state, cmd)
     }
 
-    fn compute_homeostasis(&mut self, sensors: &MBotSensors) -> HomeostasisState {
+    fn compute_homeostasis(
+        &mut self,
+        sensors: &MBotSensors,
+        residual: &ResidualOverrides,
+    ) -> HomeostasisState {
         // === TENSION CALCULATION ===
+        // Apply residual overrides: when a stimulus spike was detected, use the
+        // pre-spike values for variance-based tension so the spike only counts
+        // once (through the startle pipeline, not here).
+
+        let eff_distance = residual.ultrasonic_cm.unwrap_or(sensors.ultrasonic_cm);
+        let eff_sound = residual.sound_level.unwrap_or(sensors.sound_level);
 
         // Proximity tension (closer = more tense)
-        let proximity = if sensors.ultrasonic_cm < 100.0 {
-            1.0 - (sensors.ultrasonic_cm / 100.0)
+        let proximity = if eff_distance < 100.0 {
+            1.0 - (eff_distance / 100.0)
         } else {
             0.0
         };
 
         // Sudden change tension
-        let distance_delta = fabsf(sensors.ultrasonic_cm - self.last_distance);
+        let distance_delta = fabsf(eff_distance - self.last_distance);
         let change_tension = (distance_delta / 50.0).min(1.0);
 
         // Sound tension
-        let sound_tension = sensors.sound_level * 0.5;
+        let sound_tension = eff_sound * 0.5;
 
         // Movement tension (from accelerometer)
-        let accel_magnitude = sqrtf(powf(sensors.accel[0], 2.0) +
-                                    powf(sensors.accel[1], 2.0) +
-                                    powf(sensors.accel[2], 2.0));
+        let accel_magnitude = if let Some(am) = residual.accel_magnitude {
+            am
+        } else {
+            sqrtf(powf(sensors.accel[0], 2.0) +
+                  powf(sensors.accel[1], 2.0) +
+                  powf(sensors.accel[2], 2.0))
+        };
         let movement_tension = (accel_magnitude / 20.0).min(1.0);
 
         // Combined raw tension
@@ -585,5 +642,244 @@ mod tests {
         assert!(fabsf(normalize_angle(PI) - PI) < 0.001);
         assert!(fabsf(normalize_angle(3.0 * PI) - PI) < 0.001);
         assert!(fabsf(normalize_angle(-3.0 * PI) - (-PI)) < 0.001);
+    }
+
+    // === Residual Sensor Stream Tests (Issue #11) ===
+
+    #[test]
+    fn test_tick_with_residual_backward_compatible() {
+        // tick_with_residual with default overrides should produce the same
+        // result as tick() -- both use raw sensor values.
+        let mut brain_a = MBotBrain::new();
+        let mut brain_b = MBotBrain::new();
+        let sensors = MBotSensors {
+            ultrasonic_cm: 50.0,
+            sound_level: 0.3,
+            light_level: 0.5,
+            ..Default::default()
+        };
+
+        let (state_a, _) = brain_a.tick(&sensors);
+        let (state_b, _) = brain_b.tick_with_residual(&sensors, &ResidualOverrides::default());
+
+        assert!(
+            fabsf(state_a.tension - state_b.tension) < 0.001,
+            "Default residual overrides should match plain tick: {} vs {}",
+            state_a.tension, state_b.tension,
+        );
+        assert!(
+            fabsf(state_a.coherence - state_b.coherence) < 0.001,
+            "Default residual overrides should match plain tick coherence: {} vs {}",
+            state_a.coherence, state_b.coherence,
+        );
+    }
+
+    #[test]
+    fn test_residual_loudness_reduces_tension() {
+        // A loud spike (sound_level = 0.9) causes high sound tension.
+        // With residual override replacing sound_level with the quiet pre-spike
+        // value (0.1), the tension should be lower.
+        let spike_sensors = MBotSensors {
+            ultrasonic_cm: 100.0, // far away, no proximity tension
+            sound_level: 0.9,     // loud spike
+            ..Default::default()
+        };
+
+        // Brain A: no residual (spike hits tension directly)
+        let mut brain_a = MBotBrain::new();
+        let (state_raw, _) = brain_a.tick(&spike_sensors);
+
+        // Brain B: residual replaces sound with pre-spike quiet value
+        let mut brain_b = MBotBrain::new();
+        let residual = ResidualOverrides {
+            sound_level: Some(0.1), // pre-spike: quiet
+            ..Default::default()
+        };
+        let (state_residual, _) = brain_b.tick_with_residual(&spike_sensors, &residual);
+
+        assert!(
+            state_residual.tension < state_raw.tension,
+            "Residual sound override should produce less tension: residual={} vs raw={}",
+            state_residual.tension, state_raw.tension,
+        );
+    }
+
+    #[test]
+    fn test_residual_proximity_reduces_tension() {
+        // Object suddenly very close (5cm) causes high proximity tension.
+        // With residual override replacing distance with the pre-spike value
+        // (100cm = far away), the tension should be lower.
+        let spike_sensors = MBotSensors {
+            ultrasonic_cm: 5.0,    // suddenly very close
+            sound_level: 0.0,
+            ..Default::default()
+        };
+
+        // Brain A: no residual
+        let mut brain_a = MBotBrain::new();
+        let (state_raw, _) = brain_a.tick(&spike_sensors);
+
+        // Brain B: residual says it was far away before
+        let mut brain_b = MBotBrain::new();
+        let residual = ResidualOverrides {
+            ultrasonic_cm: Some(100.0), // pre-spike: far away
+            ..Default::default()
+        };
+        let (state_residual, _) = brain_b.tick_with_residual(&spike_sensors, &residual);
+
+        assert!(
+            state_residual.tension < state_raw.tension,
+            "Residual distance override should produce less tension: residual={} vs raw={}",
+            state_residual.tension, state_raw.tension,
+        );
+    }
+
+    #[test]
+    fn test_residual_accel_reduces_tension() {
+        // Impact shock: high accelerometer spike.
+        // With residual override using a calm baseline, tension should be lower.
+        let spike_sensors = MBotSensors {
+            ultrasonic_cm: 100.0,
+            accel: [0.0, 0.0, 15.0], // high G-force spike
+            ..Default::default()
+        };
+
+        // Brain A: no residual
+        let mut brain_a = MBotBrain::new();
+        let (state_raw, _) = brain_a.tick(&spike_sensors);
+
+        // Brain B: residual uses calm 1G baseline
+        let mut brain_b = MBotBrain::new();
+        let residual = ResidualOverrides {
+            accel_magnitude: Some(1.0), // pre-spike: calm 1G
+            ..Default::default()
+        };
+        let (state_residual, _) = brain_b.tick_with_residual(&spike_sensors, &residual);
+
+        assert!(
+            state_residual.tension < state_raw.tension,
+            "Residual accel override should produce less tension: residual={} vs raw={}",
+            state_residual.tension, state_raw.tension,
+        );
+    }
+
+    #[test]
+    fn test_residual_combined_prevents_double_counting() {
+        // Simulate the full double-counting scenario:
+        // A loud clap at sound_level=0.8 with previous quiet at 0.1.
+        // Without residual: the spike adds to both startle AND variance tension.
+        // With residual: the spike only adds to startle tension; variance uses 0.1.
+        //
+        // We test that the difference between raw and residual tension is
+        // proportional to the sound_tension contribution.
+
+        let spike_sensors = MBotSensors {
+            ultrasonic_cm: 100.0,
+            sound_level: 0.8, // loud clap
+            ..Default::default()
+        };
+
+        // Raw: sound_tension = 0.8 * 0.5 = 0.4
+        let mut brain_raw = MBotBrain::new();
+        let (state_raw, _) = brain_raw.tick(&spike_sensors);
+
+        // Residual: sound_tension = 0.1 * 0.5 = 0.05
+        let mut brain_res = MBotBrain::new();
+        let residual = ResidualOverrides {
+            sound_level: Some(0.1),
+            ..Default::default()
+        };
+        let (state_res, _) = brain_res.tick_with_residual(&spike_sensors, &residual);
+
+        // The raw tension should be higher by roughly the sound contribution difference.
+        // sound_tension weight = 0.15, difference = (0.4 - 0.05) * 0.15 = 0.0525
+        // After EMA smoothing (alpha=0.15), first tick delta ~ 0.0525 * 0.15 ~ 0.008
+        let tension_diff = state_raw.tension - state_res.tension;
+        assert!(
+            tension_diff > 0.005,
+            "Residual should meaningfully reduce tension. Raw={}, Residual={}, diff={}",
+            state_raw.tension, state_res.tension, tension_diff,
+        );
+        assert!(
+            tension_diff < 0.1,
+            "Tension difference should be bounded (not overly large). diff={}",
+            tension_diff,
+        );
+    }
+
+    #[test]
+    fn test_residual_motor_commands_use_raw_sensors() {
+        // The generate_command function should use the raw sensor values for
+        // reactive behavior, not the residual values. We verify this by
+        // applying a sound residual override (which only affects tension)
+        // and confirming the motor commands still react to the raw distance.
+        //
+        // Two brains see different raw distances (5cm vs 80cm) but both
+        // have the same sound residual override. If generate_command used
+        // residual values the commands would not differ by distance, but
+        // since it uses raw sensors, the close brain backs up while the
+        // far brain turns.
+
+        // Brain A: close object (5cm), loud sound with residual
+        let close_sensors = MBotSensors {
+            ultrasonic_cm: 5.0,     // very close -> Protect backs up
+            sound_level: 0.9,       // loud
+            ..Default::default()
+        };
+        let mut brain_a = MBotBrain::new();
+        brain_a.tension_ema = 0.98;  // High enough to stay in Protect after EMA blend
+
+        let residual = ResidualOverrides {
+            sound_level: Some(0.1), // Only override sound for tension calc
+            ..Default::default()
+        };
+        let (state_a, cmd_a) = brain_a.tick_with_residual(&close_sensors, &residual);
+
+        // Brain B: far object (80cm), same loud sound with same residual
+        let far_sensors = MBotSensors {
+            ultrasonic_cm: 80.0,    // far -> Protect turns away
+            sound_level: 0.9,
+            ..Default::default()
+        };
+        let mut brain_b = MBotBrain::new();
+        brain_b.tension_ema = 0.98;
+
+        let (state_b, cmd_b) = brain_b.tick_with_residual(&far_sensors, &residual);
+
+        // Both should be in Protect mode (close sensor keeps raw tension high)
+        assert_eq!(state_a.reflex, ReflexMode::Protect,
+            "Brain A should be in Protect mode, tension={}",
+            state_a.tension);
+        assert_eq!(state_b.reflex, ReflexMode::Protect,
+            "Brain B should be in Protect mode, tension={}",
+            state_b.tension);
+
+        // Motor commands should differ because generate_command sees the real
+        // ultrasonic_cm (5cm vs 80cm).
+        // At 5cm (within danger_distance=15), both motors = -60 (back up).
+        // At 80cm (outside danger_distance), motors = (-30, 50) (turn away).
+        assert!(
+            cmd_a.left != cmd_b.left || cmd_a.right != cmd_b.right,
+            "Motor commands should differ based on raw sensor distance. \
+             Close: ({}, {}), Far: ({}, {})",
+            cmd_a.left, cmd_a.right, cmd_b.left, cmd_b.right,
+        );
+
+        // The close brain should back up (both motors negative and equal)
+        assert!(
+            cmd_a.left < 0 && cmd_a.right < 0,
+            "Close object should cause both motors to reverse: left={} right={}",
+            cmd_a.left, cmd_a.right,
+        );
+    }
+
+    #[test]
+    fn test_residual_overrides_default_is_noop() {
+        // Verify that ResidualOverrides::default() has all fields as None
+        let r = ResidualOverrides::default();
+        assert!(r.sound_level.is_none());
+        assert!(r.light_level.is_none());
+        assert!(r.ultrasonic_cm.is_none());
+        assert!(r.accel_magnitude.is_none());
     }
 }
