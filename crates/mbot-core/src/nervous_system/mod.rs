@@ -7,3 +7,5 @@ pub mod suppression;
 pub mod startle;
 pub mod stimulus_log;
 pub mod behavior;
+pub mod conflict;
+pub mod upward;
