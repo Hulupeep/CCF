@@ -35,6 +35,10 @@ pub mod coherence_persist;
 pub mod downward;
 #[cfg(feature = "brain")]
 pub mod episodes;
+#[cfg(feature = "brain")]
+pub mod habits;
+#[cfg(feature = "brain")]
+pub mod relational_graph;
 
 #[cfg(feature = "brain")]
 pub mod channels;
