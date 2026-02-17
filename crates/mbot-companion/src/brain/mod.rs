@@ -33,6 +33,8 @@ pub mod suppression_sync;
 pub mod coherence_persist;
 #[cfg(feature = "brain")]
 pub mod downward;
+#[cfg(feature = "brain")]
+pub mod episodes;
 
 #[cfg(feature = "brain")]
 pub mod channels;
@@ -243,8 +245,32 @@ impl BrainLayer {
         self.memory.as_mut()
     }
 
-    /// Generate a personality-colored response to text input
+    /// Generate a personality-colored response to text input, gated by permeability.
+    ///
+    /// Returns `None` if permeability is below the threshold for LLM reflection.
+    /// Pass `permeability = 1.0` for always-on behavior (e.g. direct user chat).
     pub async fn respond(
+        &self,
+        input: &str,
+        personality: &Personality,
+        state: &HomeostasisState,
+        permeability: f32,
+    ) -> BrainResult<Option<String>> {
+        if !self.config.enabled {
+            return Err(BrainError::ConfigError("Brain layer is disabled".into()));
+        }
+
+        match &self.narrator {
+            Some(narrator) => narrator.respond(input, personality, state, permeability).await,
+            None => Err(BrainError::ConfigError("Narrator not initialized".into())),
+        }
+    }
+
+    /// Generate a personality-colored response without permeability gating.
+    ///
+    /// Always makes an LLM call. Use for direct user chat where the user
+    /// expects a response regardless of robot's internal state.
+    pub async fn respond_ungated(
         &self,
         input: &str,
         personality: &Personality,
@@ -255,7 +281,7 @@ impl BrainLayer {
         }
 
         match &self.narrator {
-            Some(narrator) => narrator.respond(input, personality, state).await,
+            Some(narrator) => narrator.respond_ungated(input, personality, state).await,
             None => Err(BrainError::ConfigError("Narrator not initialized".into())),
         }
     }
