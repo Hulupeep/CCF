@@ -1,6 +1,6 @@
 # mBot2 Hardware Guide
 
-This guide covers setting up and running CCF on a Makeblock mBot2 robot using the RuVector nervous system.
+This guide covers setting up and running CCF on a Makeblock mBot2 robot using the RuVector OS platform.
 
 For the CCF architecture overview, see the main [README](../README.md).
 
@@ -9,7 +9,7 @@ For the CCF architecture overview, see the main [README](../README.md).
 ## What Can It Do
 
 ### ArtBot - It Draws What It Feels
-Attach a pen. The robot draws art based on its emotional state. Calm produces spirals. Startled produces jagged lines. Every drawing is a snapshot of its inner experience.
+Attach a pen. The robot draws art based on its emotional state. Calm produces spirals. Startled produces jagged lines. Every drawing is a snapshot of its inner experience. Its drawing style changes based on its tension/coherence state as reported by the RuVector OS platform.
 
 ### Personality Pets - Same Robot, Different Soul
 15 preset personalities. **Curious Cleo** investigates everything. **Nervous Nellie** is scared of sudden movements. **Grumpy Gus** does NOT want to play (but secretly does). 9 personality quirks add extra flavor.
@@ -463,18 +463,18 @@ Create your own with the Personality Mixer in the web dashboard.
 ## Architecture
 
 ```
-                    mBot2 RuVector — CCF Edition
+                    CCF Trust Architecture (mBot2 / RuVector OS)
  ================================================================
 
    mBot2 (CyberPi)              Companion App (Laptop)
   +-----------------+          +---------------------------+
   | Sensors:        |   USB/   | Deterministic Layer:      |
   |  - Ultrasonic   |   BT     |  - MBotBrain.tick()       |
-  |  - Sound level  | <------> |  - Homeostasis engine     |
+  |  - Sound level  | <------> |  - Homeostasis runtime    |
   |  - Light level  |          |  - Reflex mode selection  |
   |  - Gyroscope    |          |  - instant_coherence      |
   |  - Encoders     |          |                           |
-  |                 |          | CCF Layer (this fork):    |
+  |                 |          | CCF Trust Layer:          |
   | Actuators:      |          |  - PresenceDetector       |
   |  - Left motor   |          |  - ContextKey.from_sensors|
   |  - Right motor  |          |  - CoherenceField gate    |

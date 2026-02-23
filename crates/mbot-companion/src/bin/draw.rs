@@ -1,7 +1,7 @@
 //! Drawing mode: mBot2 draws based on its mood (emotional art!)
 //!
 //! The robot creates spirograph-like patterns that change based on
-//! its tension/coherence state from the RuVector nervous system.
+//! its tension/coherence state reported by the RuVector OS platform.
 
 use anyhow::Result;
 use mbot_core::{MBotBrain, MBotSensors, ReflexMode};
@@ -250,7 +250,7 @@ impl EmotionalDrawer {
 #[tokio::main]
 async fn main() -> Result<()> {
     println!("╔════════════════════════════════════════════════════════════╗");
-    println!("║        🎨 mBot2 Emotional Art with RuVector AI 🎨          ║");
+    println!("║        🎨 CCF Emotional Art on RuVector OS 🎨          ║");
     println!("╠════════════════════════════════════════════════════════════╣");
     println!("║  The robot draws spirograph patterns that change based     ║");
     println!("║  on its emotional state (tension/coherence).               ║");

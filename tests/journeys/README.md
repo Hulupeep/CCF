@@ -1,6 +1,6 @@
 # Journey Tests
 
-End-to-end journey tests for mBot RuVector. These tests validate complete user workflows from start to finish.
+End-to-end journey tests for CCF on RuVector. These tests validate complete user workflows from start to finish.
 
 ## Running Tests
 

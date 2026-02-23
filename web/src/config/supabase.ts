@@ -31,7 +31,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   global: {
     headers: {
-      'X-Client-Info': 'mbot-ruvector-web',
+      'X-Client-Info': 'ccf-web-dashboard',
     },
   },
 });

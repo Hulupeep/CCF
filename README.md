@@ -19,7 +19,7 @@ Instead, the robot earns expressiveness per-context through repeated interaction
 A robot that is calm in a quiet, familiar kitchen is not automatically calm in a new, bright, noisy hallway. Trust must be earned separately in each situation.
 
 ```
-Standard mBot RuVector:   coherence = 1.0 - tension_ema
+Standard RuVector OS:      coherence = 1.0 - tension_ema
 CCF Edition:              coherence[bright,quiet,approaching] = 0.73  (earned over 40 interactions)
                           coherence[dark,loud,approaching]    = 0.04  (first time here, still new)
 ```
@@ -100,14 +100,14 @@ CCF is implemented as a behavioural firmware layer that sits between any hardwar
 ```
 Body (any robot platform)
     ↓ sensors
-Nervous System (RuVector DAG-based homeostasis)
+Nervous System (RuVector DAG-based runtime platform)
     ↓ instant_coherence
 CCF Trust Layer (this repo — patent pending)
     ↓ effective_coherence per context
 Social Phase → Behavioural Output
 ```
 
-CCF is built on the [RuVector](https://github.com/ruvnet/ruvector) nervous system created by ruvnet. RuVector provides the DAG processing pipeline and homeostasis architecture. CCF adds the relational trust layer on top. The patent covers the CCF methods only, not the underlying RuVector infrastructure.
+CCF is an independent architecture designed to run on the [RuVector](https://github.com/ruvnet/ruvector) OS platform created by ruvnet. RuVector OS provides the DAG processing pipeline and homeostasis runtime. CCF runs as an independent trust architecture on this platform. The patent covers the CCF methods only, not the underlying RuVector infrastructure.
 
 ### Reference Implementation
 
@@ -190,7 +190,7 @@ Contact: cbyrne@floutlabs.com
 
 ## Built With
 
-- **[RuVector](https://github.com/ruvnet/ruvector)** — The nervous system architecture (created by ruvnet)
+- **[RuVector](https://github.com/ruvnet/ruvector)** — The robot operating system platform (created by ruvnet)
 - **[Makeblock mBot2](https://www.makeblock.com/steam-kits/mbot2)** — The reference robot platform
 - **[DeepSeek mHC](https://arxiv.org/abs/2512.24880)** — Mathematical foundation for manifold-constrained mixing
 - **Rust** — Performance and safety

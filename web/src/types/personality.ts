@@ -1,5 +1,5 @@
 /**
- * Personality type definitions for mBot RuVector
+ * Personality type definitions for CCF on RuVector
  * Based on feature_personality.yml contract
  */
 

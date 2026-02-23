@@ -226,7 +226,7 @@ mBot has different personalities that affect how it responds:
 Use \`/personality\` to see current personality or \`/personality <name>\` to change it.
 
 **About:**
-mBot RuVector is an AI-powered robot assistant with personality-driven behavior.
+CCF on RuVector is an AI-powered robot assistant with personality-driven behavior.
 Built with ❤️ for learning and play.
     `;
 

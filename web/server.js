@@ -1,5 +1,5 @@
 /**
- * mBot2 RuVector Dashboard Server
+ * CCF Behavioral Dashboard Server
  *
  * Serves the web dashboard and manages the companion process.
  * Run: node server.js  (or: cd web && npm start)
@@ -591,7 +591,7 @@ process.on('SIGINT', () => {
 });
 
 console.log('\n==========================================================');
-console.log('  mBot2 RuVector Dashboard');
+console.log('  CCF Behavioral Dashboard');
 console.log('==========================================================\n');
 console.log('  Open http://localhost:3000 in your browser.\n');
 console.log('  Press Ctrl+C to stop.\n');

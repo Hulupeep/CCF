@@ -1,5 +1,5 @@
 /**
- * Voice Command type definitions for mBot RuVector
+ * Voice Command type definitions for CCF on RuVector
  * Based on feature_voice.yml contract
  * Invariants: I-VOICE-001, I-VOICE-002, I-VOICE-003
  */

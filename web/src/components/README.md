@@ -1,6 +1,6 @@
 # Neural Visualizer Component
 
-Real-time visualization of mBot2 RuVector's nervous system state.
+Real-time visualization of CCF on RuVector's nervous system state.
 
 ## Features
 

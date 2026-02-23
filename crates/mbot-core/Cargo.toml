@@ -3,7 +3,7 @@ name = "mbot-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Core AI logic for mBot2 with RuVector nervous system"
+description = "CCF core architecture for mBot2 running on RuVector OS"
 
 [features]
 default = ["std"]

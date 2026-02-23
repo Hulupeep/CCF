@@ -1,6 +1,6 @@
 # News Service
 
-Personalized news integration with learning capabilities for mBot RuVector.
+Personalized news integration with learning capabilities for CCF on RuVector.
 
 ## Features
 

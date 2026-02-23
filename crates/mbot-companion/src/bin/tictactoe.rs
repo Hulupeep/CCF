@@ -231,7 +231,7 @@ impl TicTacToeGame {
 #[tokio::main]
 async fn main() -> Result<()> {
     println!("╔════════════════════════════════════════════════════════════╗");
-    println!("║          🤖 mBot2 TIC-TAC-TOE with RuVector AI 🤖          ║");
+    println!("║          🤖 CCF TIC-TAC-TOE on RuVector OS 🤖          ║");
     println!("╠════════════════════════════════════════════════════════════╣");
     println!("║  You are X, Robot is O                                     ║");
     println!("║  Enter moves like: A1, B2, C3                              ║");

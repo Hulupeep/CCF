@@ -64,8 +64,8 @@
   },
   "config": {
     "autoStart": false,
-    "logDir": "/home/xanacan/projects/code/mbot/mbot_ruvector/.claude-flow/logs",
-    "stateFile": "/home/xanacan/projects/code/mbot/mbot_ruvector/.claude-flow/daemon-state.json",
+    "logDir": "/home/xanacan/projects/code/mbot/CCF/.claude-flow/logs",
+    "stateFile": "/home/xanacan/projects/code/mbot/CCF/.claude-flow/daemon-state.json",
     "maxConcurrent": 2,
     "workerTimeoutMs": 300000,
     "resourceThresholds": {

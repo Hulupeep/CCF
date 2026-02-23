@@ -1,4 +1,4 @@
-//! mBot2 Companion - Runs RuVector AI on laptop, controls mBot2 via Bluetooth/Serial
+//! mBot2 Companion - Runs CCF architecture on RuVector OS, controls mBot2 via Bluetooth/Serial
 //!
 //! Usage:
 //!   mbot-companion --bluetooth           # Connect via Bluetooth
@@ -28,7 +28,7 @@ use transport::{MBotTransport, TransportType};
 
 #[derive(Parser, Debug)]
 #[command(name = "mbot-companion")]
-#[command(about = "RuVector AI companion for mBot2", long_about = None)]
+#[command(about = "CCF trust architecture for mBot2 robots", long_about = None)]
 struct Args {
     /// Connect via Bluetooth
     #[arg(long)]
@@ -103,7 +103,7 @@ async fn main() -> Result<()> {
     let log_level = if args.quiet { Level::WARN } else if args.verbose { Level::DEBUG } else { Level::INFO };
     tracing_subscriber::fmt().with_max_level(log_level).init();
 
-    info!("🤖 mBot2 RuVector Companion starting...");
+    info!("🤖 CCF on RuVector Companion starting...");
 
     // Determine transport type
     let transport_type = if args.simulate {
@@ -349,7 +349,7 @@ async fn run_main_loop(
     // Print a welcome banner so the user knows what they're looking at
     println!();
     println!("==========================================================");
-    println!("  mBot2 RuVector - Nervous System Running");
+    println!("  CCF on RuVector - Nervous System Running");
     println!("==========================================================");
     println!();
     println!("  The robot's nervous system is now active!");

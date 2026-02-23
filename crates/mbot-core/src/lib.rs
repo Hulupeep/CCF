@@ -9,13 +9,13 @@
  * See LICENSE and PATENTS.md in the root directory for full details.
  */
 
-//! mBot Core - Minimal AI nervous system for mBot2
+//! mBot Core - Minimal architecture for mBot2
 //!
 //! This crate provides the core AI logic that can run on:
 //! - Laptop companion (full features)
 //! - ESP32/CyberPi (no_std, minimal)
 //!
-//! Based on RuVector's DAG nervous system architecture.
+//! Designed to run on RuVector's DAG-based OS architecture.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

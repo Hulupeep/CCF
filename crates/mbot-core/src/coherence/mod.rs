@@ -17,7 +17,7 @@
 //! # Architecture (ARCH-001: no_std compatible)
 //!
 //! Data structures and pure computation live here in mbot-core.
-//! Persistence (RuVector), graph construction, and min-cut live in mbot-companion.
+//! Persistence (RuVector OS platform), graph construction, and min-cut live in mbot-companion.
 //!
 //! # Key types
 //!

@@ -1,7 +1,7 @@
 {
-  "name": "mbot-ruvector",
+  "name": "CCF",
   "version": "0.1.0",
-  "description": "mBot2 RuVector - AI-powered robot companion",
+  "description": "Contextual Coherence Fields (CCF) - Social trust architecture for robots",
   "scripts": {
     "test": "jest",
     "test:contracts": "jest tests/contracts",

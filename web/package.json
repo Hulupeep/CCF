@@ -1,7 +1,7 @@
 {
   "name": "mbot-ruvector-dashboard",
   "version": "0.1.0",
-  "description": "Real-time dashboard for mBot2 RuVector AI",
+  "description": "Real-time behavioral dashboard for CCF on RuVector OS",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

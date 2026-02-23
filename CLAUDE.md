@@ -1,4 +1,4 @@
-# mBot RuVector - Development Guide
+# CCF on RuVector - Development Guide
 
 ## 🚨 RULE 1: No Ticket = No Code
 

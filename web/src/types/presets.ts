@@ -1,5 +1,5 @@
 /**
- * Personality presets for mBot RuVector
+ * Personality presets for CCF on RuVector
  * All 15 preset personalities with hover previews
  */
 

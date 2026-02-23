@@ -3,7 +3,7 @@ name = "mbot-embedded"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-description = "Embedded RuVector for ESP32/CyberPi (no_std)"
+description = "CCF embedded architecture for ESP32/CyberPi running on RuVector OS"
 
 [features]
 default = []

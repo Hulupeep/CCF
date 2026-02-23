@@ -9,7 +9,7 @@
  * See LICENSE and PATENTS.md in the root directory for full details.
  */
 
-//! mBot Companion - Application features built on mbot-core
+//! mBot Companion - Application features running on CCF core
 //!
 //! This crate provides high-level functionality for the mBot robot,
 //! including games, learning activities, and utility applications.

@@ -1,6 +1,6 @@
-# mBot2 RuVector Web Dashboard
+# CCF Behavioral Dashboard
 
-Real-time visualization and control dashboard for mBot2 with RuVector AI.
+Real-time visualization and control dashboard for mBot2 running CCF on RuVector OS.
 
 ## Features
 

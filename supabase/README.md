@@ -1,8 +1,8 @@
-# Supabase Setup for mBot RuVector
+# Supabase Setup for CCF on RuVector
 
 ## Overview
 
-This directory contains database migrations for the mBot RuVector cloud features, including the Cloud Personality Marketplace (Issue #85).
+This directory contains database migrations for the CCF on RuVector cloud features, including the Cloud Personality Marketplace (Issue #85).
 
 ## Prerequisites
 

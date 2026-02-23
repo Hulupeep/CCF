@@ -1,4 +1,4 @@
-//! Embedded RuVector for ESP32/CyberPi
+//! CCF embedded architecture running on RuVector OS
 //!
 //! This crate provides a minimal implementation that can run
 //! directly on the mBot2's CyberPi (ESP32) without a companion laptop.

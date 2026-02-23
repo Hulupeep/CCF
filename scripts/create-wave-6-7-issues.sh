@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Wave 6-7 Issue Creation Script for mBot RuVector
+# Wave 6-7 Issue Creation Script for CCF on RuVector
 # Creates 22 Specflow-compliant GitHub issues
 # Run: chmod +x create-wave-6-7-issues.sh && ./create-wave-6-7-issues.sh
 
@@ -9,7 +9,7 @@ set -e
 REPO="Hulupeep/CCF"
 
 echo "============================================"
-echo "Creating Wave 6-7 Issues for mBot RuVector"
+echo "Creating Wave 6-7 Issues for CCF on RuVector"
 echo "============================================"
 echo ""
 

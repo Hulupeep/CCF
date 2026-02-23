@@ -6,7 +6,7 @@
 
 ## Implementation Overview
 
-Successfully implemented a complete drawing gallery system for mBot2 RuVector with IndexedDB storage, filtering, search, playback, and export capabilities.
+Successfully implemented a complete drawing gallery system for CCF on RuVector with IndexedDB storage, filtering, search, playback, and export capabilities.
 
 ## Files Created (8 files, 2,133 total lines)
 

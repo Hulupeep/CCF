@@ -4,7 +4,7 @@
 
 ### Implementation Status: ✅ Complete
 
-This implementation provides a fully-featured React-based personality mixer UI for mBot2 RuVector AI.
+This implementation provides a fully-featured React-based personality mixer UI for CCF on RuVector AI.
 
 ## Features Implemented
 
