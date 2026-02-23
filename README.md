@@ -1,6 +1,6 @@
-# mBot RuVector
+# mBot RuVector — CCF Edition
 
-**Give your robot a nervous system. Watch it come alive.**
+**Give your robot a nervous system. Watch it earn its relationships.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
@@ -8,6 +8,53 @@
 ---
 
 <img width="718" height="676" alt="image" src="https://github.com/user-attachments/assets/6093ccbc-df03-41b6-9d3d-720fc543f1b1" />
+
+## What This Fork Adds: Contextual Coherence Fields
+
+This branch extends the base mBot RuVector nervous system with **Contextual Coherence Fields (CCF)** — a mechanism for earned relational trust that replaces the global `coherence` scalar with context-keyed accumulators built up independently through repeated interaction.
+
+The robot doesn't just *feel* comfortable. It *earns* comfort, context by context.
+
+```
+Standard mBot RuVector:   coherence = 1.0 - tension_ema
+CCF Edition:              coherence[bright,quiet,approaching] = 0.73  (earned over 40 interactions)
+                          coherence[dark,loud,approaching]    = 0.04  (first time here, still new)
+```
+
+The same person walking into the robot's familiar bright kitchen earns a different response than if they approach it in an unfamiliar dark hallway. Not because the person changed — because the *situation* hasn't been tested yet.
+
+### The Four Social Phases
+
+CCF maps (effective_coherence × tension) to four behavioral quadrants with hysteresis:
+
+| Phase | Coherence | Tension | Behavior |
+|-------|-----------|---------|----------|
+| **Shy Observer** | Low | Low | Watchful, minimal expression, learning the situation |
+| **Startled Retreat** | Low | High | Physical withdrawal, muted LEDs, protective flight |
+| **Quietly Beloved** | High | Low | Full expressive range, small flourishes, at home here |
+| **Protective Guardian** | High | High | Alert but grounded — this is *my* space, something is wrong |
+
+The fourth quadrant — Protective Guardian — is only possible in a *familiar* context. A robot with no relational history flees; a robot that has earned its place stands its ground.
+
+### Key Design Decisions
+
+**Asymmetric gate**: For unfamiliar contexts (context coherence < 0.3), the effective coherence is `min(instant, context)` — trust must be earned first. For familiar contexts, it's `0.3 × instant + 0.7 × context` — accumulated history buffers against momentary noise. A flickering light doesn't reset weeks of earned trust.
+
+**Earned floor**: `interaction_count` creates a minimum the robot won't fall below. After 100 positive interactions in a context, a single startle event cannot return it to zero. Trust has memory.
+
+**Cold-start policy**: `curiosity_drive` compresses the cold-start window. High-curiosity robots start at a small positive baseline (≤0.15); alone contexts bootstrap 2× faster so the robot develops personality through solitude before social contexts arrive.
+
+**Degraded mode**: When the companion layer is unavailable, the robot falls back to global coherence (today's existing behavior). On reconnect, context-keyed values resume from persisted state. The robot never suddenly becomes shyer than it was before disconnection.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `crates/mbot-core/src/coherence/mod.rs` | Context vocabulary, accumulators, CoherenceField, SocialPhase — 28+ tests |
+| `docs/coherence.md` | Academic paper: CCF as a novel contribution to social robotics |
+| `docs/ccf-evolution.md` | Design history: from reflexive scalar to relational architecture |
+
+---
 
 ## The Big Why
 
@@ -18,9 +65,12 @@ Most educational robots follow scripts. You tell them what to do and they do it.
 ```
 Traditional Robot:  IF distance < 10cm THEN reverse()
 RuVector Robot:     Sensor --> Nervous System --> Emergent Behavior
+CCF Edition:        Sensor --> Nervous System --> CCF Gate --> Social Phase --> Emergent Behavior
+                                                     ↑
+                                          Accumulated relational history
 ```
 
-The difference is **surprise**. The robot does things you didn't program.
+The difference is **relationship**. The robot behaves differently with *you* because of *your history together*.
 
 ---
 
@@ -505,33 +555,60 @@ Create your own with the Personality Mixer in the web dashboard.
 ## Architecture
 
 ```
-                    mBot2 RuVector System
+                    mBot2 RuVector — CCF Edition
  ================================================================
 
    mBot2 (CyberPi)              Companion App (Laptop)
   +-----------------+          +---------------------------+
   | Sensors:        |   USB/   | Deterministic Layer:      |
-  |  - Ultrasonic   |   BT     |  - Homeostasis engine     |
-  |  - Sound level  | <------> |  - Reflex mode selection  |
-  |  - Light level  |          |  - Motor command output   |
-  |  - Gyroscope    |          |  - Personality system     |
+  |  - Ultrasonic   |   BT     |  - MBotBrain.tick()       |
+  |  - Sound level  | <------> |  - Homeostasis engine     |
+  |  - Light level  |          |  - Reflex mode selection  |
+  |  - Gyroscope    |          |  - instant_coherence      |
   |  - Encoders     |          |                           |
-  |                 |          | Brain Layer (optional):   |
-  | Actuators:      |          |  - LLM reasoning          |
-  |  - Left motor   |          |  - SQLite memory          |
-  |  - Right motor  |          |  - Autonomy engine        |
-  |  - 8x RGB LEDs  |          |  - Voice pipeline         |
-  |  - Buzzer       |          |  - Chat channels          |
-  |  - Pen servo    |          |  - Personality narrator   |
-  +-----------------+          +---------------------------+
+  |                 |          | CCF Layer (this fork):    |
+  | Actuators:      |          |  - PresenceDetector       |
+  |  - Left motor   |          |  - ContextKey.from_sensors|
+  |  - Right motor  |          |  - CoherenceField gate    |
+  |  - 8x RGB LEDs  |          |  - SocialPhase classifier |
+  |  - Buzzer       |          |  - effective_coherence    |
+  |  - Pen servo    |          |                           |
+  +-----------------+          | Brain Layer (optional):   |
+                               |  - LLM reasoning          |
+                               |  - SQLite memory          |
+                               |  - Voice pipeline         |
+                               |  - Personality narrator   |
+                               +---------------------------+
                                           |
                                +----------+---------+
                                |  Web Dashboard     |
                                |  localhost:3000    |
-                               |  - Neural viz      |
-                               |  - Personality mix  |
+                               |  - Social phase    |
+                               |  - Context count   |
+                               |  - Familiarity bar |
                                +--------------------+
 ```
+
+### CCF Layer Detail
+
+The CCF layer runs *after* `MBotBrain.tick()`, post-processing its `instant_coherence` output through the relational gate before any downstream consumer sees it:
+
+```
+sensors → MBotBrain.tick() → instant_coherence
+                                     ↓
+              PresenceDetector → ContextKey
+                                     ↓
+              CoherenceField.effective_coherence(instant, key)
+              ┌─ context < 0.3: min(instant, context)      [unfamiliar: earn it]
+              └─ context ≥ 0.3: 0.3·instant + 0.7·context  [familiar: buffer noise]
+                                     ↓
+              SocialPhase.classify(eff_coh, tension, previous)
+              [ShyObserver | StartledRetreat | QuietlyBeloved | ProtectiveGuardian]
+                                     ↓
+              state.coherence = eff_coh   (downstream: voice API, dashboard, LLM prompt)
+```
+
+`MBotBrain` is unchanged — the Protect reflex still overrides everything. The CCF layer shapes *expression*, not *safety*.
 
 ### Crate Structure
 
@@ -655,6 +732,8 @@ This project exists for **joy**. Period.
 
 | Document | What It Covers |
 |---|---|
+| **[CCF Evolution](docs/ccf-evolution.md)** | Design history: from reflexive scalar to relational architecture — the full thought process |
+| **[CCF Academic Paper](docs/coherence.md)** | Contextual Coherence Fields as a novel contribution to social robotics |
 | **[Master Setup Guide](docs/MASTER_GUIDE.md)** | Hardware setup, installation, connection, deployment |
 | **[Application Guides](docs/APP_GUIDES.md)** | Detailed guide for each of the 6 applications |
 | **[Product Vision](docs/PRD.md)** | Full product requirements and roadmap |
