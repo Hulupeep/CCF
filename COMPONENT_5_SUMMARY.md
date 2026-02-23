@@ -259,7 +259,7 @@ await assistant.triggerMorningBriefing('user-1');
 
 ## 📚 References
 
-- **Issue:** #95 - https://github.com/Hulupeep/mbot_ruvector/issues/95
+- **Issue:** #95 - https://github.com/Hulupeep/CCF/issues/95
 - **Contracts:** `docs/contracts/feature_voice.yml`
 - **Guide:** `docs/guides/voice-assistant-complete-guide.md`
 - **Tests:** `tests/journeys/voice-*.journey.spec.ts`

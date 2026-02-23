@@ -1,3 +1,14 @@
+/*
+ * Notice of Provisional Patent Filing:
+ * The methods and algorithms implemented in this file (specifically relating to 
+ * Contextual Coherence Fields and relational coherence accumulation) are the 
+ * subject of a United States Provisional Patent Application (63/988,438) 
+ * filed on February 23, 2026.
+ * 
+ * This source code is licensed under the Business Source License 1.1.
+ * See LICENSE and PATENTS.md in the root directory for full details.
+ */
+
 //! Contextual Coherence Fields
 //!
 //! Replaces the global coherence scalar with context-keyed accumulators

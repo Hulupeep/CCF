@@ -5,7 +5,7 @@
 
 set -e
 
-DOCS_DIR="/home/xanacan/projects/code/mbot/mbot_ruvector/docs"
+DOCS_DIR="/home/xanacan/projects/code/mbot/CCF/docs"
 GUIDES_DIR="$DOCS_DIR/guides"
 API_DIR="$DOCS_DIR/api"
 INTEGRATION_DIR="$DOCS_DIR/integration"
@@ -726,7 +726,7 @@ echo ""
 echo "Next: Create API references, integration guides, and troubleshooting docs"
 GUIDE
 
-chmod +x /home/xanacan/projects/code/mbot/mbot_ruvector/scripts/generate-remaining-docs.sh
+chmod +x /home/xanacan/projects/code/mbot/CCF/scripts/generate-remaining-docs.sh
 
 echo "✅ Documentation generator script created!"
 echo "Run: bash scripts/generate-remaining-docs.sh"

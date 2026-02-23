@@ -1,6 +1,6 @@
 # mBot Mobile App - Implementation Summary
 
-**Issue:** [#88 - STORY-MOBILE-001: Mobile App Foundation](https://github.com/Hulupeep/mbot_ruvector/issues/88)
+**Issue:** [#88 - STORY-MOBILE-001: Mobile App Foundation](https://github.com/Hulupeep/CCF/issues/88)
 **Status:** ✅ COMPLETE
 **Date:** 2026-02-01
 

@@ -149,5 +149,5 @@ emulator -avd Pixel_4_API_30
 ## Support
 
 - GitHub Issue: #88
-- Repository: https://github.com/Hulupeep/mbot_ruvector
+- Repository: https://github.com/Hulupeep/CCF
 - Contract: J-MOBILE-CONTROL

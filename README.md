@@ -2,14 +2,28 @@
 
 **Give your robot a nervous system. Watch it earn its relationships.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1-blue.svg)](./LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
 ---
 
 <img width="718" height="676" alt="image" src="https://github.com/user-attachments/assets/6093ccbc-df03-41b6-9d3d-720fc543f1b1" />
 
+## ⚖️ Licensing & Community Use
+
+CCF is built for the **Agentics and RuVector community**. We want you to build, prototype, and experiment freely.
+
+- **For Makers & Researchers:** Use CCF for free in your prototypes, hackerspace projects, and research papers. If you're building on Cognitum or similar hardware for development, go for it.
+- **For Commercial Shippers:** If you are embedding CCF into a product for sale or shipping it in silicon, you require a commercial license.
+- **The Path to Open Source:** On **Feb 23, 2032**, this entire repository will automatically transition to the **Apache 2.0 License**.
+
+**Patent Status:** Core CCF methods (Relational Coherence Accumulation & Reflexive-Deliberative Processing) are currently **Patent Pending** (US Provisional filed Feb 23, 2026, Number: 63/988,438). See [PATENTS.md](./PATENTS.md).
+
+---
+
 ## What This Fork Adds: Contextual Coherence Fields
+
+CCF is built on the mBot RuVector nervous system created by Ruv/ruvnet. RuVector provides the DAG processing pipeline and homeostasis architecture that makes this possible. CCF adds a relational trust layer on top — the patent covers the CCF methods only, not the underlying RuVector infrastructure.
 
 This branch extends the base mBot RuVector nervous system with **Contextual Coherence Fields (CCF)** — a mechanism for earned relational trust that replaces the global `coherence` scalar with context-keyed accumulators built up independently through repeated interaction.
 
@@ -134,8 +148,8 @@ No soldering, no special hardware, no app install. Just the mBot2, your laptop, 
 ### Step 1: Clone and Set Up .env
 
 ```bash
-git clone https://github.com/Hulupeep/mbot_ruvector.git
-cd mbot_ruvector
+git clone https://github.com/Hulupeep/CCF.git
+cd CCF
 cp .env.example .env
 ```
 
@@ -206,7 +220,7 @@ Voice API server started on port 8088
 In a new terminal:
 
 ```bash
-cd mbot_ruvector
+cd CCF
 python3 -u tools/telegram_bridge.py
 ```
 
@@ -319,8 +333,8 @@ xcode-select --install
 ### Step 4: Download This Project
 
 ```bash
-git clone https://github.com/Hulupeep/mbot_ruvector.git
-cd mbot_ruvector
+git clone https://github.com/Hulupeep/CCF.git
+cd CCF
 ```
 
 If you see "git: command not found", install git first:
@@ -613,7 +627,7 @@ sensors → MBotBrain.tick() → instant_coherence
 ### Crate Structure
 
 ```
-mbot_ruvector/
+CCF/
 +-- crates/
 |   +-- mbot-core/            # Nervous system (no_std, deterministic)
 |   |   +-- homeostasis.rs    # Tension/coherence/energy balance
@@ -851,12 +865,25 @@ sudo usermod -aG bluetooth $USER
 
 This is a community project. Whether you are a roboticist, an AI enthusiast, a teacher, a designer, a kid who wants to play with robots, or a parent looking for screen-free tech time - there is a place for you.
 
-1. Check the [Issues](https://github.com/Hulupeep/mbot_ruvector/issues) - we label things `good first issue` for newcomers
+1. Check the [Issues](https://github.com/Hulupeep/CCF/issues) - we label things `good first issue` for newcomers
 2. Open an issue with your idea
 3. Send a PR
-4. Share what you built
+4. By contributing, you agree to our [Contributor License Agreement](./CONTRIBUTING.md#contributor-license-agreement)
+5. Share what you built
 
 Contact: robots@floutlabs.com
+
+---
+
+## Collaborators
+
+Excited to collaborate with others on this project!
+
+CCF is source-available under BSL 1.1. Free for research, prototyping, learning, and non-commercial use. Commercial licensing required for shipped products.
+
+I'm a solo inventor protecting 15 years of work — not a corporation building a moat. If you're building something interesting with this, talk to me. I'd rather collaborate than litigate.
+
+Contact: cbyrne@floutlabs.com
 
 ---
 
@@ -867,7 +894,3 @@ Contact: robots@floutlabs.com
 - **Rust** - Performance and safety
 - **Claude / Ollama** - LLM reasoning (brain layer)
 - **ElevenLabs / Whisper** - Voice interaction (voice layer)
-
-## License
-
-MIT

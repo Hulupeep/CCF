@@ -6,7 +6,7 @@
 
 set -e
 
-REPO="Hulupeep/mbot_ruvector"
+REPO="Hulupeep/CCF"
 
 echo "============================================"
 echo "Creating Wave 6-7 Issues for mBot RuVector"

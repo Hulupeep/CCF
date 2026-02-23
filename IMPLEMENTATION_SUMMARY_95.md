@@ -317,7 +317,7 @@ Coverage:    >90% for all voice services
 ## File Structure
 
 ```
-mbot_ruvector/
+CCF/
 ├── web/
 │   └── src/
 │       ├── components/voice/

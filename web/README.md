@@ -212,8 +212,8 @@ web/
 
 ## Related Documentation
 
-- [STORY-LEARN-001 Issue #15](https://github.com/Hulupeep/mbot_ruvector/issues/15) - Real-Time Visualizer requirements
-- [STORY-LEARN-002 Issue #19](https://github.com/Hulupeep/mbot_ruvector/issues/19) - Personality Mixer requirements
+- [STORY-LEARN-001 Issue #15](https://github.com/Hulupeep/CCF/issues/15) - Real-Time Visualizer requirements
+- [STORY-LEARN-002 Issue #19](https://github.com/Hulupeep/CCF/issues/19) - Personality Mixer requirements
 - [mBot2 Official Docs](https://www.makeblock.com/pages/mbot2-support) - Hardware specs
 - [RuVector Architecture](../docs/contracts/feature_architecture.yml) - System contracts
 

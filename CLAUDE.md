@@ -10,7 +10,7 @@ NO TICKET → NO CODE
 
 ### Before Starting ANY Task
 
-1. Check issues: `gh issue list -R Hulupeep/mbot_ruvector`
+1. Check issues: `gh issue list -R Hulupeep/CCF`
 2. Find or create ticket with acceptance criteria
 3. Reference issue in commits: `feat(scope): description (#123)`
 4. Link PRs to the issue they close
@@ -364,8 +364,8 @@ A feature is DONE when its journeys pass.
 
 ## GitHub Repository
 
-- **Repo:** `Hulupeep/mbot_ruvector`
-- **Issues:** `gh issue list -R Hulupeep/mbot_ruvector`
+- **Repo:** `Hulupeep/CCF`
+- **Issues:** `gh issue list -R Hulupeep/CCF`
 - **Labels:** `epic`, `story`, `enhancement`
 
 ---
@@ -374,7 +374,7 @@ A feature is DONE when its journeys pass.
 
 ```bash
 # Specflow workflow
-gh issue list -R Hulupeep/mbot_ruvector --state open
+gh issue list -R Hulupeep/CCF --state open
 
 # Claude Flow
 npx @claude-flow/cli@latest swarm status

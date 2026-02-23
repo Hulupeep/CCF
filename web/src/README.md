@@ -212,4 +212,4 @@ npm test -- contracts
 
 ## License
 
-MIT
+Same as parent project (see root [LICENSE](../../LICENSE) file)

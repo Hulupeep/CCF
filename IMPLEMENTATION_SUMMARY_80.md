@@ -11,7 +11,7 @@ Successfully implemented a comprehensive Performance Benchmarking Dashboard for 
 ## Files Created
 
 ### 1. Type Definitions
-**File**: `/home/xanacan/projects/code/mbot/mbot_ruvector/web/src/types/performance.ts`
+**File**: `/home/xanacan/projects/code/mbot/CCF/web/src/types/performance.ts`
 
 **Contents**:
 - `PerformanceMetric` interface - Individual metric tracking
@@ -30,7 +30,7 @@ Successfully implemented a comprehensive Performance Benchmarking Dashboard for 
 - I-PERF-004: Regression detection threshold 10%
 
 ### 2. Performance Metrics Service
-**File**: `/home/xanacan/projects/code/mbot/mbot_ruvector/web/src/services/performanceMetrics.ts`
+**File**: `/home/xanacan/projects/code/mbot/CCF/web/src/services/performanceMetrics.ts`
 
 **Features**:
 - Real-time metric collection and storage
@@ -62,7 +62,7 @@ Successfully implemented a comprehensive Performance Benchmarking Dashboard for 
 - Component Mount/Unmount Time (target: <50ms)
 
 ### 3. Performance Dashboard Component
-**File**: `/home/xanacan/projects/code/mbot/mbot_ruvector/web/src/components/PerformanceDashboard.tsx`
+**File**: `/home/xanacan/projects/code/mbot/CCF/web/src/components/PerformanceDashboard.tsx`
 
 **Features**:
 - Real-time metrics display with current values
@@ -99,7 +99,7 @@ Successfully implemented a comprehensive Performance Benchmarking Dashboard for 
 **Inline Styles**: Comprehensive CSS included for production-ready UI
 
 ### 4. Performance Monitoring Hooks
-**File**: `/home/xanacan/projects/code/mbot/mbot_ruvector/web/src/hooks/usePerformanceMonitoring.ts`
+**File**: `/home/xanacan/projects/code/mbot/CCF/web/src/hooks/usePerformanceMonitoring.ts`
 
 **Hooks Provided**:
 
@@ -127,7 +127,7 @@ Successfully implemented a comprehensive Performance Benchmarking Dashboard for 
 - Tracks sync frequency and duration
 
 ### 5. Performance Benchmark Suite
-**File**: `/home/xanacan/projects/code/mbot/mbot_ruvector/tests/benchmarks/performance.bench.ts`
+**File**: `/home/xanacan/projects/code/mbot/CCF/tests/benchmarks/performance.bench.ts`
 
 **Benchmark Categories**:
 
@@ -177,7 +177,7 @@ Successfully implemented a comprehensive Performance Benchmarking Dashboard for 
 - `formatResults(results)` - Pretty-print benchmark results
 
 ### 6. Component Tests
-**File**: `/home/xanacan/projects/code/mbot/mbot_ruvector/web/src/components/__tests__/PerformanceDashboard.test.tsx`
+**File**: `/home/xanacan/projects/code/mbot/CCF/web/src/components/__tests__/PerformanceDashboard.test.tsx`
 
 **Test Coverage**:
 - Rendering (basic structure, all metrics, health score)
@@ -192,7 +192,7 @@ Successfully implemented a comprehensive Performance Benchmarking Dashboard for 
 **Total Test Cases**: 30+
 
 ### 7. Documentation
-**File**: `/home/xanacan/projects/code/mbot/mbot_ruvector/docs/performance-benchmarking.md`
+**File**: `/home/xanacan/projects/code/mbot/CCF/docs/performance-benchmarking.md`
 
 **Sections**:
 - Overview and features

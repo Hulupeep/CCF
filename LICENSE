@@ -1,0 +1,65 @@
+Business Source License 1.1
+
+Parameters:
+- Licensor: Flout Labs / cbyrne@floutlabs.com
+- Licensed Work: The Contextual Coherence Fields (CCF) software and source code.
+- Additional Use Grant:
+    You may use the Licensed Work for any non-commercial purpose.
+    Furthermore, you are granted the right to use the Licensed Work for
+    prototyping, internal development, and public demonstrations (e.g.,
+    at hackerspaces or via community frameworks like RuVector/Agentics),
+    even if performed on commercial hardware.
+
+    "Production Use" is explicitly excluded from this grant. Production Use
+    is defined as: (1) shipping the Licensed Work as part of a product
+    for sale; (2) embedding the Licensed Work into firmware or silicon
+    distributed to third parties; or (3) utilizing the Licensed Work to
+    provide a paid service to end-users.
+
+- Change License: Apache License, Version 2.0
+- Change Date: February 23, 2032
+
+----------------------------------------------------------------------
+
+Business Source License 1.1
+
+License Text
+
+Copyright © 2026 Flout Labs. All rights reserved.
+
+"Licensor" is the entity specified in the Parameters above.
+
+"Software" is the Licensed Work specified in the Parameters above, together
+with any subsequent updates to the Licensed Work that are made available by
+Licensor.
+
+"Licensed Use" is the use of the Software as permitted by this License.
+
+"Change Date" is the date specified in the Parameters above.
+
+"Change License" is the license specified in the Parameters above.
+
+"Additional Use Grant" is the grant of rights to use the Software for
+additional purposes specified in the Parameters above.
+
+Subject to the terms and conditions of this License, Licensor hereby grants
+you a non-exclusive, worldwide, non-transferable right to use the Software for
+any purpose other than Production Use (as defined in the Parameters).
+
+In addition, you are granted the rights to use the Software as specified in the
+Additional Use Grant.
+
+On the Change Date, or such earlier date as may be specified by Licensor by
+updating this License file, this License shall terminate and shall be
+automatically replaced by the Change License.
+
+You must include a copy of this License in all copies of the Software that you
+distribute.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

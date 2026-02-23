@@ -270,7 +270,7 @@ npm start
 
 ## References
 
-- Issue #95: https://github.com/Hulupeep/mbot_ruvector/issues/95
+- Issue #95: https://github.com/Hulupeep/CCF/issues/95
 - Learning Engine: Issue #92
 - Autonomous Behavior: Issue #93
 - Contracts: `docs/contracts/feature_voice.yml`

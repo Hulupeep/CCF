@@ -274,7 +274,7 @@ All tests depend on issues #75, #76, #77, #78 being complete:
 
 ## Related Documentation
 
-- Issue: #79 in `Hulupeep/mbot_ruvector`
+- Issue: #79 in `Hulupeep/CCF`
 - Contracts: `docs/contracts/*.yml`
 - Journey Tests: `tests/journeys/*.journey.spec.ts`
 - Contract Tests: `tests/contracts/*.test.ts`

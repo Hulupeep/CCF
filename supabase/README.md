@@ -236,5 +236,5 @@ Before deploying to production:
 ## Support
 
 - Supabase Docs: https://supabase.com/docs
-- Issue Tracker: https://github.com/Hulupeep/mbot_ruvector/issues
+- Issue Tracker: https://github.com/Hulupeep/CCF/issues
 - Contract Reference: `docs/contracts/feature_cloud_marketplace.yml`

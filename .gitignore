@@ -30,3 +30,6 @@ coverage/
 # Environment
 .env
 .env.local
+
+# Project specific
+docs/
