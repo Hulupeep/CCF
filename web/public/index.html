@@ -624,6 +624,54 @@
             margin-bottom: 20px;
         }
         .context-info .ctx-val { color: var(--accent); font-weight: bold; }
+        .context-panel {
+            margin: 8px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .ctx-card {
+            background: var(--panel);
+            border-radius: 8px;
+            padding: 8px 12px;
+            min-width: 120px;
+            border: 1px solid transparent;
+            transition: border-color 0.3s;
+        }
+        .ctx-card.active {
+            border-color: var(--accent);
+        }
+        .ctx-card .ctx-card-label {
+            font-size: 12px;
+            color: var(--dim);
+            margin-bottom: 4px;
+        }
+        .ctx-card .ctx-card-bar {
+            height: 4px;
+            background: #2a2a4a;
+            border-radius: 2px;
+            margin: 4px 0;
+        }
+        .ctx-card .ctx-card-fill {
+            height: 4px;
+            background: var(--accent);
+            border-radius: 2px;
+            transition: width 0.5s;
+        }
+        .ctx-card .ctx-card-val {
+            font-size: 13px;
+            color: var(--text);
+            font-weight: bold;
+        }
+        .led-tint-preview {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-left: 6px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
 
         /* Toast */
         .toast {
@@ -743,10 +791,17 @@
                 <div class="phase-desc" id="phase-desc">The robot is cautious — it hasn't earned trust in this situation yet.</div>
             </div>
             <div class="context-info">
+                <span class="ctx-val" id="led-tint-preview" data-testid="led-tint-preview" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:rgb(40,40,80);vertical-align:middle;margin-right:4px;border:1px solid rgba(255,255,255,0.2)"></span>
                 Context Familiarity: <span class="ctx-val" id="ctx-coh-val">0%</span>
                 &nbsp;&bull;&nbsp;
                 Situations Learned: <span class="ctx-val" id="ctx-count-val">0</span>
+                &nbsp;&bull;&nbsp;
+                Motor: <span class="ctx-val" id="expression-scale-val" data-testid="expression-scale-val">25%</span>
                 <span style="margin-left:8px;font-size:12px;color:var(--dim);cursor:help" title="The robot earns trust separately in each situation. A familiar room feels different than a new one. Bright+quiet+nobody = one situation. Dim+noisy+someone close = a different one.">(?)</span>
+            </div>
+            <!-- Context history panel (story #35) -->
+            <div class="context-panel" id="context-panel" data-testid="context-panel">
+                <div id="context-cards"></div>
             </div>
 
             <!-- State bars -->
@@ -1237,6 +1292,40 @@
         document.getElementById('phase-desc').textContent = phaseDescs[phase] || '';
         setText('ctx-coh-val', Math.round((d.contextCoherence || 0) * 100) + '%');
         setText('ctx-count-val', d.contextCount || 0);
+
+        // Context history cards (story #35)
+        const cards = document.getElementById('context-cards');
+        if (cards && d.contextHistory) {
+            cards.innerHTML = d.contextHistory.slice(0, 20).map(ctx => `
+                <div class="ctx-card ${ctx.is_active ? 'active' : ''}" data-testid="context-card">
+                    <div class="ctx-card-label">${ctx.label}</div>
+                    <div class="ctx-card-bar"><div class="ctx-card-fill" style="width:${Math.round(ctx.coherence*100)}%"></div></div>
+                    <div class="ctx-card-val">${Math.round(ctx.coherence*100)}% <span style="font-size:11px;color:var(--dim)">(${ctx.interaction_count}\u00d7)</span></div>
+                </div>
+            `).join('');
+        }
+        // LED tint preview (story #33/#35)
+        const ledPreview = document.getElementById('led-tint-preview');
+        if (ledPreview && d.socialPhase) {
+            const colors = {
+                'ShyObserver': 'rgb(40,40,80)',
+                'QuietlyBeloved': 'rgb(60,120,200)',
+                'StartledRetreat': 'rgb(180,20,20)',
+                'ProtectiveGuardian': 'rgb(200,140,0)'
+            };
+            ledPreview.style.background = colors[d.socialPhase] || 'rgb(40,40,80)';
+        }
+        // Expression scale indicator (story #34/#35)
+        const scaleVal = document.getElementById('expression-scale-val');
+        if (scaleVal && d.socialPhase) {
+            const scales = {
+                'ShyObserver': '25%',
+                'QuietlyBeloved': '100%',
+                'StartledRetreat': '30%',
+                'ProtectiveGuardian': '60%'
+            };
+            scaleVal.textContent = scales[d.socialPhase] || '25%';
+        }
 
         updateBar('tension', d.tension);
         updateBar('coherence', d.coherence);

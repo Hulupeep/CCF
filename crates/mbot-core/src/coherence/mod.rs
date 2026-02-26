@@ -314,6 +314,27 @@ impl ContextKey {
         };
         [brightness, noise, presence, motion, orientation, time_period]
     }
+
+    /// Human-readable label for dashboard display, e.g. "Bright · Quiet · Static"
+    pub fn to_label(&self) -> String {
+        let b = match self.brightness {
+            BrightnessBand::Dark => "Dark",
+            BrightnessBand::Dim => "Dim",
+            BrightnessBand::Bright => "Bright",
+        };
+        let n = match self.noise {
+            NoiseBand::Quiet => "Quiet",
+            NoiseBand::Moderate => "Moderate",
+            NoiseBand::Loud => "Loud",
+        };
+        let p = match self.presence {
+            PresenceSignature::Absent => "Absent",
+            PresenceSignature::Static => "Static",
+            PresenceSignature::Approaching => "Approaching",
+            PresenceSignature::Retreating => "Retreating",
+        };
+        format!("{} · {} · {}", b, n, p)
+    }
 }
 
 // ─── Presence Detector (sliding window) ─────────────────────────────
@@ -604,6 +625,18 @@ impl CoherenceField {
     /// Iterate over all (context, accumulator) pairs.
     pub fn iter(&self) -> impl Iterator<Item = (&ContextKey, &CoherenceAccumulator)> {
         self.accumulators.iter()
+    }
+
+    /// All tracked contexts with their coherence and interaction count.
+    /// Returns (key, coherence_value, interaction_count) sorted by interaction_count descending.
+    /// Used by the dashboard context history panel.
+    pub fn all_entries(&self) -> Vec<(ContextKey, f32, u32)> {
+        let mut entries: Vec<(ContextKey, f32, u32)> = self.accumulators
+            .iter()
+            .map(|(k, acc)| (k.clone(), acc.value, acc.interaction_count))
+            .collect();
+        entries.sort_by(|a, b| b.2.cmp(&a.2)); // sort by interaction_count descending
+        entries
     }
 
     /// Get a snapshot of all context coherence values for serialization/dashboard.

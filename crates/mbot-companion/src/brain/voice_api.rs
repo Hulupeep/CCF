@@ -57,6 +57,21 @@ pub struct RobotState {
     pub suppression_rule_count: usize,
     /// Generalised rules applied this session (story #43)
     pub suppression_generalised_count: usize,
+    /// Per-context coherence cards for the dashboard (story #35, I-CTX-001, I-CTX-002)
+    pub context_history: Vec<ContextEntry>,
+}
+
+/// Per-context snapshot for dashboard display (story #35).
+#[derive(Clone, Serialize, Deserialize, Default)]
+pub struct ContextEntry {
+    /// Human-readable label e.g. "Bright · Quiet · Static"
+    pub label: String,
+    /// Current coherence value [0.0, 1.0]
+    pub coherence: f32,
+    /// Positive interactions accumulated in this context
+    pub interaction_count: u32,
+    /// True if this is the currently active context
+    pub is_active: bool,
 }
 
 /// Motor override set by voice commands, consumed by the main loop.

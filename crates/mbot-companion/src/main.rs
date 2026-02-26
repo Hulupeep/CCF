@@ -952,6 +952,19 @@ async fn run_main_loop(
                     else { tick_count.saturating_sub(last_deliberative_tick) };
                 vs_guard.robot.suppression_rule_count = startle_processor.suppression_map.len();
                 vs_guard.robot.suppression_generalised_count = session_generalised_count;
+                let active_key = &context_key;
+                vs_guard.robot.context_history = coherence_field.all_entries()
+                    .into_iter()
+                    .map(|(k, coh, count)| {
+                        let is_active = k == *active_key;
+                        crate::brain::voice_api::ContextEntry {
+                            label: k.to_label(),
+                            coherence: coh,
+                            interaction_count: count,
+                            is_active,
+                        }
+                    })
+                    .collect();
             }
         }
 

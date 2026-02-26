@@ -232,6 +232,7 @@ class SimulatedBrain {
         this.socialPhase = 'ShyObserver';
         this.contextCoherence = 0.0;
         this.contextCount = 0;
+        this.contextHistory = [];
 
         // Simulated sensors
         this.brightness = 500;
@@ -497,6 +498,7 @@ class SimulatedBrain {
             socialPhase: this.socialPhase,
             contextCoherence: this.contextCoherence,
             contextCount: this.contextCount,
+            contextHistory: this.contextHistory || [],
         };
     }
 }
@@ -528,6 +530,7 @@ setInterval(async () => {
                 brain.socialPhase = data.social_phase || 'ShyObserver';
                 brain.contextCoherence = data.context_coherence || 0.0;
                 brain.contextCount = data.context_count || 0;
+                brain.contextHistory = data.context_history || [];
             }
         }
     } catch (_) {
