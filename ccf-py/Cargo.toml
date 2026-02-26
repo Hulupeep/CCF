@@ -1,0 +1,27 @@
+# ccf-py is intentionally excluded from the root workspace.
+# It is built by maturin as a standalone crate for Python packaging.
+[workspace]
+
+[package]
+name = "ccf-core-py"
+version = "0.1.4"
+edition = "2021"
+description = "Python bindings for CCF (Contextual Coherence Fields) via PyO3"
+license = "BUSL-1.1"
+
+[lib]
+name = "_ccf_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+# Local mbot-core crate with std feature enabled
+mbot-core = { path = "../crates/mbot-core", features = ["std"] }
+
+# PyO3 for Python bindings
+pyo3 = { version = "0.22", features = ["extension-module"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+codegen-units = 1

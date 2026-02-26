@@ -33,3 +33,9 @@ coverage/
 
 # Project specific
 docs/
+ccf-py/python/ccf_core/_ccf_core*.so
+ccf-py/target/
+ccf-py/python/ccf_core/__pycache__/
+ccf-py/python/ccf_core/_ccf_core*.so
+tests/**/__pycache__/
+tests/unit/__pycache__/
