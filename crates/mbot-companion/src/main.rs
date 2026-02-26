@@ -658,6 +658,9 @@ async fn run_main_loop(
             // 6. Classify social phase with hysteresis
             social_phase = SocialPhase::classify(eff_coherence, state.tension, social_phase, &phase_space);
 
+            // LED tint follows social phase — camera-visible relational state indicator (I-PHASE-001)
+            cmd.led_color = social_phase.led_tint();
+
             // 7. Override state coherence with effective value for downstream consumers
             state.coherence = eff_coherence;
             state.social_phase = social_phase;
@@ -880,6 +883,16 @@ async fn run_main_loop(
                         avg_reward: metrics.average_reward,
                     });
                 }
+            }
+        }
+
+        // Scale motor amplitude by social phase expression level (I-PHASE-002, I-PHASE-003).
+        // Applied to homeostasis/explorer commands; voice overrides below bypass this scale.
+        {
+            let scale = social_phase.expression_scale();
+            if scale < 1.0 {
+                cmd.left  = (cmd.left  as f32 * scale).round() as i8;
+                cmd.right = (cmd.right as f32 * scale).round() as i8;
             }
         }
 
