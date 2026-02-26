@@ -10,6 +10,46 @@ on:
     - cron: '0 0 * * *'
 
 jobs:
+  # [test patent_claims_integration]
+  # Verifies the five major claims of USP provisional patent 63/988,438.
+  # These tests run against mbot-core types directly (no hardware required).
+  patent-claims:
+    name: Patent Claim Verification (mbot-companion)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Run patent claims integration tests
+        run: cargo test -p mbot-companion --test patent_claims_integration
+
+      - name: Verify all 5 claims pass
+        run: |
+          RESULT=$(cargo test -p mbot-companion --test patent_claims_integration 2>&1)
+          echo "$RESULT"
+          if echo "$RESULT" | grep -q "5 passed"; then
+            echo "All 5 patent claim tests passed"
+          else
+            echo "One or more patent claim tests failed"
+            exit 1
+          fi
+
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
