@@ -29,6 +29,10 @@ voice-api = ["brain", "warp", "futures"]
 
 [dependencies]
 mbot-core = { path = "../mbot-core" }
+# SubpolynomialMinCut (arXiv:2512.13105) — target algorithm for I-BNDRY-004.
+# Currently unused: boundary.rs uses a min-weighted-degree proxy due to
+# λ_max=1000 default being too expensive for demo-scale graphs.
+# Wire up in issue #55 once a small-graph SubpolyConfig is benchmarked.
 ruvector-mincut = { workspace = true }
 
 # Async

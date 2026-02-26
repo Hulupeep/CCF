@@ -25,7 +25,7 @@
 //! trust changes, which is the patent-relevant signal.
 //!
 //! `SubpolynomialMinCut` (arXiv:2512.13105) is the target algorithm per I-BNDRY-004.
-//! Integration is deferred to issue #45: `insert_edge` and `build()` are O(n·λ_max)
+//! Integration is deferred to issue #55: `insert_edge` and `build()` are O(n·λ_max)
 //! expensive even for 2-node graphs at default config (λ_max=1000 → 6000 forests),
 //! making them unusable in the tick loop or tests without a performance fix.
 //!
@@ -35,7 +35,7 @@
 //! - **I-BNDRY-003**: Edges inserted only when similarity > EDGE_THRESHOLD (0.1).
 //! - **I-BNDRY-004**: Target algorithm is `SubpolynomialMinCut` (arXiv:2512.13105).
 //!   Current implementation uses minimum weighted degree proxy. Full integration
-//!   blocked on issue #45 (performance fix for small graphs).
+//!   blocked on issue #55 (performance fix for small graphs).
 //! - **I-TRUST-001**: Trust component activates only when context has ≥ MIN_TRUST_OBSERVATIONS.
 //! - **I-TRUST-002**: Trust change smoothness enforced upstream by CoherenceAccumulator gate.
 //! - **I-TRUST-003**: Warm-start (ContextIndex / Graph A) and boundary (Graph B) are separate.
