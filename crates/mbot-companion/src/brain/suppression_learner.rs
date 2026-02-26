@@ -10,11 +10,37 @@
 //! - **ARCH-002**: Brain is advisory; companion suggests rules, core enforces them
 //! - **I-STRT-003**: SuppressionRule factors are clamped to [0.3, 1.0] by core
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
+use mbot_core::coherence::ContextKey;
 use mbot_core::nervous_system::stimulus::StimulusKind;
 use mbot_core::nervous_system::stimulus_log::{PostStimulusOutcome, StimulusLogEntry};
 use mbot_core::nervous_system::suppression::SuppressionRule;
+
+/// Minimum cosine similarity for cross-context rule transfer (I-SUPR-003).
+pub const GENERALISATION_THRESHOLD: f32 = 0.8;
+
+/// Discount scale applied to transferred rules so they are always weaker than
+/// their donor (I-SUPR-001).
+pub const GENERALISATION_DISCOUNT: f32 = 0.9;
+
+/// A suppression rule inferred from a similar donor context.
+///
+/// The `suppression_factor` is always weaker than the donor rule (I-SUPR-001)
+/// and clamped to [0.3, 1.0] (I-STRT-003).
+#[derive(Debug, Clone)]
+pub struct GeneralisedRule {
+    /// Context hash of the recipient (the context that lacked direct observations).
+    pub context_hash: u32,
+    /// Stimulus kind this rule covers.
+    pub stimulus: StimulusKind,
+    /// Suppression factor clamped to [0.3, 1.0].
+    pub suppression_factor: f32,
+    /// Context hash of the donor (the similar context with a strong rule).
+    pub donor_context_hash: u32,
+    /// Cosine similarity between recipient and donor feature vectors.
+    pub similarity: f32,
+}
 
 /// Configuration for the suppression learner.
 #[derive(Debug, Clone)]
@@ -195,12 +221,142 @@ impl SuppressionLearner {
     pub fn tracked_pairs(&self) -> usize {
         self.observations.len()
     }
+
+    /// Generate suppression rules for contexts that lack sufficient direct
+    /// observations, by transferring discounted rules from similar contexts.
+    ///
+    /// Returns only NEW generalised rules — one per (stimulus, target context)
+    /// pair where the target has no qualifying exact-match rule.
+    ///
+    /// # Invariants
+    /// - **I-SUPR-001**: Returned factors are strictly weaker than donor factors
+    ///   because `discount_scale < 1.0`.
+    /// - **I-SUPR-002**: Contexts that already have sufficient direct observations
+    ///   are skipped; generalisation never weakens an exact-match rule.
+    /// - **I-SUPR-003**: Only donors with `cosine_similarity > similarity_threshold`
+    ///   (default 0.8) are used.
+    /// - **I-STRT-003**: All returned `suppression_factor` values ∈ [0.3, 1.0].
+    pub fn generalise_rules(
+        &self,
+        all_context_keys: &[ContextKey],
+        similarity_threshold: f32,
+        discount_scale: f32,
+    ) -> Vec<GeneralisedRule> {
+        // Build hash → feature_vec lookup from all known context keys.
+        let key_vecs: HashMap<u32, [f32; 6]> = all_context_keys
+            .iter()
+            .map(|k| (k.context_hash_u32(), k.to_feature_vec()))
+            .collect();
+
+        // Collect donor pairs: observations that qualify for a direct rule.
+        // Uses config max_suppression without personality modulation for stability.
+        let mut donors: Vec<(StimulusKind, u32, f32)> = Vec::new();
+        for (&(kind, hash), stats) in &self.observations {
+            if stats.total() < self.config.min_observations as u32 {
+                continue;
+            }
+            if stats.benign_ratio() >= self.config.benign_threshold {
+                let factor = (1.0 - stats.benign_ratio() * self.config.max_suppression)
+                    .clamp(0.3, 1.0);
+                donors.push((kind, hash, factor));
+            }
+        }
+
+        if donors.is_empty() {
+            return Vec::new();
+        }
+
+        let donor_kinds: HashSet<StimulusKind> = donors.iter().map(|(k, _, _)| *k).collect();
+
+        let mut results: Vec<GeneralisedRule> = Vec::new();
+
+        for target_key in all_context_keys {
+            let target_hash = target_key.context_hash_u32();
+            let Some(&target_vec) = key_vecs.get(&target_hash) else {
+                continue;
+            };
+
+            for &kind in &donor_kinds {
+                // I-SUPR-002: skip if target already has sufficient exact observations.
+                if let Some(stats) = self.observations.get(&(kind, target_hash)) {
+                    if stats.total() >= self.config.min_observations as u32
+                        && stats.benign_ratio() >= self.config.benign_threshold
+                    {
+                        continue;
+                    }
+                }
+
+                // Find the highest-similarity donor for this (kind, target).
+                let mut best_sim = 0.0f32;
+                let mut best_donor_hash = 0u32;
+                let mut best_donor_factor = 0.0f32;
+
+                for &(d_kind, d_hash, d_factor) in &donors {
+                    if d_kind != kind || d_hash == target_hash {
+                        continue;
+                    }
+                    let Some(&donor_vec) = key_vecs.get(&d_hash) else {
+                        continue;
+                    };
+                    let sim = cosine_similarity_6(&target_vec, &donor_vec);
+                    if sim > best_sim {
+                        best_sim = sim;
+                        best_donor_hash = d_hash;
+                        best_donor_factor = d_factor;
+                    }
+                }
+
+                // I-SUPR-003: similarity must exceed threshold.
+                if best_sim < similarity_threshold {
+                    continue;
+                }
+
+                let gen_factor = (best_donor_factor * best_sim * discount_scale).clamp(0.3, 1.0);
+
+                results.push(GeneralisedRule {
+                    context_hash: target_hash,
+                    stimulus: kind,
+                    suppression_factor: gen_factor,
+                    donor_context_hash: best_donor_hash,
+                    similarity: best_sim,
+                });
+            }
+        }
+
+        results
+    }
+}
+
+/// Cosine similarity between two 6-dimensional feature vectors.
+/// Returns 0.0 for near-zero-norm vectors.
+fn cosine_similarity_6(a: &[f32; 6], b: &[f32; 6]) -> f32 {
+    let dot: f32 = a.iter().zip(b.iter()).map(|(x, y)| x * y).sum();
+    let na: f32 = a.iter().map(|x| x * x).sum::<f32>().sqrt();
+    let nb: f32 = b.iter().map(|x| x * x).sum::<f32>().sqrt();
+    if na < 1e-6 || nb < 1e-6 {
+        return 0.0;
+    }
+    (dot / (na * nb)).clamp(0.0, 1.0)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use mbot_core::coherence::{
+        BrightnessBand, MotionContext, NoiseBand, Orientation, PresenceSignature, TimePeriod,
+    };
     use mbot_core::nervous_system::stimulus::StimulusEvent;
+
+    fn ctx(b: BrightnessBand, n: NoiseBand) -> ContextKey {
+        ContextKey {
+            brightness: b,
+            noise: n,
+            presence: PresenceSignature::Static,
+            motion: MotionContext::Stationary,
+            orientation: Orientation::Upright,
+            time_period: TimePeriod::Afternoon,
+        }
+    }
 
     /// Helper to create a classified log entry.
     fn make_entry(
@@ -541,5 +697,125 @@ mod tests {
 
         assert!(result.rules_to_upsert.is_empty(), "Inconclusive ratio should not upsert");
         assert!(result.rules_to_remove.is_empty(), "Inconclusive ratio should not remove");
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 11 (I-SUPR-002): Exact-match rule is preferred — generalisation skips
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_exact_match_preferred_over_generalised() {
+        let config = SuppressionLearnerConfig {
+            min_observations: 5,
+            benign_threshold: 0.8,
+            max_suppression: 0.7,
+            ..Default::default()
+        };
+        let mut learner = SuppressionLearner::new(config);
+
+        // Both Bright·Quiet and Bright·Moderate have enough benign observations.
+        let donor = ctx(BrightnessBand::Bright, NoiseBand::Quiet);
+        let target = ctx(BrightnessBand::Bright, NoiseBand::Moderate);
+        learner.ingest(&benign_entries(StimulusKind::LoudnessSpike, donor.context_hash_u32(), 10));
+        learner.ingest(&benign_entries(StimulusKind::LoudnessSpike, target.context_hash_u32(), 10));
+
+        let keys = vec![donor.clone(), target.clone()];
+        let rules = learner.generalise_rules(&keys, GENERALISATION_THRESHOLD, GENERALISATION_DISCOUNT);
+
+        // target already has its own sufficient observations; generalisation must not fill it.
+        assert!(
+            rules.iter().all(|r| r.context_hash != target.context_hash_u32()),
+            "Target with exact observations must not receive a generalised rule"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 12: Generalised rule fills gap (I-SUPR-003 threshold satisfied)
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_generalised_rule_fills_gap() {
+        let config = SuppressionLearnerConfig {
+            min_observations: 5,
+            benign_threshold: 0.8,
+            max_suppression: 0.7,
+            ..Default::default()
+        };
+        let mut learner = SuppressionLearner::new(config);
+
+        // Only donor has observations; target has none.
+        let donor = ctx(BrightnessBand::Bright, NoiseBand::Quiet);
+        let target = ctx(BrightnessBand::Bright, NoiseBand::Moderate);
+        learner.ingest(&benign_entries(StimulusKind::LoudnessSpike, donor.context_hash_u32(), 10));
+
+        let keys = vec![donor.clone(), target.clone()];
+        let rules = learner.generalise_rules(&keys, GENERALISATION_THRESHOLD, GENERALISATION_DISCOUNT);
+
+        // Bright·Quiet and Bright·Moderate differ only in noise (0 vs 0.5): cosine > 0.8.
+        let rule = rules
+            .iter()
+            .find(|r| r.context_hash == target.context_hash_u32() && r.stimulus == StimulusKind::LoudnessSpike)
+            .expect("Should produce a generalised rule for target");
+
+        assert!(rule.suppression_factor >= 0.3 && rule.suppression_factor <= 1.0,
+            "I-STRT-003: factor {} out of [0.3, 1.0]", rule.suppression_factor);
+        assert!(rule.similarity >= GENERALISATION_THRESHOLD,
+            "I-SUPR-003: similarity {} below threshold", rule.similarity);
+        assert_eq!(rule.donor_context_hash, donor.context_hash_u32());
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 13 (I-SUPR-003): Low similarity context gets no generalised rule
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_low_similarity_no_rule() {
+        let config = SuppressionLearnerConfig {
+            min_observations: 5,
+            benign_threshold: 0.8,
+            max_suppression: 0.7,
+            ..Default::default()
+        };
+        let mut learner = SuppressionLearner::new(config);
+
+        // Donor is Bright·Quiet; target is Dark·Loud — maximally different.
+        let donor = ctx(BrightnessBand::Bright, NoiseBand::Quiet);
+        let target = ctx(BrightnessBand::Dark, NoiseBand::Loud);
+        learner.ingest(&benign_entries(StimulusKind::LoudnessSpike, donor.context_hash_u32(), 10));
+
+        let keys = vec![donor.clone(), target.clone()];
+        let rules = learner.generalise_rules(&keys, GENERALISATION_THRESHOLD, GENERALISATION_DISCOUNT);
+
+        assert!(
+            rules.iter().all(|r| r.context_hash != target.context_hash_u32()),
+            "Bright·Quiet and Dark·Loud have sim < 0.8; no rule should be transferred"
+        );
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 14 (I-STRT-003): Generalised factor always in [0.3, 1.0]
+    // -----------------------------------------------------------------------
+    #[test]
+    fn test_generalised_factor_clamped() {
+        let config = SuppressionLearnerConfig {
+            min_observations: 3,
+            benign_threshold: 0.8,
+            max_suppression: 0.7,
+            ..Default::default()
+        };
+        let mut learner = SuppressionLearner::new(config);
+
+        // Saturate observations so donor_factor is at floor (0.3).
+        let donor = ctx(BrightnessBand::Bright, NoiseBand::Quiet);
+        let target = ctx(BrightnessBand::Bright, NoiseBand::Moderate);
+        learner.ingest(&benign_entries(StimulusKind::LoudnessSpike, donor.context_hash_u32(), 20));
+
+        let keys = vec![donor.clone(), target.clone()];
+        let rules = learner.generalise_rules(&keys, GENERALISATION_THRESHOLD, GENERALISATION_DISCOUNT);
+
+        for rule in &rules {
+            assert!(
+                rule.suppression_factor >= 0.3 && rule.suppression_factor <= 1.0,
+                "I-STRT-003 violated: factor {} out of [0.3, 1.0]",
+                rule.suppression_factor
+            );
+        }
     }
 }

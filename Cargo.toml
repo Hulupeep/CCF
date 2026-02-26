@@ -15,9 +15,10 @@ authors = ["Hulupeep"]
 
 [workspace.dependencies]
 # RuVector dependencies (path to local ruvector)
-ruvector-dag = { path = "../../../tooling/ruvector/crates/ruvector-dag" }
-ruvector-core = { path = "../../../tooling/ruvector/crates/ruvector-core" }
-sona = { path = "../../../tooling/ruvector/crates/sona" }
+ruvector-dag = { path = "../../tooling/ruvector/crates/ruvector-dag" }
+ruvector-core = { path = "../../tooling/ruvector/crates/ruvector-core" }
+ruvector-mincut = { path = "../../tooling/ruvector/crates/ruvector-mincut" }
+sona = { path = "../../tooling/ruvector/crates/sona" }
 
 # Async runtime
 tokio = { version = "1.35", features = ["full"] }

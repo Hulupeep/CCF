@@ -272,6 +272,48 @@ impl ContextKey {
             time_period: TimePeriod::estimate_from_brightness(brightness),
         }
     }
+
+    /// Encode this context key as a 6-dimensional float feature vector.
+    ///
+    /// Used by the companion's comfort-zone boundary algorithm (story #40)
+    /// and the HNSW warm-start (story #41) to measure context similarity.
+    ///
+    /// Dimensions (all in [0.0, 1.0]):
+    /// `[brightness, noise, presence, motion, orientation, time_period]`
+    pub fn to_feature_vec(&self) -> [f32; 6] {
+        let brightness = match self.brightness {
+            BrightnessBand::Dark   => 0.0,
+            BrightnessBand::Dim    => 0.5,
+            BrightnessBand::Bright => 1.0,
+        };
+        let noise = match self.noise {
+            NoiseBand::Quiet    => 0.0,
+            NoiseBand::Moderate => 0.5,
+            NoiseBand::Loud     => 1.0,
+        };
+        let presence = match self.presence {
+            PresenceSignature::Absent     => 0.0,
+            PresenceSignature::Static     => 0.33,
+            PresenceSignature::Retreating => 0.67,
+            PresenceSignature::Approaching => 1.0,
+        };
+        let motion = match self.motion {
+            MotionContext::Stationary   => 0.0,
+            MotionContext::SelfMoving   => 0.5,
+            MotionContext::BeingHandled => 1.0,
+        };
+        let orientation = match self.orientation {
+            Orientation::Upright => 0.0,
+            Orientation::Tilted  => 1.0,
+        };
+        let time_period = match self.time_period {
+            TimePeriod::Morning   => 0.0,
+            TimePeriod::Afternoon => 0.33,
+            TimePeriod::Evening   => 0.67,
+            TimePeriod::Night     => 1.0,
+        };
+        [brightness, noise, presence, motion, orientation, time_period]
+    }
 }
 
 // ─── Presence Detector (sliding window) ─────────────────────────────
@@ -507,6 +549,12 @@ impl CoherenceField {
             );
         }
         self.accumulators.get_mut(key).unwrap()
+    }
+
+    /// Number of positive interactions recorded for a context (0 if unseen).
+    /// Used by `ComfortZoneBoundary::update_trust` to gate the trust component.
+    pub fn context_interaction_count(&self, key: &ContextKey) -> u32 {
+        self.accumulators.get(key).map_or(0, |a| a.interaction_count)
     }
 
     /// Get the accumulated coherence for a context.

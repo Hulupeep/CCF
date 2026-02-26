@@ -10,11 +10,15 @@
 //! - **ARCH-002**: Brain is advisory; companion suggests rules, core enforces them
 //! - **I-STRT-003**: SuppressionRule factors are clamped to [0.3, 1.0] by core
 
+use mbot_core::coherence::ContextKey;
 use mbot_core::nervous_system::stimulus::StimulusKind;
 use mbot_core::nervous_system::suppression::{SuppressionMap, SuppressionRule};
 use mbot_core::nervous_system::startle::StartleProcessor;
 use mbot_core::nervous_system::stimulus_log::StimulusLog;
-use super::suppression_learner::{SuppressionLearner, SuppressionLearnerConfig};
+use super::suppression_learner::{
+    GeneralisedRule, SuppressionLearner, SuppressionLearnerConfig,
+    GENERALISATION_DISCOUNT, GENERALISATION_THRESHOLD,
+};
 
 /// Coordinates draining the stimulus log, running the learner, and pushing
 /// rule mutations into the core `StartleProcessor`.
@@ -70,6 +74,46 @@ impl SuppressionSync {
         }
 
         SyncResult { ingested, rules_upserted, rules_removed }
+    }
+
+    /// Generate and apply generalised rules for contexts that lack direct observations.
+    ///
+    /// Calls `SuppressionLearner::generalise_rules()` then pushes each result into
+    /// `startle_processor.suppression_map` — but only if no exact-match rule already
+    /// exists for that slot (I-SUPR-002).
+    ///
+    /// Returns the number of new generalised rules applied.
+    pub fn apply_generalised(
+        &self,
+        all_context_keys: &[ContextKey],
+        startle_processor: &mut StartleProcessor,
+        current_tick: u64,
+    ) -> usize {
+        let gen_rules: Vec<GeneralisedRule> = self.learner.generalise_rules(
+            all_context_keys,
+            GENERALISATION_THRESHOLD,
+            GENERALISATION_DISCOUNT,
+        );
+
+        let mut applied = 0;
+        for rule in gen_rules {
+            // I-SUPR-002: only fill gaps — do not overwrite existing exact-match rules.
+            let existing = startle_processor
+                .suppression_map
+                .lookup(rule.stimulus, rule.context_hash);
+            if existing >= 1.0 {
+                // No existing rule in the map for this slot.
+                startle_processor.suppression_map.upsert(SuppressionRule {
+                    stimulus_kind: rule.stimulus,
+                    context_hash: rule.context_hash,
+                    suppression_factor: rule.suppression_factor,
+                    observation_count: 0, // inferred, not directly observed
+                    last_updated_tick: current_tick,
+                });
+                applied += 1;
+            }
+        }
+        applied
     }
 
     /// Save the current suppression map to SQLite.

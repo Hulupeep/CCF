@@ -32,6 +32,8 @@ pub mod suppression_sync;
 #[cfg(feature = "brain")]
 pub mod coherence_persist;
 #[cfg(feature = "brain")]
+pub mod coherence;
+#[cfg(feature = "brain")]
 pub mod downward;
 #[cfg(feature = "brain")]
 pub mod episodes;

@@ -299,6 +299,29 @@ async fn run_main_loop(
     let mut stimulus_log = StimulusLog::new();
     let mut startle_freeze_remaining: u32 = 0;
 
+    // Comfort-zone boundary: context-key similarity graph with dynamic min-cut (Story #40)
+    #[cfg(feature = "brain")]
+    let mut comfort_boundary = brain::coherence::ComfortZoneBoundary::new();
+
+    // Context index for warm-starting novel contexts (Story #41)
+    #[cfg(feature = "brain")]
+    let mut context_index = brain::coherence::ContextIndex::new();
+
+    // Deliberative gate state (Story #42)
+    #[cfg(feature = "brain")]
+    let mut prev_min_cut: f32 = 0.0;
+    #[cfg(feature = "brain")]
+    let mut last_deliberative_tick: u64 = 0;
+    #[cfg(feature = "brain")]
+    let mut deliberative_reason: &'static str = "";
+
+    // Suppression generalisation state (Story #43)
+    // All context keys visited this session, for cross-context rule transfer.
+    #[cfg(feature = "brain")]
+    let mut visited_contexts: Vec<mbot_core::coherence::ContextKey> = Vec::new();
+    #[cfg(feature = "brain")]
+    let mut session_generalised_count: usize = 0;
+
     // Suppression learning sync (Story #8)
     #[cfg(feature = "brain")]
     let mut suppression_sync = brain::suppression_sync::SuppressionSync::new();
@@ -597,6 +620,18 @@ async fn run_main_loop(
             // Context key and presence already computed above
             let alone = presence == PresenceSignature::Absent;
             let is_positive = state.tension < 0.5;
+
+            // Story #41: detect novelty BEFORE get_or_create so we can seed the
+            // new accumulator from a warm-start blend of similar visited contexts.
+            #[cfg(feature = "brain")]
+            let is_novel_ctx = comfort_boundary.is_novel(&context_key);
+            #[cfg(feature = "brain")]
+            let warm_start_val = if is_novel_ctx {
+                context_index.warm_start_value(&context_key)
+            } else {
+                0.0
+            };
+
             {
                 let pers = personality.lock().await;
                 let acc = coherence_field.get_or_create(&context_key);
@@ -604,6 +639,13 @@ async fn run_main_loop(
                     acc.positive_interaction(pers.recovery_speed(), tick_count, alone);
                 } else if state.tension > 0.7 {
                     acc.negative_interaction(pers.startle_sensitivity(), tick_count);
+                }
+                // Seed new accumulator from nearest-neighbour blend (I-HNSW-002).
+                // Only overrides when warm_val exceeds the personality baseline already
+                // set by get_or_create (max, never weakens).
+                #[cfg(feature = "brain")]
+                if is_novel_ctx && warm_start_val > acc.value {
+                    acc.value = warm_start_val;
                 }
             }
 
@@ -632,6 +674,63 @@ async fn run_main_loop(
                     }
                 }
             }
+
+            // 9. Context-key similarity graph update (story #40)
+            // Registers the current context as a node; inserts similarity edges to
+            // all previously-seen contexts. O(1) if the key is already known.
+            #[cfg(feature = "brain")]
+            comfort_boundary.report_context(&context_key);
+
+            // Story #43: track novel context keys for suppression generalisation.
+            // Pushed here (after report_context) so the boundary and visited_contexts
+            // stay in sync. is_novel_ctx was computed before report_context so it
+            // reflects true first-encounter status.
+            #[cfg(feature = "brain")]
+            if is_novel_ctx {
+                visited_contexts.push(context_key.clone());
+            }
+
+            // 10. Update context index with current coherence (story #41).
+            // Called after report_context so the boundary already knows this key.
+            #[cfg(feature = "brain")]
+            context_index.upsert(&context_key, coherence_field.context_coherence(&context_key));
+
+            // 10b. Update trust-weighted edges in the comfort-zone boundary (story #44).
+            // Re-weights all edges for the current context using earned coherence and
+            // interaction count. Must run before step 11 so the deliberative gate sees
+            // the updated Graph B topology.
+            #[cfg(feature = "brain")]
+            {
+                let ctx_coh = coherence_field.context_coherence(&context_key);
+                let ctx_obs = coherence_field.context_interaction_count(&context_key);
+                comfort_boundary.update_trust(&context_key, ctx_coh, ctx_obs);
+            }
+
+            // 11. Deliberative gate: fire advisory brain layer on topology change (story #42).
+            // I-DLIB-003: gate check is O(1); deliberative call is async and non-blocking.
+            #[cfg(feature = "brain")]
+            {
+                let curr_cut = comfort_boundary.min_cut_value();
+                let ticks_since = tick_count.saturating_sub(last_deliberative_tick);
+                let (fire, reason) = brain::coherence::should_fire_deliberative(
+                    curr_cut,
+                    prev_min_cut,
+                    brain::coherence::DELIBERATIVE_DELTA,
+                    brain::coherence::DELIBERATIVE_COOLDOWN,
+                    ticks_since,
+                );
+                if fire {
+                    tracing::info!(
+                        "[topology-triggered] deliberative fired: {} (min_cut {:.3} -> {:.3})",
+                        reason, prev_min_cut, curr_cut
+                    );
+                    deliberative_reason = reason;
+                    last_deliberative_tick = tick_count;
+                    // Advisory trigger: pass reason to brain layer on next tick.
+                    // The brain layer handles it via on_tick; no blocking here.
+                }
+                prev_min_cut = curr_cut;
+            }
         }
 
         // --- Suppression Learning Sync (Story #8) ---
@@ -648,6 +747,18 @@ async fn run_main_loop(
             if sync_result.rules_upserted > 0 || sync_result.rules_removed > 0 {
                 println!("  [LEARN] +{} rules, -{} rules (from {} observations)",
                     sync_result.rules_upserted, sync_result.rules_removed, sync_result.ingested);
+
+                // Story #43: after each learning pass, fill gaps in unvisited but
+                // similar contexts with discounted generalised rules.
+                let new_gen = suppression_sync.apply_generalised(
+                    &visited_contexts,
+                    &mut startle_processor,
+                    tick_count,
+                );
+                if new_gen > 0 {
+                    tracing::info!("[suppression] {} generalised rules applied", new_gen);
+                    session_generalised_count += new_gen;
+                }
 
                 // Persist learned rules to SQLite after changes
                 if let Some(ref conn) = suppression_db {
@@ -818,6 +929,17 @@ async fn run_main_loop(
             vs_guard.robot.social_phase = format!("{:?}", state.social_phase);
             vs_guard.robot.context_coherence = state.context_coherence;
             vs_guard.robot.context_count = coherence_field.context_count();
+            #[cfg(feature = "brain")]
+            {
+                vs_guard.robot.min_cut_value = comfort_boundary.min_cut_value();
+                vs_guard.robot.boundary_context_count = comfort_boundary.context_count();
+                vs_guard.robot.deliberative_reason = deliberative_reason.to_string();
+                vs_guard.robot.deliberative_ticks_ago =
+                    if last_deliberative_tick == 0 { 0 }
+                    else { tick_count.saturating_sub(last_deliberative_tick) };
+                vs_guard.robot.suppression_rule_count = startle_processor.suppression_map.len();
+                vs_guard.robot.suppression_generalised_count = session_generalised_count;
+            }
         }
 
         // Track timing

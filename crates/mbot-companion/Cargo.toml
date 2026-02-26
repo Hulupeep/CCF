@@ -29,6 +29,7 @@ voice-api = ["brain", "warp", "futures"]
 
 [dependencies]
 mbot-core = { path = "../mbot-core" }
+ruvector-mincut = { workspace = true }
 
 # Async
 tokio.workspace = true

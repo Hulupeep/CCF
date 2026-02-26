@@ -45,6 +45,18 @@ pub struct RobotState {
     pub context_coherence: f32,
     /// Number of distinct contexts tracked
     pub context_count: usize,
+    /// Min-cut value of the context-key similarity graph (story #40)
+    pub min_cut_value: f32,
+    /// Number of context nodes in the comfort-zone boundary graph (story #40)
+    pub boundary_context_count: usize,
+    /// Reason the deliberative layer last fired: "contracted" | "expanded" | "" (story #42)
+    pub deliberative_reason: String,
+    /// Ticks since the deliberative layer last fired; 0 = not yet fired (story #42)
+    pub deliberative_ticks_ago: u64,
+    /// Total exact suppression rules in the core SuppressionMap (story #43)
+    pub suppression_rule_count: usize,
+    /// Generalised rules applied this session (story #43)
+    pub suppression_generalised_count: usize,
 }
 
 /// Motor override set by voice commands, consumed by the main loop.
