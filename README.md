@@ -5,6 +5,9 @@
 [![License: BSL 1.1](https://img.shields.io/badge/License-BSL%201.1-blue.svg)](./LICENSE)
 [![Patent Pending](https://img.shields.io/badge/Patent-Pending-orange.svg)](./PATENTS.md)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+[![Website](https://img.shields.io/badge/website-theshyrobot.com-4ecdc4)](https://theshyrobot.com)
+
+**→ [theshyrobot.com](https://theshyrobot.com)** — the public site: use cases, how it works, patent claim map, and get-started guide.
 
 ---
 
@@ -184,7 +187,7 @@ CCF is source-available under BSL 1.1. Free for research, prototyping, learning,
 
 I'm a solo inventor protecting 15 years of work — not a corporation building a moat. If you're building something interesting with this, talk to me. I'd rather collaborate than litigate.
 
-Contact: cbyrne@floutlabs.com
+Contact: cbyrne@floutlabs.com · [theshyrobot.com](https://theshyrobot.com)
 
 ---
 

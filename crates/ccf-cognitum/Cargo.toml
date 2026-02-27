@@ -6,6 +6,7 @@ rust-version = "1.75"
 license = "BUSL-1.1"
 description = "CCF SensorVocabulary adapter for the Cognitum v0 appliance sensor expansion port"
 repository = "https://github.com/Hulupeep/CCF"
+homepage = "https://theshyrobot.com"
 authors = ["Flout Labs <cbyrne@floutlabs.com>"]
 keywords = ["cognitum", "ccf", "robotics", "embedded", "no-std"]
 categories = ["embedded", "no-std", "science::robotics"]
