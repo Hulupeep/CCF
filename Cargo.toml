@@ -4,6 +4,7 @@ members = [
     "crates/mbot-core",
     "crates/mbot-companion",
     "crates/mbot-embedded",
+    "crates/ccf-cognitum",
 ]
 
 [workspace.package]

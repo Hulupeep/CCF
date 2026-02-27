@@ -1,0 +1,23 @@
+[package]
+name = "ccf-cognitum"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+license = "BUSL-1.1"
+description = "CCF SensorVocabulary adapter for the Cognitum v0 appliance sensor expansion port"
+repository = "https://github.com/Hulupeep/CCF"
+authors = ["Flout Labs <cbyrne@floutlabs.com>"]
+keywords = ["cognitum", "ccf", "robotics", "embedded", "no-std"]
+categories = ["embedded", "no-std", "science::robotics"]
+
+[features]
+default = []
+std = []
+serde = ["dep:serde", "ccf-core/serde"]
+
+[dependencies]
+ccf-core = { version = "0.1", default-features = false }
+serde = { version = "1", default-features = false, features = ["derive", "alloc"], optional = true }
+
+[dev-dependencies]
+ccf-core = { version = "0.1", default-features = false }
