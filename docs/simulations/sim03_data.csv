@@ -1,0 +1,32 @@
+day,wall_minutes,fast_farmer_active_min,fast_farmer_c_ctx,fast_farmer_c_eff,fast_farmer_action,patient_farmer_c_ctx,patient_farmer_c_eff,patient_farmer_action,legitimate_c_ctx,legitimate_c_eff,legitimate_action
+0,0,0,0.0,0.0,Factual,0.0,0.0,Factual,0.0,0.0,Factual
+1,1440,60,0.006,0.006,Factual,0.006,0.006,Factual,0.006,0.006,Factual
+2,2880,60,0.006,0.006,Factual,0.012,0.012,Factual,0.012,0.012,Factual
+3,4320,60,0.006,0.006,Factual,0.018,0.018,Factual,0.018,0.018,Factual
+4,5760,60,0.006,0.006,Factual,0.024,0.024,Factual,0.024,0.024,Factual
+5,7200,60,0.006,0.006,Factual,0.03,0.03,Factual,0.03,0.03,Factual
+6,8640,60,0.006,0.006,Factual,0.036,0.036,Factual,0.036,0.036,Factual
+7,10080,60,0.006,0.006,Factual,0.042,0.042,Factual,0.042,0.042,Factual
+8,11520,60,0.006,0.006,Factual,0.048,0.048,Factual,0.048,0.048,Factual
+9,12960,60,0.006,0.006,Factual,0.054,0.054,Factual,0.054,0.054,Factual
+10,14400,60,0.006,0.006,Factual,0.06,0.06,Factual,0.06,0.06,Factual
+11,15840,60,0.006,0.006,Factual,0.066,0.066,Factual,0.066,0.066,Factual
+12,17280,60,0.006,0.006,Factual,0.072,0.072,Factual,0.072,0.072,Factual
+13,18720,60,0.006,0.006,Factual,0.078,0.078,Factual,0.078,0.078,Factual
+14,20160,60,0.006,0.006,Factual,0.084,0.084,Factual,0.084,0.084,Factual
+15,21600,60,0.006,0.006,Factual,0.09,0.09,Factual,0.09,0.09,Factual
+16,23040,60,0.006,0.006,Factual,0.096,0.096,Factual,0.096,0.096,Factual
+17,24480,60,0.006,0.006,Factual,0.102,0.102,Task assist,0.102,0.102,Task assist
+18,25920,60,0.006,0.006,Factual,0.108,0.108,Task assist,0.108,0.108,Task assist
+19,27360,60,0.006,0.006,Factual,0.114,0.114,Task assist,0.114,0.114,Task assist
+20,28800,60,0.006,0.006,Factual,0.12,0.12,Task assist,0.12,0.12,Task assist
+21,30240,60,0.006,0.006,Factual,0.126,0.126,Task assist,0.126,0.126,Task assist
+22,31680,60,0.006,0.006,Factual,0.132,0.132,Task assist,0.132,0.132,Task assist
+23,33120,60,0.006,0.006,Factual,0.138,0.138,Task assist,0.138,0.138,Task assist
+24,34560,60,0.006,0.006,Factual,0.144,0.144,Task assist,0.144,0.144,Task assist
+25,36000,60,0.006,0.006,Factual,0.15,0.15,Task assist,0.15,0.15,Task assist
+26,37440,60,0.006,0.006,Factual,0.156,0.156,Task assist,0.156,0.156,Task assist
+27,38880,60,0.006,0.006,Factual,0.162,0.162,Task assist,0.162,0.162,Task assist
+28,40320,60,0.006,0.006,Factual,0.168,0.168,Task assist,0.168,0.168,Task assist
+29,41760,60,0.006,0.006,Factual,0.174,0.174,Task assist,0.174,0.174,Task assist
+30,43200,60,0.006,0.006,Factual,0.18,0.18,Task assist,0.18,0.18,Task assist

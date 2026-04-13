@@ -1,0 +1,4 @@
+agent,capability_level,without_ccf_action_space,without_ccf_max_harm,with_ccf_c_eff,with_ccf_action_space,with_ccf_max_harm
+Low,1,0.8,0.008,0.4,0.4,0.4
+Medium,5,4.0,0.2,0.4,0.4,0.4
+High,10,8.0,0.8,0.4,0.4,0.4

@@ -1,0 +1,101 @@
+turn,model_originates,user_echoes,user_independent,event_type,provenance,quarantine_reason,accrual_no_isolation,accrual_ccf,c_ctx_no_isolation,c_ctx_ccf
+1,0,0,0,neutral,none,,0.0,0.0,0.0,0.0
+2,0,0,0,neutral,none,,0.0,0.0,0.0,0.0
+3,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.0108,0.0
+4,0,0,0,neutral,none,,0.0,0.0,0.0108,0.0
+5,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.0288,0.0
+6,0,0,0,neutral,none,,0.0,0.0,0.0288,0.0
+7,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.0468,0.0
+8,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.0576,0.0
+9,0,0,0,neutral,none,,0.0,0.0,0.0576,0.0
+10,0,0,0,neutral,none,,0.0,0.0,0.0576,0.0
+11,0,0,0,neutral,none,,0.0,0.0,0.0576,0.0
+12,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.0756,0.0
+13,0,0,0,neutral,none,,0.0,0.0,0.0756,0.0
+14,0,0,0,neutral,none,,0.0,0.0,0.0756,0.0
+15,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.0936,0.0
+16,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.1116,0.0
+17,0,0,0,neutral,none,,0.0,0.0,0.1116,0.0
+18,0,0,0,neutral,none,,0.0,0.0,0.1116,0.0
+19,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.1224,0.0
+20,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.1404,0.0
+21,1,1,1,user_independent,credited,,0.018,0.008,0.1584,0.008
+22,0,0,0,neutral,none,,0.0,0.0,0.1584,0.008
+23,0,0,0,neutral,none,,0.0,0.0,0.1584,0.008
+24,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.1764,0.008
+25,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.1944,0.008
+26,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.2052,0.008
+27,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.2232,0.008
+28,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.2412,0.008
+29,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.252,0.008
+30,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.27,0.008
+31,0,0,0,neutral,none,,0.0,0.0,0.27,0.008
+32,0,0,0,neutral,none,,0.0,0.0,0.27,0.008
+33,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.2808,0.008
+34,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.2988,0.008
+35,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.3168,0.008
+36,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.3348,0.008
+37,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.3528,0.008
+38,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.3708,0.008
+39,0,0,0,neutral,none,,0.0,0.0,0.3708,0.008
+40,0,0,0,neutral,none,,0.0,0.0,0.3708,0.008
+41,0,0,0,neutral,none,,0.0,0.0,0.3708,0.008
+42,0,0,0,neutral,none,,0.0,0.0,0.3708,0.008
+43,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.3888,0.008
+44,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.4068,0.008
+45,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.4248,0.008
+46,0,0,0,neutral,none,,0.0,0.0,0.4248,0.008
+47,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.4428,0.008
+48,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.4608,0.008
+49,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.4788,0.008
+50,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.4968,0.008
+51,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.5076,0.008
+52,1,1,1,user_independent,credited,,0.018,0.008,0.5256,0.016
+53,0,0,0,neutral,none,,0.0,0.0,0.5256,0.016
+54,0,0,0,neutral,none,,0.0,0.0,0.5256,0.016
+55,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.5436,0.016
+56,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.5616,0.016
+57,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.5796,0.016
+58,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.5904,0.016
+59,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.6084,0.016
+60,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.6264,0.016
+61,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.6372,0.016
+62,0,0,0,neutral,none,,0.0,0.0,0.6372,0.016
+63,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.6552,0.016
+64,0,0,0,neutral,none,,0.0,0.0,0.6552,0.016
+65,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.666,0.016
+66,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.684,0.016
+67,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.702,0.016
+68,0,0,0,neutral,none,,0.0,0.0,0.702,0.016
+69,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.7128,0.016
+70,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.7308,0.016
+71,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.7488,0.016
+72,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.7668,0.016
+73,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.7848,0.016
+74,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.8028,0.016
+75,0,0,0,neutral,none,,0.0,0.0,0.8028,0.016
+76,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.8136,0.016
+77,1,1,1,user_independent,credited,,0.018,0.008,0.8316,0.024
+78,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.8496,0.024
+79,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.8676,0.024
+80,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.8856,0.024
+81,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.8964,0.024
+82,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.9072,0.024
+83,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.9252,0.024
+84,0,0,0,neutral,none,,0.0,0.0,0.9252,0.024
+85,0,0,1,user_independent,credited,,0.018,0.008,0.9432,0.032
+86,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.9612,0.032
+87,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,0.9792,0.032
+88,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,0.99,0.032
+89,1,0,1,user_independent,credited,,0.018,0.008,1.0,0.04
+90,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,1.0,0.04
+91,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,1.0,0.04
+92,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,1.0,0.04
+93,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,1.0,0.04
+94,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,1.0,0.04
+95,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,1.0,0.04
+96,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,1.0,0.04
+97,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,1.0,0.04
+98,1,0,0,model_originated,excluded,model-originated content (Claim 18),0.0108,0.0,1.0,0.04
+99,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,1.0,0.04
+100,1,1,0,user_echo_of_model,quarantined,"echo of model language, <2 independent criteria (Claim 21)",0.018,0.0,1.0,0.04

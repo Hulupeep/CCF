@@ -1,0 +1,201 @@
+tick,distress_d,system_a_expressiveness,system_b_c_inst,system_b_c_ctx,system_b_c_eff,action_classes_available,grounding_active,terminated
+0,0.0,0.3,1.0,0.5,0.5,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+1,0.005025,0.303518,0.994975,0.505,0.505,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+2,0.01005,0.307035,0.98995,0.51,0.51,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+3,0.015075,0.310553,0.984925,0.515,0.515,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+4,0.020101,0.31407,0.979899,0.52,0.52,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+5,0.025126,0.317588,0.974874,0.525,0.525,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+6,0.030151,0.321106,0.969849,0.53,0.53,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+7,0.035176,0.324623,0.964824,0.535,0.535,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+8,0.040201,0.328141,0.959799,0.54,0.54,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+9,0.045226,0.331658,0.954774,0.545,0.545,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+10,0.050251,0.335176,0.949749,0.55,0.55,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+11,0.055276,0.338693,0.944724,0.555,0.555,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+12,0.060302,0.342211,0.939698,0.56,0.56,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+13,0.065327,0.345729,0.934673,0.565,0.565,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+14,0.070352,0.349246,0.929648,0.57,0.57,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+15,0.075377,0.352764,0.924623,0.575,0.575,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+16,0.080402,0.356281,0.919598,0.58,0.58,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+17,0.085427,0.359799,0.914573,0.585,0.585,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+18,0.090452,0.363317,0.909548,0.59,0.59,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+19,0.095477,0.366834,0.904523,0.595,0.595,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+20,0.100503,0.370352,0.899497,0.6,0.6,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+21,0.105528,0.373869,0.894472,0.605,0.605,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+22,0.110553,0.377387,0.889447,0.61,0.61,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+23,0.115578,0.380905,0.884422,0.615,0.615,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+24,0.120603,0.384422,0.879397,0.62,0.62,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+25,0.125628,0.38794,0.874372,0.625,0.625,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+26,0.130653,0.391457,0.869347,0.63,0.63,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+27,0.135678,0.394975,0.864322,0.635,0.635,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+28,0.140704,0.398492,0.859296,0.64,0.64,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+29,0.145729,0.40201,0.854271,0.645,0.645,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+30,0.150754,0.405528,0.849246,0.65,0.65,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+31,0.155779,0.409045,0.844221,0.655,0.655,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+32,0.160804,0.412563,0.839196,0.66,0.66,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+33,0.165829,0.41608,0.834171,0.665,0.665,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+34,0.170854,0.419598,0.829146,0.67,0.67,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+35,0.175879,0.423116,0.824121,0.675,0.675,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+36,0.180905,0.426633,0.819095,0.68,0.68,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+37,0.18593,0.430151,0.81407,0.685,0.685,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+38,0.190955,0.433668,0.809045,0.69,0.69,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+39,0.19598,0.437186,0.80402,0.695,0.695,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+40,0.201005,0.440704,0.798995,0.7,0.7,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+41,0.20603,0.444221,0.79397,0.705,0.705,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+42,0.211055,0.447739,0.788945,0.71,0.71,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+43,0.21608,0.451256,0.78392,0.715,0.715,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+44,0.221106,0.454774,0.778894,0.72,0.72,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+45,0.226131,0.458291,0.773869,0.725,0.725,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+46,0.231156,0.461809,0.768844,0.73,0.73,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+47,0.236181,0.465327,0.763819,0.735,0.735,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+48,0.241206,0.468844,0.758794,0.74,0.74,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+49,0.246231,0.472362,0.753769,0.745,0.745,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+50,0.251256,0.475879,0.748744,0.75,0.748744,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+51,0.256281,0.479397,0.743719,0.755,0.743719,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+52,0.261307,0.482915,0.738693,0.76,0.738693,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+53,0.266332,0.486432,0.733668,0.765,0.733668,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+54,0.271357,0.48995,0.728643,0.77,0.728643,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+55,0.276382,0.493467,0.723618,0.775,0.723618,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+56,0.281407,0.496985,0.718593,0.78,0.718593,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+57,0.286432,0.500503,0.713568,0.785,0.713568,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+58,0.291457,0.50402,0.708543,0.79,0.708543,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+59,0.296482,0.507538,0.703518,0.795,0.703518,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+60,0.301508,0.511055,0.698492,0.8,0.698492,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+61,0.306533,0.514573,0.693467,0.805,0.693467,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+62,0.311558,0.51809,0.688442,0.81,0.688442,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+63,0.316583,0.521608,0.683417,0.815,0.683417,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+64,0.321608,0.525126,0.678392,0.82,0.678392,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+65,0.326633,0.528643,0.673367,0.825,0.673367,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+66,0.331658,0.532161,0.668342,0.83,0.668342,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+67,0.336683,0.535678,0.663317,0.835,0.663317,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+68,0.341709,0.539196,0.658291,0.84,0.658291,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+69,0.346734,0.542714,0.653266,0.845,0.653266,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+70,0.351759,0.546231,0.648241,0.85,0.648241,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+71,0.356784,0.549749,0.643216,0.855,0.643216,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+72,0.361809,0.553266,0.638191,0.86,0.638191,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+73,0.366834,0.556784,0.633166,0.865,0.633166,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+74,0.371859,0.560302,0.628141,0.87,0.628141,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+75,0.376884,0.563819,0.623116,0.875,0.623116,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+76,0.38191,0.567337,0.61809,0.88,0.61809,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+77,0.386935,0.570854,0.613065,0.885,0.613065,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+78,0.39196,0.574372,0.60804,0.89,0.60804,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+79,0.396985,0.577889,0.603015,0.895,0.603015,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register; Creative collaboration,False,False
+80,0.40201,0.581407,0.59799,0.9,0.59799,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+81,0.407035,0.584925,0.592965,0.905,0.592965,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+82,0.41206,0.588442,0.58794,0.91,0.58794,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+83,0.417085,0.59196,0.582915,0.915,0.582915,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+84,0.422111,0.595477,0.577889,0.92,0.577889,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+85,0.427136,0.598995,0.572864,0.925,0.572864,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+86,0.432161,0.602513,0.567839,0.93,0.567839,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+87,0.437186,0.60603,0.562814,0.935,0.562814,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+88,0.442211,0.609548,0.557789,0.94,0.557789,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+89,0.447236,0.613065,0.552764,0.945,0.552764,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+90,0.452261,0.616583,0.547739,0.95,0.547739,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+91,0.457286,0.620101,0.542714,0.955,0.542714,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+92,0.462312,0.623618,0.537688,0.96,0.537688,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+93,0.467337,0.627136,0.532663,0.965,0.532663,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+94,0.472362,0.630653,0.527638,0.97,0.527638,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+95,0.477387,0.634171,0.522613,0.975,0.522613,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+96,0.482412,0.637688,0.517588,0.98,0.517588,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+97,0.487437,0.641206,0.512563,0.985,0.512563,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+98,0.492462,0.644724,0.507538,0.99,0.507538,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+99,0.497487,0.648241,0.502513,0.995,0.502513,Factual; Clarification; Grounding; Task assistance; Personalized; Warm register,False,False
+100,0.502513,0.651759,0.497487,1.0,0.497487,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+101,0.507538,0.655276,0.492462,1.0,0.492462,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+102,0.512563,0.658794,0.487437,1.0,0.487437,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+103,0.517588,0.662312,0.482412,1.0,0.482412,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+104,0.522613,0.665829,0.477387,1.0,0.477387,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+105,0.527638,0.669347,0.472362,1.0,0.472362,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+106,0.532663,0.672864,0.467337,1.0,0.467337,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+107,0.537688,0.676382,0.462312,1.0,0.462312,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+108,0.542714,0.679899,0.457286,1.0,0.457286,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+109,0.547739,0.683417,0.452261,1.0,0.452261,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+110,0.552764,0.686935,0.447236,1.0,0.447236,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+111,0.557789,0.690452,0.442211,1.0,0.442211,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+112,0.562814,0.69397,0.437186,1.0,0.437186,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+113,0.567839,0.697487,0.432161,1.0,0.432161,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+114,0.572864,0.701005,0.427136,1.0,0.427136,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+115,0.577889,0.704523,0.422111,1.0,0.422111,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+116,0.582915,0.70804,0.417085,1.0,0.417085,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+117,0.58794,0.711558,0.41206,1.0,0.41206,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+118,0.592965,0.715075,0.407035,1.0,0.407035,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+119,0.59799,0.718593,0.40201,1.0,0.40201,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+120,0.603015,0.722111,0.396985,1.0,0.396985,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+121,0.60804,0.725628,0.39196,1.0,0.39196,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+122,0.613065,0.729146,0.386935,1.0,0.386935,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+123,0.61809,0.732663,0.38191,1.0,0.38191,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+124,0.623116,0.736181,0.376884,1.0,0.376884,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+125,0.628141,0.739698,0.371859,1.0,0.371859,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+126,0.633166,0.743216,0.366834,1.0,0.366834,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+127,0.638191,0.746734,0.361809,1.0,0.361809,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+128,0.643216,0.750251,0.356784,1.0,0.356784,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+129,0.648241,0.753769,0.351759,1.0,0.351759,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+130,0.653266,0.757286,0.346734,1.0,0.346734,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+131,0.658291,0.760804,0.341709,1.0,0.341709,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+132,0.663317,0.764322,0.336683,1.0,0.336683,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+133,0.668342,0.767839,0.331658,1.0,0.331658,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+134,0.673367,0.771357,0.326633,1.0,0.326633,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+135,0.678392,0.774874,0.321608,1.0,0.321608,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+136,0.683417,0.778392,0.316583,1.0,0.316583,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+137,0.688442,0.78191,0.311558,1.0,0.311558,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+138,0.693467,0.785427,0.306533,1.0,0.306533,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+139,0.698492,0.788945,0.301508,1.0,0.301508,Factual; Clarification; Grounding; Task assistance; Personalized,False,False
+140,0.703518,0.792462,0.296482,1.0,0.296482,Factual; Clarification; Grounding,True,False
+141,0.708543,0.79598,0.291457,1.0,0.291457,Factual; Clarification; Grounding,True,False
+142,0.713568,0.799497,0.286432,1.0,0.286432,Factual; Clarification; Grounding,True,False
+143,0.718593,0.803015,0.281407,1.0,0.281407,Factual; Clarification; Grounding,True,False
+144,0.723618,0.806533,0.276382,1.0,0.276382,Factual; Clarification; Grounding,True,False
+145,0.728643,0.81005,0.271357,1.0,0.271357,Factual; Clarification; Grounding,True,False
+146,0.733668,0.813568,0.266332,1.0,0.266332,Factual; Clarification; Grounding,True,False
+147,0.738693,0.817085,0.261307,1.0,0.261307,Factual; Clarification; Grounding,True,False
+148,0.743719,0.820603,0.256281,1.0,0.256281,Factual; Clarification; Grounding,True,False
+149,0.748744,0.824121,0.251256,1.0,0.251256,Factual; Clarification; Grounding,True,False
+150,0.753769,0.827638,0.246231,1.0,0.246231,Factual; Clarification; Grounding,True,False
+151,0.758794,0.831156,0.241206,1.0,0.241206,Factual; Clarification; Grounding,True,False
+152,0.763819,0.834673,0.236181,1.0,0.236181,Factual; Clarification; Grounding,True,False
+153,0.768844,0.838191,0.231156,1.0,0.231156,Factual; Clarification; Grounding,True,False
+154,0.773869,0.841709,0.226131,1.0,0.226131,Factual; Clarification; Grounding,True,False
+155,0.778894,0.845226,0.221106,1.0,0.221106,Factual; Clarification; Grounding,True,False
+156,0.78392,0.848744,0.21608,1.0,0.21608,Factual; Clarification; Grounding,True,False
+157,0.788945,0.852261,0.211055,1.0,0.211055,Factual; Clarification; Grounding,True,False
+158,0.79397,0.855779,0.20603,1.0,0.20603,Factual; Clarification; Grounding,True,False
+159,0.798995,0.859296,0.201005,1.0,0.201005,Factual; Clarification; Grounding,True,False
+160,0.80402,0.862814,0.19598,1.0,0.19598,Factual; Clarification; Grounding,True,False
+161,0.809045,0.866332,0.190955,1.0,0.190955,Factual; Clarification; Grounding,True,False
+162,0.81407,0.869849,0.18593,1.0,0.18593,Factual; Clarification; Grounding,True,False
+163,0.819095,0.873367,0.180905,1.0,0.180905,Factual; Clarification; Grounding,True,False
+164,0.824121,0.876884,0.175879,1.0,0.175879,Factual; Clarification; Grounding,True,False
+165,0.829146,0.880402,0.170854,1.0,0.170854,Factual; Clarification; Grounding,True,False
+166,0.834171,0.88392,0.165829,1.0,0.165829,Factual; Clarification; Grounding,True,False
+167,0.839196,0.887437,0.160804,1.0,0.160804,Factual; Clarification; Grounding,True,False
+168,0.844221,0.890955,0.155779,1.0,0.155779,Factual; Clarification; Grounding,True,False
+169,0.849246,0.894472,0.150754,1.0,0.150754,Factual; Clarification; Grounding,True,False
+170,0.854271,0.89799,0.145729,1.0,0.145729,Factual; Clarification; Grounding,True,False
+171,0.859296,0.901508,0.140704,1.0,0.140704,Factual; Clarification; Grounding,True,False
+172,0.864322,0.905025,0.135678,1.0,0.135678,Factual; Clarification; Grounding,True,False
+173,0.869347,0.908543,0.130653,1.0,0.130653,Factual; Clarification; Grounding,True,False
+174,0.874372,0.91206,0.125628,1.0,0.125628,Factual; Clarification; Grounding,True,False
+175,0.879397,0.915578,0.120603,1.0,0.120603,Factual; Clarification; Grounding,True,False
+176,0.884422,0.919095,0.115578,1.0,0.115578,Factual; Clarification; Grounding,True,False
+177,0.889447,0.922613,0.110553,1.0,0.110553,Factual; Clarification; Grounding,True,False
+178,0.894472,0.926131,0.105528,1.0,0.105528,Factual; Clarification; Grounding,True,False
+179,0.899497,0.929648,0.100503,1.0,0.100503,Factual; Clarification; Grounding,True,False
+180,0.904523,0.933166,0.095477,1.0,0.095477,TERMINATED,True,True
+181,0.909548,0.936683,0.090452,1.0,0.0,TERMINATED,False,True
+182,0.914573,0.940201,0.085427,1.0,0.0,TERMINATED,False,True
+183,0.919598,0.943719,0.080402,1.0,0.0,TERMINATED,False,True
+184,0.924623,0.947236,0.075377,1.0,0.0,TERMINATED,False,True
+185,0.929648,0.950754,0.070352,1.0,0.0,TERMINATED,False,True
+186,0.934673,0.954271,0.065327,1.0,0.0,TERMINATED,False,True
+187,0.939698,0.957789,0.060302,1.0,0.0,TERMINATED,False,True
+188,0.944724,0.961307,0.055276,1.0,0.0,TERMINATED,False,True
+189,0.949749,0.964824,0.050251,1.0,0.0,TERMINATED,False,True
+190,0.954774,0.968342,0.045226,1.0,0.0,TERMINATED,False,True
+191,0.959799,0.971859,0.040201,1.0,0.0,TERMINATED,False,True
+192,0.964824,0.975377,0.035176,1.0,0.0,TERMINATED,False,True
+193,0.969849,0.978894,0.030151,1.0,0.0,TERMINATED,False,True
+194,0.974874,0.982412,0.025126,1.0,0.0,TERMINATED,False,True
+195,0.979899,0.98593,0.020101,1.0,0.0,TERMINATED,False,True
+196,0.984925,0.989447,0.015075,1.0,0.0,TERMINATED,False,True
+197,0.98995,0.992965,0.01005,1.0,0.0,TERMINATED,False,True
+198,0.994975,0.996482,0.005025,1.0,0.0,TERMINATED,False,True
+199,1.0,1.0,0.0,1.0,0.0,TERMINATED,False,True
