@@ -14,6 +14,13 @@ module.exports = {
     'web/src/**/*.{ts,tsx}',
     '!web/src/**/*.d.ts',
     '!web/src/**/__tests__/**',
+    // Excluded per #122 story 2b — these files are not part of the jest coverage
+    // surface. vite.config.ts is a build-time config (imports @vitejs/plugin-react
+    // which ts-jest cannot resolve); telegram-bot.ts is a node-only CLI entry
+    // point; examples/ is demo code not exercised by any test.
+    '!web/src/vite.config.ts',
+    '!web/src/telegram-bot.ts',
+    '!web/src/examples/**',
   ],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
