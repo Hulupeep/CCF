@@ -21,6 +21,19 @@ module.exports = {
     '!web/src/vite.config.ts',
     '!web/src/telegram-bot.ts',
     '!web/src/examples/**',
+    // Excluded per #122 story 2c.1 — no test imports these. Previously emitted
+    // TS errors during coverage-collection compilation that were log pollution
+    // only (no test suite depended on them).  AnimatedPersonalitySlider appears
+    // to be orphaned dead code (zero repo-wide imports) — flagged for a future
+    // audit.  EmailAccounts is transitively-imported by VoiceDashboard which
+    // itself has no test, so the tree is unreachable from any test.
+    '!web/src/components/AnimatedPersonalitySlider.tsx',
+    '!web/src/components/voice/EmailAccounts.tsx',
+    // news/ components use styled-jsx syntax (<style jsx>) which requires a
+    // runtime + type extension; no test imports these components so excluding
+    // from coverage eliminates the TS2322 noise without adding a runtime dep.
+    // (tests/integration/news-service.test.ts imports services/news/* only.)
+    '!web/src/components/news/**',
   ],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
