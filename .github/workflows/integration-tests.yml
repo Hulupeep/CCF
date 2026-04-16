@@ -22,15 +22,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Checkout ruvnet/ruvector into sibling path for path-deps
+      - name: Clone ruvnet/ruvector into sibling path for path-deps
         # Cargo.toml lines 18-22 reference ../../tooling/ruvector/crates/*
-        # which resolves to a SIBLING directory outside CCF. This step
-        # clones the public ruvnet/ruvector repo into that expected path.
+        # which resolves to a SIBLING directory outside CCF's workspace.
+        # actions/checkout@v4 refuses paths outside the workspace root,
+        # so we use plain `git clone` here. Public repo — no auth required.
         # See #120 story 3 for the architectural follow-up.
-        uses: actions/checkout@v4
-        with:
-          repository: ruvnet/ruvector
-          path: ../tooling/ruvector
+        run: git clone --depth 1 https://github.com/ruvnet/ruvector.git ../tooling/ruvector
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
