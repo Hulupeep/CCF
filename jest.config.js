@@ -33,6 +33,10 @@ module.exports = {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
         lib: ['ES2015', 'DOM'],
+        // Explicit `types` needed here because ts-jest's inline tsconfig REPLACES
+        // rather than extends, so the usual "all @types auto-included" behaviour
+        // doesn't apply. List every @types/* we rely on during jest compilation.
+        types: ['jest', 'node', 'dom-speech-recognition'],
       },
     },
   },
