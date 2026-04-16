@@ -29,6 +29,11 @@ module.exports = {
     // itself has no test, so the tree is unreachable from any test.
     '!web/src/components/AnimatedPersonalitySlider.tsx',
     '!web/src/components/voice/EmailAccounts.tsx',
+    // news/ components use styled-jsx syntax (<style jsx>) which requires a
+    // runtime + type extension; no test imports these components so excluding
+    // from coverage eliminates the TS2322 noise without adding a runtime dep.
+    // (tests/integration/news-service.test.ts imports services/news/* only.)
+    '!web/src/components/news/**',
   ],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
@@ -44,7 +49,7 @@ module.exports = {
         // Explicit `types` needed here because ts-jest's inline tsconfig REPLACES
         // rather than extends, so the usual "all @types auto-included" behaviour
         // doesn't apply. List every @types/* we rely on during jest compilation.
-        types: ['jest', 'node', 'dom-speech-recognition', 'styled-jsx'],
+        types: ['jest', 'node', 'dom-speech-recognition'],
       },
     },
   },
