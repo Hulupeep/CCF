@@ -14,6 +14,13 @@ module.exports = {
     'web/src/**/*.{ts,tsx}',
     '!web/src/**/*.d.ts',
     '!web/src/**/__tests__/**',
+    // Excluded per #122 story 2b — these files are not part of the jest coverage
+    // surface. vite.config.ts is a build-time config (imports @vitejs/plugin-react
+    // which ts-jest cannot resolve); telegram-bot.ts is a node-only CLI entry
+    // point; examples/ is demo code not exercised by any test.
+    '!web/src/vite.config.ts',
+    '!web/src/telegram-bot.ts',
+    '!web/src/examples/**',
   ],
   moduleNameMapper: {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
@@ -26,6 +33,10 @@ module.exports = {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
         lib: ['ES2015', 'DOM'],
+        // Explicit `types` needed here because ts-jest's inline tsconfig REPLACES
+        // rather than extends, so the usual "all @types auto-included" behaviour
+        // doesn't apply. List every @types/* we rely on during jest compilation.
+        types: ['jest', 'node', 'dom-speech-recognition'],
       },
     },
   },
