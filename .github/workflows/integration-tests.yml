@@ -27,8 +27,14 @@ jobs:
         # from the CCF repo root, resolves TWO levels up (to /home/runner/work/tooling
         # on the CI runner). actions/checkout@v4 refuses paths outside the workspace
         # root, so we use plain `git clone` here. Public repo — no auth required.
-        # See #120 story 3 for the architectural follow-up.
-        run: git clone --depth 1 https://github.com/ruvnet/ruvector.git ../../tooling/ruvector
+        #
+        # Pinned to a specific SHA so upstream ruvector drift cannot turn this CI
+        # red for reasons unrelated to CCF changes. Long-term fix per #120 story 3
+        # is crates.io / Cargo-git-URL / submodule / vendor — this SHA pin is the
+        # tactical stopgap while that decision is deferred.
+        run: |
+          git clone https://github.com/ruvnet/ruvector.git ../../tooling/ruvector
+          git -C ../../tooling/ruvector checkout 6da5fd52585a982f2de5b38ecf0654072bfacc5a
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
