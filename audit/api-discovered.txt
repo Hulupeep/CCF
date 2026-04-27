@@ -1,0 +1,5 @@
+/api/v1/witness/chain
+/api/v1/sensor/list
+/api/v1/apps
+/api/v1/security/status
+/api/v1/wifi/scan

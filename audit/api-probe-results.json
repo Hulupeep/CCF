@@ -1,0 +1,2377 @@
+{
+  "/api/v1/status": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "",
+    "body": {
+      "deleted_vectors": 0,
+      "device_id": "e71209de-6e40-48f7-b3e1-42c98afe2732",
+      "dimension": 8,
+      "epoch": 91,
+      "file_size_bytes": 30046,
+      "paired": true,
+      "roles": [
+        "custody",
+        "optimizer",
+        "delivery"
+      ],
+      "total_vectors": 90,
+      "uptime_secs": 2725,
+      "witness_chain_length": 181
+    }
+  },
+  "/api/v1/identity": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "",
+    "body": {
+      "device_id": "e71209de-6e40-48f7-b3e1-42c98afe2732",
+      "dimension": 8,
+      "epoch": 91,
+      "firmware_version": "0.10.11",
+      "public_key": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEAnKEQceZ9cZL1GY4egeqwk6goQSCnXo0p7PciQZOqJPs=\n-----END PUBLIC KEY-----"
+    }
+  },
+  "/api/v1/pair/status": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "",
+    "body": {
+      "client_count": 1,
+      "paired": true,
+      "pairing_window_open": false,
+      "window_remaining_secs": 0
+    }
+  },
+  "/api/v1/store/status": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "",
+    "body": {
+      "total_vectors": 90,
+      "deleted_vectors": 0,
+      "file_size_bytes": 30046,
+      "dimension": 8,
+      "witness_chain_length": 181,
+      "epoch": 91,
+      "profile_id": 0,
+      "dead_space_ratio": 0.0
+    }
+  },
+  "/api/v1/store/sync": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "",
+    "body": {
+      "current_epoch": 91,
+      "deletions": [],
+      "from_epoch": 0,
+      "is_delta": false,
+      "vectors": [
+        [
+          10302729586686596762,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          7540844832768980995,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          5174041243913606634,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          13369986027244042128,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          5120262281838740485,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          15652949499162880814,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          8683074343181903052,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          9675220735995603636,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          6998590425375275828,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          655095237669157696,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          5964054029187507798,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          247719551442631501,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          13740058040112516508,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          6197540522808037020,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          15441307385178777565,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          13884397112134665272,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          1680541339119746596,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          8779597298335002000,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          16766211170937704211,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          11131613818637761845,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          12234788047451802710,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          8969122991302091216,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          11904946557148569675,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          16796562936053908416,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          14093940642151845162,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          15361947464765854482,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          7493377103672862314,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          14788634898636158982,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          10881700744589363993,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          9473937737685017973,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          3149621745226815170,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          11029788547833799293,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          10157691266814033302,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          17299950117270211219,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          750101366475561636,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          1128279474662198076,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          9325814616165931141,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          9190554530532390787,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          9621569256499955132,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          11670570407329828935,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          14970208892166385359,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          9587370826512087406,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          98788451088366269,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          13184152470237201893,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          10475966135437165981,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          18432445806277102853,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          17097007632215802982,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          12183268547555679284,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          16915641034217877753,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          5934030449556554149,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          16033299576130580856,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          17362909435460162404,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          17669457453934631905,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          14289963593151015157,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          2711808757568517453,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          7867958524170786908,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          3280028201189582899,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          5511806062201948132,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          18147000202856472596,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          6696941743292029196,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          8216736339962445800,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          14747385244313934544,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          15077540611065147598,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          1188914880584600997,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          12082828641298232998,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          2689494362720798206,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          2499749137874896231,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          1278875063879485252,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          4369051175997693261,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          5242955588237943023,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          13918906602645633076,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          86324683322923245,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          11431621774674731902,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          16582824207873052176,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          14307095802872176781,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          425543316569871866,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          14718492833257842328,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          2497922892808747644,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          1751783055015391096,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          12380432186790061179,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          15944000961355975344,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          1433263707265237480,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          551749564830639409,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          8635109112013469182,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          8580054434094302848,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          3421271282155584481,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          8869791722892741721,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          545595045404572670,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          14708773074170697464,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ],
+        [
+          15616446665400674560,
+          [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        ]
+      ],
+      "witness_head": "cec6ed7acf853c89d34543698e59c46387d33f57424d43033b8235c7f974bb2a"
+    }
+  },
+  "/api/v1/store/deleted": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "",
+    "body": {
+      "count": 0,
+      "deleted_ids": [],
+      "epoch": 91
+    }
+  },
+  "/api/v1/store/graph/stats": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "nodes": 0,
+      "total_edges": 0,
+      "avg_degree": 0.0,
+      "orphan_count": 0,
+      "dirty_count": 0,
+      "pending_inserts": 0,
+      "mean_max_sim": 0.0,
+      "core_count": 0,
+      "boundary_count": 0
+    }
+  },
+  "/api/v1/store/query": {
+    "method": "POST",
+    "http_status": 200,
+    "auth_used": "yes",
+    "body": {
+      "filtered": false,
+      "k": 5,
+      "metric": "cosine",
+      "results": [],
+      "total_searched": 90
+    }
+  },
+  "/api/v1/store/vectors/0": {
+    "method": "GET",
+    "http_status": 404,
+    "auth_used": "",
+    "body": {
+      "error": "vector 0 not found"
+    }
+  },
+  "/api/v1/store/vectors/1": {
+    "method": "GET",
+    "http_status": 404,
+    "auth_used": "",
+    "body": {
+      "error": "vector 1 not found"
+    }
+  },
+  "/api/v1/store/vectors/2": {
+    "method": "GET",
+    "http_status": 404,
+    "auth_used": "",
+    "body": {
+      "error": "vector 2 not found"
+    }
+  },
+  "/api/v1/store/vectors/3": {
+    "method": "GET",
+    "http_status": 404,
+    "auth_used": "",
+    "body": {
+      "error": "vector 3 not found"
+    }
+  },
+  "/api/v1/store/vectors/4": {
+    "method": "GET",
+    "http_status": 429,
+    "auth_used": "",
+    "body": {
+      "error": "rate limited — retry after 1s"
+    }
+  },
+  "/api/v1/store/vectors/5": {
+    "method": "GET",
+    "http_status": 404,
+    "auth_used": "",
+    "body": {
+      "error": "vector 5 not found"
+    }
+  },
+  "/api/v1/store/vectors/6": {
+    "method": "GET",
+    "http_status": 429,
+    "auth_used": "",
+    "body": {
+      "error": "rate limited — retry after 1s"
+    }
+  },
+  "/api/v1/store/vectors/7": {
+    "method": "GET",
+    "http_status": 429,
+    "auth_used": "",
+    "body": {
+      "error": "rate limited — retry after 1s"
+    }
+  },
+  "/api/v1/store/vectors/8": {
+    "method": "GET",
+    "http_status": 429,
+    "auth_used": "",
+    "body": {
+      "error": "rate limited — retry after 1s"
+    }
+  },
+  "/api/v1/store/vectors/9": {
+    "method": "GET",
+    "http_status": 429,
+    "auth_used": "",
+    "body": {
+      "error": "rate limited — retry after 1s"
+    }
+  },
+  "/api/v1/store/vectors/10302729586686596762": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "id": 10302729586686596762,
+      "vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "metadata": [
+        {
+          "field_id": 255,
+          "value": {
+            "String": "cognitive:epoch=1,hash=eb2ac69c1b1ed1ab22b1564b4a3a51c8f3a21c07ece590e4e5956ed4ac301c9d"
+          }
+        }
+      ],
+      "slot": 0,
+      "deleted": false
+    }
+  },
+  "/api/v1/store/vectors/7540844832768980995": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "id": 7540844832768980995,
+      "vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "metadata": [
+        {
+          "field_id": 255,
+          "value": {
+            "String": "cognitive:epoch=2,hash=6e4f34094c6745b48944e1e4e4915559ecc5f888c45350776d9abf3285f74412"
+          }
+        }
+      ],
+      "slot": 1,
+      "deleted": false
+    }
+  },
+  "/api/v1/store/vectors/5174041243913606634": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "id": 5174041243913606634,
+      "vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "metadata": [
+        {
+          "field_id": 255,
+          "value": {
+            "String": "cognitive:epoch=3,hash=d0e813338f9c535e8ed9ed7e1e2d20db1897780a4a740c0eb9ed700f5ca99e4f"
+          }
+        }
+      ],
+      "slot": 2,
+      "deleted": false
+    }
+  },
+  "/api/v1/store/vectors/13369986027244042128": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "id": 13369986027244042128,
+      "vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "metadata": [
+        {
+          "field_id": 255,
+          "value": {
+            "String": "cognitive:epoch=4,hash=73b45ff6c4586c0daf4f8c6e51ba1a6086600bb14b91db863239befab5531923"
+          }
+        }
+      ],
+      "slot": 3,
+      "deleted": false
+    }
+  },
+  "/api/v1/store/vectors/5120262281838740485": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "id": 5120262281838740485,
+      "vector": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "metadata": [
+        {
+          "field_id": 255,
+          "value": {
+            "String": "cognitive:epoch=5,hash=c937a229aab5b63fdc6f5b66cf1d9422714780635fb4f685220e3d83af18e5ba"
+          }
+        }
+      ],
+      "slot": 4,
+      "deleted": false
+    }
+  },
+  "/api/v1/boundary": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "hint": "POST /api/v1/boundary/recompute to trigger analysis",
+      "knn_nodes": 0,
+      "status": "no boundary analysis yet"
+    }
+  },
+  "/api/v1/coherence/profile": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "coherence_trend": null,
+      "compute_ms": 0,
+      "epoch_range": null,
+      "fragility_profile": [],
+      "global_rupture": null,
+      "is_partial": true,
+      "mono_timestamps_us": [],
+      "note": "no temporal profile computed yet",
+      "pending_boundaries": [],
+      "phase_boundaries": [],
+      "slice_count": 0,
+      "slice_indices": [],
+      "slices_needed": 3,
+      "temporal_coherence": null,
+      "wall_timestamps_us": []
+    }
+  },
+  "/api/v1/coherence/phases": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "count": 0,
+      "epoch_range": null,
+      "note": "no temporal profile computed yet",
+      "phase_boundaries": [],
+      "temporal_coherence": null
+    }
+  },
+  "/api/v1/coherence/orphans": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "count": 0,
+      "orphan_ids": [],
+      "orphan_threshold": 0.10000000149011612,
+      "window_max": 60,
+      "window_slices": 0
+    }
+  },
+  "/api/v1/coherence/profile/history": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "count": 0,
+      "max_history": 10,
+      "profiles": []
+    }
+  },
+  "/api/v1/coherence/config": {
+    "method": "GET",
+    "http_status": 404,
+    "auth_used": "no",
+    "body": {
+      "error": "not found"
+    }
+  },
+  "/api/v1/cognitive/snapshot": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "config": {
+        "instance_id": 4646622900380402893,
+        "max_receipts": 1000,
+        "slab_size": 524288
+      },
+      "epoch": 96,
+      "evidence_accumulated": 0.0,
+      "graph_edges": 0,
+      "spectral_scs": 0.0
+    }
+  },
+  "/api/v1/cognitive/status": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "chain_valid": {
+        "chain_length": 96,
+        "first_epoch": 0,
+        "last_epoch": 95,
+        "valid": true
+      },
+      "decision": "inconclusive",
+      "epoch": 96,
+      "latest_tick_us": 21,
+      "spectral_scs": 0.0,
+      "tick_count": 96
+    }
+  },
+  "/api/v1/cognitive/config": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "enabled": true,
+      "max_receipts": 1000,
+      "slab_size": 524288,
+      "tick_every_n_cycles": 3,
+      "total_ticks": 5000
+    }
+  },
+  "/api/v1/cognitive/witness/chain": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "chain_length": 96,
+      "receipts": [
+        {
+          "decision": "Inconclusive",
+          "epoch": 0,
+          "prev_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "receipt_hash": "eb2ac69c1b1ed1ab22b1564b4a3a51c8f3a21c07ece590e4e5956ed4ac301c9d",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 1,
+          "prev_hash": "eb2ac69c1b1ed1ab22b1564b4a3a51c8f3a21c07ece590e4e5956ed4ac301c9d",
+          "receipt_hash": "6e4f34094c6745b48944e1e4e4915559ecc5f888c45350776d9abf3285f74412",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 2,
+          "prev_hash": "6e4f34094c6745b48944e1e4e4915559ecc5f888c45350776d9abf3285f74412",
+          "receipt_hash": "d0e813338f9c535e8ed9ed7e1e2d20db1897780a4a740c0eb9ed700f5ca99e4f",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 3,
+          "prev_hash": "d0e813338f9c535e8ed9ed7e1e2d20db1897780a4a740c0eb9ed700f5ca99e4f",
+          "receipt_hash": "73b45ff6c4586c0daf4f8c6e51ba1a6086600bb14b91db863239befab5531923",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 4,
+          "prev_hash": "73b45ff6c4586c0daf4f8c6e51ba1a6086600bb14b91db863239befab5531923",
+          "receipt_hash": "c937a229aab5b63fdc6f5b66cf1d9422714780635fb4f685220e3d83af18e5ba",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 5,
+          "prev_hash": "c937a229aab5b63fdc6f5b66cf1d9422714780635fb4f685220e3d83af18e5ba",
+          "receipt_hash": "385000288f92d9716ef1ed9b2948edafc73c769c667d0e38a63a966f8e4fa81f",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 6,
+          "prev_hash": "385000288f92d9716ef1ed9b2948edafc73c769c667d0e38a63a966f8e4fa81f",
+          "receipt_hash": "54402565cbd793ab0d69864dc753190903388e653e060c95e52ca2541133860e",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 7,
+          "prev_hash": "54402565cbd793ab0d69864dc753190903388e653e060c95e52ca2541133860e",
+          "receipt_hash": "677572f9de0a85fd578206f06c2bc5055804a163f09531b5adef5f2d67c7a6aa",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 8,
+          "prev_hash": "677572f9de0a85fd578206f06c2bc5055804a163f09531b5adef5f2d67c7a6aa",
+          "receipt_hash": "3ec05379891139827c69628a2b26ae70ad97af40101d7a5f6c32a310424c05c4",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 9,
+          "prev_hash": "3ec05379891139827c69628a2b26ae70ad97af40101d7a5f6c32a310424c05c4",
+          "receipt_hash": "e21956946255bb0963f924d52e19ff3784ffa33d8bd19c41e47600170b79c20a",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 10,
+          "prev_hash": "e21956946255bb0963f924d52e19ff3784ffa33d8bd19c41e47600170b79c20a",
+          "receipt_hash": "fe72d556e9c3428068f847c9a1945b99ac585ba22fa065c36962422e47eeaead",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 11,
+          "prev_hash": "fe72d556e9c3428068f847c9a1945b99ac585ba22fa065c36962422e47eeaead",
+          "receipt_hash": "61a13899ca6b0649913a6a1f07ca38859f3265ab36b12652220ef048d1342c5d",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 12,
+          "prev_hash": "61a13899ca6b0649913a6a1f07ca38859f3265ab36b12652220ef048d1342c5d",
+          "receipt_hash": "37687d7f64090fb0e02ef7bba6fade648087ac584e7869e080b3d77b5e348ea0",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 13,
+          "prev_hash": "37687d7f64090fb0e02ef7bba6fade648087ac584e7869e080b3d77b5e348ea0",
+          "receipt_hash": "449f7d411107a49521551b760d8270199c113f71a9c6c477566417a072386873",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 14,
+          "prev_hash": "449f7d411107a49521551b760d8270199c113f71a9c6c477566417a072386873",
+          "receipt_hash": "37a5fe8164a2df0d3cf003abfebc3712732506107a32b00699e01bbea920e2dd",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 15,
+          "prev_hash": "37a5fe8164a2df0d3cf003abfebc3712732506107a32b00699e01bbea920e2dd",
+          "receipt_hash": "dacb7b5988b3720b28518ed62fa84e3addff8c4cdedb33fdb9118551a1980aef",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 16,
+          "prev_hash": "dacb7b5988b3720b28518ed62fa84e3addff8c4cdedb33fdb9118551a1980aef",
+          "receipt_hash": "c00f898a671329a1d248d338c51fe6c67a4cb8b93fa42df60e2f80f3541b3074",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 17,
+          "prev_hash": "c00f898a671329a1d248d338c51fe6c67a4cb8b93fa42df60e2f80f3541b3074",
+          "receipt_hash": "a98356ebe4931d627882123c9fd6e134dadb86869b91f5f0c59cf8b574edab43",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 18,
+          "prev_hash": "a98356ebe4931d627882123c9fd6e134dadb86869b91f5f0c59cf8b574edab43",
+          "receipt_hash": "fdd230074f440f75046e76421c394b7898c9c6b138565e692e9e736f84199211",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 19,
+          "prev_hash": "fdd230074f440f75046e76421c394b7898c9c6b138565e692e9e736f84199211",
+          "receipt_hash": "1579f16c827392f9028cd267df690e4b24a3aa99b7657a6653124b5547de0be2",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 20,
+          "prev_hash": "1579f16c827392f9028cd267df690e4b24a3aa99b7657a6653124b5547de0be2",
+          "receipt_hash": "700bf1d58094c057878ecb3728cf49895f536fb425f62b5151cc8f198bf0f67a",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 21,
+          "prev_hash": "700bf1d58094c057878ecb3728cf49895f536fb425f62b5151cc8f198bf0f67a",
+          "receipt_hash": "abe56a702566264e6dacd979eb87ef2b2c0abed31529febe7cf7716a0c722d1e",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 22,
+          "prev_hash": "abe56a702566264e6dacd979eb87ef2b2c0abed31529febe7cf7716a0c722d1e",
+          "receipt_hash": "6543aeae345dc6591bc2c079caad4f82ef262aba25022d5cc9ef98eca4f32b41",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 23,
+          "prev_hash": "6543aeae345dc6591bc2c079caad4f82ef262aba25022d5cc9ef98eca4f32b41",
+          "receipt_hash": "b47ef242c324b2590fb7e58177dabd1a093ed6b26cc8968b26cb4a1363a0e862",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 24,
+          "prev_hash": "b47ef242c324b2590fb7e58177dabd1a093ed6b26cc8968b26cb4a1363a0e862",
+          "receipt_hash": "e034eef7a638acd1d7f676cfa7ead399bf8e662e8c0e4d3cf2f97f269be2d355",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 25,
+          "prev_hash": "e034eef7a638acd1d7f676cfa7ead399bf8e662e8c0e4d3cf2f97f269be2d355",
+          "receipt_hash": "ee656e265473da3004c6f455dd5fc548b3aaaf408a6d9afc50ea71f500d20e84",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 26,
+          "prev_hash": "ee656e265473da3004c6f455dd5fc548b3aaaf408a6d9afc50ea71f500d20e84",
+          "receipt_hash": "5e3161021b7ab25f4cf758a08415c569620197bd230ea58d49bce771e4f93a06",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 27,
+          "prev_hash": "5e3161021b7ab25f4cf758a08415c569620197bd230ea58d49bce771e4f93a06",
+          "receipt_hash": "8a291e807f537c65663faf3b514d632002b38c39eac8315c27f1bb283ed85296",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 28,
+          "prev_hash": "8a291e807f537c65663faf3b514d632002b38c39eac8315c27f1bb283ed85296",
+          "receipt_hash": "6bf66c61c77789b6c94cd3c1858d59e8ef04277db309ac232cbf126427abbb08",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 29,
+          "prev_hash": "6bf66c61c77789b6c94cd3c1858d59e8ef04277db309ac232cbf126427abbb08",
+          "receipt_hash": "79510427fecd65a10c57674161fafb18900dc1779ec3b24f7afc65d9fc18ea41",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 30,
+          "prev_hash": "79510427fecd65a10c57674161fafb18900dc1779ec3b24f7afc65d9fc18ea41",
+          "receipt_hash": "b578c741c80170a1eee7f847c905c29389e77110fa748078774f447d5efc8e45",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 31,
+          "prev_hash": "b578c741c80170a1eee7f847c905c29389e77110fa748078774f447d5efc8e45",
+          "receipt_hash": "84c00649b95b15e1ad872ddbde2db791aa922b1214cea88b8d02293055af2f5c",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 32,
+          "prev_hash": "84c00649b95b15e1ad872ddbde2db791aa922b1214cea88b8d02293055af2f5c",
+          "receipt_hash": "7ef05d11d9b641fea1b3a6143c68192bad347d942970e4d983888d9bf62ebbbb",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 33,
+          "prev_hash": "7ef05d11d9b641fea1b3a6143c68192bad347d942970e4d983888d9bf62ebbbb",
+          "receipt_hash": "7c1415baedb59045a83bed5ae02d9d376c51c371df73f24f060f59c28e09b00e",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 34,
+          "prev_hash": "7c1415baedb59045a83bed5ae02d9d376c51c371df73f24f060f59c28e09b00e",
+          "receipt_hash": "f583ee04bc78a179746103beb9275f5774acdb2561f227293f57cb0af0c6f100",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 35,
+          "prev_hash": "f583ee04bc78a179746103beb9275f5774acdb2561f227293f57cb0af0c6f100",
+          "receipt_hash": "9f95d0bd428acbf25e23f2479a853876ad78aa44afb56153f6a7d3219629bed3",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 36,
+          "prev_hash": "9f95d0bd428acbf25e23f2479a853876ad78aa44afb56153f6a7d3219629bed3",
+          "receipt_hash": "eaa87c199ca10b24cef2c0babba18071a3f193e87ad661f0269de6cf085511bf",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 37,
+          "prev_hash": "eaa87c199ca10b24cef2c0babba18071a3f193e87ad661f0269de6cf085511bf",
+          "receipt_hash": "59323d5f6caa7dd88f67cef7d2b49121af87b9d01ecf9a163fcef35733c2d1ba",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 38,
+          "prev_hash": "59323d5f6caa7dd88f67cef7d2b49121af87b9d01ecf9a163fcef35733c2d1ba",
+          "receipt_hash": "f844c80dd8b4e5d75dc80a736e959779b9cbcb57a1e563ae7c0754f1d52ea8fb",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 39,
+          "prev_hash": "f844c80dd8b4e5d75dc80a736e959779b9cbcb57a1e563ae7c0754f1d52ea8fb",
+          "receipt_hash": "701114dd71a125714061a05d024626210a02c269a7ef97e9ef626416ac570a5d",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 40,
+          "prev_hash": "701114dd71a125714061a05d024626210a02c269a7ef97e9ef626416ac570a5d",
+          "receipt_hash": "3f23540f64396299b59ba760ee38762cdad897a09f04129dfbcaa734071b270b",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 41,
+          "prev_hash": "3f23540f64396299b59ba760ee38762cdad897a09f04129dfbcaa734071b270b",
+          "receipt_hash": "34ad09d06525acc7e547209412c8e73a283991acaf734a9e4c168a7b54a6b49e",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 42,
+          "prev_hash": "34ad09d06525acc7e547209412c8e73a283991acaf734a9e4c168a7b54a6b49e",
+          "receipt_hash": "c19edf692cd26310a2e4f1bf65a6380e77442f06cf7b906e2de62b2e830dc2c3",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 43,
+          "prev_hash": "c19edf692cd26310a2e4f1bf65a6380e77442f06cf7b906e2de62b2e830dc2c3",
+          "receipt_hash": "82d602ae915d5e1f5366ae3938dcaf274f137ca1c5a3f408bcf34a2d11660fb9",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 44,
+          "prev_hash": "82d602ae915d5e1f5366ae3938dcaf274f137ca1c5a3f408bcf34a2d11660fb9",
+          "receipt_hash": "93de3321651fc3e4bf626898135702ddce93fa26ba206d68d347b5736d5de114",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 45,
+          "prev_hash": "93de3321651fc3e4bf626898135702ddce93fa26ba206d68d347b5736d5de114",
+          "receipt_hash": "27b7e5398ab6a2696e602207bef4011e1636b66f91236feea1fd4af5b88b76a9",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 46,
+          "prev_hash": "27b7e5398ab6a2696e602207bef4011e1636b66f91236feea1fd4af5b88b76a9",
+          "receipt_hash": "3f6fe025533a1de372cb85738d20fbeed68e6787a010a8f9bd1bb0035273c8e6",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 47,
+          "prev_hash": "3f6fe025533a1de372cb85738d20fbeed68e6787a010a8f9bd1bb0035273c8e6",
+          "receipt_hash": "1fda721276b7610b32b3370c5e0fda7d17a912dbe397bf8ef42bf514922f465e",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 48,
+          "prev_hash": "1fda721276b7610b32b3370c5e0fda7d17a912dbe397bf8ef42bf514922f465e",
+          "receipt_hash": "8ad4d70082a1dd32d95b4b9d97bc2d7cc83bec70546889275fa70e5c675c625e",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 49,
+          "prev_hash": "8ad4d70082a1dd32d95b4b9d97bc2d7cc83bec70546889275fa70e5c675c625e",
+          "receipt_hash": "955a1831c8a96aa29057847616814db936b3040b6c50467937290b11453dacb4",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 50,
+          "prev_hash": "955a1831c8a96aa29057847616814db936b3040b6c50467937290b11453dacb4",
+          "receipt_hash": "0727fa0fcb36d9e43aa29f1178bdee0742b7aab483f1b980aa564288e078e002",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 51,
+          "prev_hash": "0727fa0fcb36d9e43aa29f1178bdee0742b7aab483f1b980aa564288e078e002",
+          "receipt_hash": "5fffa67c135833f70e814b78acfb558a3a6b1e84a499efe08efdb494602a6d71",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 52,
+          "prev_hash": "5fffa67c135833f70e814b78acfb558a3a6b1e84a499efe08efdb494602a6d71",
+          "receipt_hash": "5b764875cac4ef94cab6818b4b6c3f1c25e8eb39ede538e5352111a29226b0b2",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 53,
+          "prev_hash": "5b764875cac4ef94cab6818b4b6c3f1c25e8eb39ede538e5352111a29226b0b2",
+          "receipt_hash": "a1f9b5e75e5e72a5dc8963f807b544d75fc6753efa79fe9f16bc3e09fe7333f5",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 54,
+          "prev_hash": "a1f9b5e75e5e72a5dc8963f807b544d75fc6753efa79fe9f16bc3e09fe7333f5",
+          "receipt_hash": "a496463611d832ea8335ac1e5668e790b183b319b0aaf17dcf826e8fe7f5f200",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 55,
+          "prev_hash": "a496463611d832ea8335ac1e5668e790b183b319b0aaf17dcf826e8fe7f5f200",
+          "receipt_hash": "8f19ba658247063edd14571b7152d2b3add418f4823f01725450068585bd9535",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 56,
+          "prev_hash": "8f19ba658247063edd14571b7152d2b3add418f4823f01725450068585bd9535",
+          "receipt_hash": "ff1b4ec69d72f3ef52b301ddb5521a3cfd641544305387dc8cf85ef097ed4500",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 57,
+          "prev_hash": "ff1b4ec69d72f3ef52b301ddb5521a3cfd641544305387dc8cf85ef097ed4500",
+          "receipt_hash": "2021a7d01e1f15918f9d9a94150adcb114e37a53df96c80a96e6fcc51870136f",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 58,
+          "prev_hash": "2021a7d01e1f15918f9d9a94150adcb114e37a53df96c80a96e6fcc51870136f",
+          "receipt_hash": "a2cb4e9f65d93a84bcff18ac70f0fe1d2f49c310f61a7d4564e35bda0dfee079",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 59,
+          "prev_hash": "a2cb4e9f65d93a84bcff18ac70f0fe1d2f49c310f61a7d4564e35bda0dfee079",
+          "receipt_hash": "86663fec0ffda688deae9779d1b90f2359fbf91cdd948e5b33d0a7e9adfc7605",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 60,
+          "prev_hash": "86663fec0ffda688deae9779d1b90f2359fbf91cdd948e5b33d0a7e9adfc7605",
+          "receipt_hash": "3f720c68cb2c69be5a995c71d0a4e3cc793964d9c9433c282d3ce6f77733accc",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 61,
+          "prev_hash": "3f720c68cb2c69be5a995c71d0a4e3cc793964d9c9433c282d3ce6f77733accc",
+          "receipt_hash": "115f591cb48d08ba20f5b76e60b535abdbeb3ea2fc594dbfa120ee969c69e330",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 62,
+          "prev_hash": "115f591cb48d08ba20f5b76e60b535abdbeb3ea2fc594dbfa120ee969c69e330",
+          "receipt_hash": "31a6dae5924aac19ebcfa9248e08dfcc8d40e6597d48c3ead37e9bcd9bd4a86f",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 63,
+          "prev_hash": "31a6dae5924aac19ebcfa9248e08dfcc8d40e6597d48c3ead37e9bcd9bd4a86f",
+          "receipt_hash": "7702279be10dadd21798a8594b6e6f94184e4e081bdfc848d4a9349d61238aa9",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 64,
+          "prev_hash": "7702279be10dadd21798a8594b6e6f94184e4e081bdfc848d4a9349d61238aa9",
+          "receipt_hash": "de3dce79e764c692e5db787f687ae7893aa8de72b3e7edac15ca8fc6b6b7c0c0",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 65,
+          "prev_hash": "de3dce79e764c692e5db787f687ae7893aa8de72b3e7edac15ca8fc6b6b7c0c0",
+          "receipt_hash": "221f0b5b6b00078e10ea2229e631910054d31ca78a2c39ac6c3164081c1047f2",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 66,
+          "prev_hash": "221f0b5b6b00078e10ea2229e631910054d31ca78a2c39ac6c3164081c1047f2",
+          "receipt_hash": "ee9a895e0fafb06175ada05f06bc34dae36fcb71bce8d2224ff1126d8066e1d6",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 67,
+          "prev_hash": "ee9a895e0fafb06175ada05f06bc34dae36fcb71bce8d2224ff1126d8066e1d6",
+          "receipt_hash": "7d99e1d8f8efbdf71da72e84c55ceeca8db43e195082cd7b21ae446f14bc8825",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 68,
+          "prev_hash": "7d99e1d8f8efbdf71da72e84c55ceeca8db43e195082cd7b21ae446f14bc8825",
+          "receipt_hash": "fc84656dfc46a7b7ad2d951d57c3d57d0c1cb9756fa71660f23e02a77cbce3d0",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 69,
+          "prev_hash": "fc84656dfc46a7b7ad2d951d57c3d57d0c1cb9756fa71660f23e02a77cbce3d0",
+          "receipt_hash": "39726886dc9c68690a6eea5f8cea95e9c06e91cb30a001fc5a8593d1749135c5",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 70,
+          "prev_hash": "39726886dc9c68690a6eea5f8cea95e9c06e91cb30a001fc5a8593d1749135c5",
+          "receipt_hash": "d5e56c08eb87cfc1fdf328e4df0e46f3a720ed11e7dcbe632e0df0f16c571a45",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 71,
+          "prev_hash": "d5e56c08eb87cfc1fdf328e4df0e46f3a720ed11e7dcbe632e0df0f16c571a45",
+          "receipt_hash": "63fef84f7a732689db537715cd281633a03e12273acd30373a198b9c8c8821a2",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 72,
+          "prev_hash": "63fef84f7a732689db537715cd281633a03e12273acd30373a198b9c8c8821a2",
+          "receipt_hash": "3329e49f3aed28c582407b009d0e2f2f5e67e0dff3d4313dae893a2135df7f83",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 73,
+          "prev_hash": "3329e49f3aed28c582407b009d0e2f2f5e67e0dff3d4313dae893a2135df7f83",
+          "receipt_hash": "8456b71ea3018784f11a846a3fb2c98d552fb513de8dc1fa5ee711ba5519e0a4",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 74,
+          "prev_hash": "8456b71ea3018784f11a846a3fb2c98d552fb513de8dc1fa5ee711ba5519e0a4",
+          "receipt_hash": "13370976f4493e33de4d9e3a14bb285c53e7df274fd34eccfeb92bbe8e6ab0fd",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 75,
+          "prev_hash": "13370976f4493e33de4d9e3a14bb285c53e7df274fd34eccfeb92bbe8e6ab0fd",
+          "receipt_hash": "df331cae1ec4311058bf3e0a8f821a4ae866c750e328dfcbcdd73b738e692074",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 76,
+          "prev_hash": "df331cae1ec4311058bf3e0a8f821a4ae866c750e328dfcbcdd73b738e692074",
+          "receipt_hash": "f6f3635331732ec4de608b4f65f4ba72a4cff1386209b61e1dd4cb9b3a003711",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 77,
+          "prev_hash": "f6f3635331732ec4de608b4f65f4ba72a4cff1386209b61e1dd4cb9b3a003711",
+          "receipt_hash": "9ad6ed8d0b92beb441272be146568491163fea4d19b60e466b7d4a7ef166576e",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 78,
+          "prev_hash": "9ad6ed8d0b92beb441272be146568491163fea4d19b60e466b7d4a7ef166576e",
+          "receipt_hash": "52b476e24dd78a566bbe4c87c8589c2e6c479248cb0b4e11962fcd79d6846ff5",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 79,
+          "prev_hash": "52b476e24dd78a566bbe4c87c8589c2e6c479248cb0b4e11962fcd79d6846ff5",
+          "receipt_hash": "5cfe1c2f5d9d18300bf1b6e28c46b99c25faf531a56d722cb968883174efe003",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 80,
+          "prev_hash": "5cfe1c2f5d9d18300bf1b6e28c46b99c25faf531a56d722cb968883174efe003",
+          "receipt_hash": "3d2625ff1b5b5fb7cca10348fc56985173a7b1d69a76e29965001a677f15b83c",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 81,
+          "prev_hash": "3d2625ff1b5b5fb7cca10348fc56985173a7b1d69a76e29965001a677f15b83c",
+          "receipt_hash": "0818da454616a14f9936d62e5b94c61f849e2de50eed60a9264a52503878e777",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 82,
+          "prev_hash": "0818da454616a14f9936d62e5b94c61f849e2de50eed60a9264a52503878e777",
+          "receipt_hash": "1c4b32521cb52514f3df323688a1f20068d4945669817364005f3b7fde1da51e",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 83,
+          "prev_hash": "1c4b32521cb52514f3df323688a1f20068d4945669817364005f3b7fde1da51e",
+          "receipt_hash": "70af59e371daf7281dc7b0449cea05558c1cdfeb7ca80943a2799e4eedde04c3",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 84,
+          "prev_hash": "70af59e371daf7281dc7b0449cea05558c1cdfeb7ca80943a2799e4eedde04c3",
+          "receipt_hash": "f9ff026f8dc775775a8cf5bee3ee381c737c8d0e223185406109018efc7971d3",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 85,
+          "prev_hash": "f9ff026f8dc775775a8cf5bee3ee381c737c8d0e223185406109018efc7971d3",
+          "receipt_hash": "58b080883f4e7ce6a7229b4840b22917ffb9083f42b70d0ced40d2d1691d1265",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 86,
+          "prev_hash": "58b080883f4e7ce6a7229b4840b22917ffb9083f42b70d0ced40d2d1691d1265",
+          "receipt_hash": "f827b2420c14de8b072782b4ccac20e9a4f802b12ef0e86b01919264b688f88d",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 87,
+          "prev_hash": "f827b2420c14de8b072782b4ccac20e9a4f802b12ef0e86b01919264b688f88d",
+          "receipt_hash": "942e211af68dcb44764d8b57159b50d1faa0f1ac4b77bdd122b196d3445aa732",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 88,
+          "prev_hash": "942e211af68dcb44764d8b57159b50d1faa0f1ac4b77bdd122b196d3445aa732",
+          "receipt_hash": "63552adae2616d84b3d52a603593c62e1ba683388f507eca294eb2122f2402ae",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 89,
+          "prev_hash": "63552adae2616d84b3d52a603593c62e1ba683388f507eca294eb2122f2402ae",
+          "receipt_hash": "2cf1386588486d2beabd6502d3b4821bb64b1bb9266f7e90f8ce4b3754f2240b",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 90,
+          "prev_hash": "2cf1386588486d2beabd6502d3b4821bb64b1bb9266f7e90f8ce4b3754f2240b",
+          "receipt_hash": "546a06ea07acca0e8edf3525755e4a8156e501a676cc0b74a66d59a0c3eb6467",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 91,
+          "prev_hash": "546a06ea07acca0e8edf3525755e4a8156e501a676cc0b74a66d59a0c3eb6467",
+          "receipt_hash": "7fe97c1fa65c4ca09574fb020205234e8c17b63c11c6a818db1c8e8ec94d196d",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 92,
+          "prev_hash": "7fe97c1fa65c4ca09574fb020205234e8c17b63c11c6a818db1c8e8ec94d196d",
+          "receipt_hash": "02f39a74dac12978ee8bbd95995fabd3c17b4ae0941ca6584add35a4cc732892",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 93,
+          "prev_hash": "02f39a74dac12978ee8bbd95995fabd3c17b4ae0941ca6584add35a4cc732892",
+          "receipt_hash": "a8ff1ca15e12cf45e0e6d9549882b270433e8b3645cd235086630549aa5d180c",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 94,
+          "prev_hash": "a8ff1ca15e12cf45e0e6d9549882b270433e8b3645cd235086630549aa5d180c",
+          "receipt_hash": "adb3559af2ec27313796308732bfad412e651a4002a3c1ae62ad19bfe9f240d9",
+          "spectral_scs": 0
+        },
+        {
+          "decision": "Inconclusive",
+          "epoch": 95,
+          "prev_hash": "adb3559af2ec27313796308732bfad412e651a4002a3c1ae62ad19bfe9f240d9",
+          "receipt_hash": "78855889f53e944dae8ea99c4221f055a722e9a88836937900b0f5283e40a0fc",
+          "spectral_scs": 0
+        }
+      ]
+    }
+  },
+  "/api/v1/custody/attestation": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "algorithm": "Ed25519",
+      "attestation": {
+        "device_id": "e71209de-6e40-48f7-b3e1-42c98afe2732",
+        "epoch": 97,
+        "proof_verification": {
+          "cache_hit_rate_bps": 0,
+          "enabled": false,
+          "errors": 0,
+          "proofs_constructed": 96,
+          "proofs_verified": 96,
+          "reduction_steps": 0
+        },
+        "timestamp": 1776094714,
+        "total_vectors": 96,
+        "witness_head": "576b6c178f434109738221658ed0fb65470956dde2a5e6428cdc23ec9203e2c3"
+      },
+      "public_key": "7927329e463bfc1bd0ce26014c56db4c8675bbe737c63798df4f0cdac378387b",
+      "signature": "9d223a1255c96e6c0aa73052d3deb05a03b861c6034dccca1081abc6c906c5987fef2f19fc8f506675067af97f71e7914fe6a75217032cf0512933516f9ca105"
+    }
+  },
+  "/api/v1/custody/epoch": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "epoch": 97,
+      "witness_head": "576b6c178f434109738221658ed0fb65470956dde2a5e6428cdc23ec9203e2c3"
+    }
+  },
+  "/api/v1/optimize/status": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "compaction_threshold": 0.2,
+      "dead_space_ratio": 0.0,
+      "last_optimization_secs_ago": 0,
+      "next_scheduled_in_secs": 3600,
+      "optimization_interval_secs": 3600,
+      "total_optimizations": 0
+    }
+  },
+  "/api/v1/optimize/metrics": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "dead_space_ratio": 0.0,
+      "deleted_vectors": 0,
+      "dimension": 8,
+      "epoch": 97,
+      "file_size_bytes": 32038,
+      "total_optimizations": 0,
+      "total_vectors": 96,
+      "witness_chain_length": 193
+    }
+  },
+  "/api/v1/store/graph/neighbors/10302729586686596762": {
+    "method": "GET",
+    "http_status": 200,
+    "auth_used": "no",
+    "body": {
+      "degree": 0,
+      "id": 10302729586686596762,
+      "neighbors": []
+    }
+  }
+}

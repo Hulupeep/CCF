@@ -1,0 +1,258 @@
+[
+  {
+    "step": "pre_status",
+    "method": "GET",
+    "path": "/api/v1/status",
+    "auth": false,
+    "request_body": null,
+    "http_status": 200,
+    "response": {
+      "deleted_vectors": 0,
+      "device_id": "e71209de-6e40-48f7-b3e1-42c98afe2732",
+      "dimension": 8,
+      "epoch": 104,
+      "file_size_bytes": 34366,
+      "paired": true,
+      "roles": [
+        "custody",
+        "optimizer",
+        "delivery"
+      ],
+      "total_vectors": 103,
+      "uptime_secs": 3100,
+      "witness_chain_length": 207
+    },
+    "ts": 1777303988.244353
+  },
+  {
+    "step": "pre_graph",
+    "method": "GET",
+    "path": "/api/v1/store/graph/stats",
+    "auth": false,
+    "request_body": null,
+    "http_status": 200,
+    "response": {
+      "nodes": 0,
+      "total_edges": 0,
+      "avg_degree": 0.0,
+      "orphan_count": 0,
+      "dirty_count": 0,
+      "pending_inserts": 1,
+      "mean_max_sim": 0.0,
+      "core_count": 0,
+      "boundary_count": 0
+    },
+    "ts": 1777303989.4904885
+  },
+  {
+    "step": "ingest",
+    "method": "POST",
+    "path": "/api/v1/store/ingest",
+    "auth": true,
+    "request_body": {
+      "vectors": [
+        [
+          9999000420260427,
+          [
+            0.5,
+            -0.3,
+            0.7,
+            0.1,
+            -0.2,
+            0.4,
+            -0.1,
+            0.6
+          ]
+        ]
+      ]
+    },
+    "http_status": 200,
+    "response": {
+      "accepted": true,
+      "count": 1,
+      "new_epoch": 105,
+      "rejected": 0,
+      "verified": false,
+      "witness_head": "e4abbf6dc88b3e712c4a829233c58d1a05b058a840d6fa34ed99ea142644eb94"
+    },
+    "ts": 1777303990.7441597
+  },
+  {
+    "step": "label",
+    "method": "PUT",
+    "path": "/api/v1/store/vectors/9999000420260427/metadata",
+    "auth": true,
+    "request_body": {
+      "metadata": [
+        {
+          "field_id": 0,
+          "value": {
+            "String": "phase0-probe"
+          }
+        },
+        {
+          "field_id": 1,
+          "value": {
+            "String": "test-ingest"
+          }
+        },
+        {
+          "field_id": 2,
+          "value": {
+            "String": "ccf-mbot2-bridge-evidence"
+          }
+        }
+      ]
+    },
+    "http_status": 200,
+    "response": {
+      "id": 9999000420260427,
+      "new_epoch": 106,
+      "updated": true,
+      "witness_head": "115bd462982e81d1618156670e477d9e4db4c265d895a1c129bfffc874781418"
+    },
+    "ts": 1777303991.9946582
+  },
+  {
+    "step": "post_status",
+    "method": "GET",
+    "path": "/api/v1/status",
+    "auth": false,
+    "request_body": null,
+    "http_status": 200,
+    "response": {
+      "deleted_vectors": 0,
+      "device_id": "e71209de-6e40-48f7-b3e1-42c98afe2732",
+      "dimension": 8,
+      "epoch": 106,
+      "file_size_bytes": 34777,
+      "paired": true,
+      "roles": [
+        "custody",
+        "optimizer",
+        "delivery"
+      ],
+      "total_vectors": 104,
+      "uptime_secs": 3105,
+      "witness_chain_length": 210
+    },
+    "ts": 1777303993.263301
+  },
+  {
+    "step": "post_graph",
+    "method": "GET",
+    "path": "/api/v1/store/graph/stats",
+    "auth": false,
+    "request_body": null,
+    "http_status": 200,
+    "response": {
+      "nodes": 0,
+      "total_edges": 0,
+      "avg_degree": 0.0,
+      "orphan_count": 0,
+      "dirty_count": 0,
+      "pending_inserts": 2,
+      "mean_max_sim": 0.0,
+      "core_count": 0,
+      "boundary_count": 0
+    },
+    "ts": 1777303994.5037146
+  },
+  {
+    "step": "readback",
+    "method": "GET",
+    "path": "/api/v1/store/vectors/9999000420260427",
+    "auth": false,
+    "request_body": null,
+    "http_status": 200,
+    "response": {
+      "id": 9999000420260427,
+      "vector": [
+        0.5,
+        -0.3,
+        0.7,
+        0.1,
+        -0.2,
+        0.4,
+        -0.1,
+        0.6
+      ],
+      "metadata": [
+        {
+          "field_id": 0,
+          "value": {
+            "String": "phase0-probe"
+          }
+        },
+        {
+          "field_id": 1,
+          "value": {
+            "String": "test-ingest"
+          }
+        },
+        {
+          "field_id": 2,
+          "value": {
+            "String": "ccf-mbot2-bridge-evidence"
+          }
+        }
+      ],
+      "slot": 103,
+      "deleted": false
+    },
+    "ts": 1777303995.7465224
+  },
+  {
+    "step": "query_self",
+    "method": "POST",
+    "path": "/api/v1/store/query",
+    "auth": true,
+    "request_body": {
+      "vector": [
+        0.5,
+        -0.3,
+        0.7,
+        0.1,
+        -0.2,
+        0.4,
+        -0.1,
+        0.6
+      ],
+      "k": 5
+    },
+    "http_status": 200,
+    "response": {
+      "filtered": false,
+      "k": 5,
+      "metric": "cosine",
+      "results": [
+        {
+          "distance": 0.0,
+          "id": 9999000420260427,
+          "metadata": [
+            {
+              "field_id": 0,
+              "value": {
+                "String": "phase0-probe"
+              }
+            },
+            {
+              "field_id": 1,
+              "value": {
+                "String": "test-ingest"
+              }
+            },
+            {
+              "field_id": 2,
+              "value": {
+                "String": "ccf-mbot2-bridge-evidence"
+              }
+            }
+          ]
+        }
+      ],
+      "total_searched": 104
+    },
+    "ts": 1777303996.9949014
+  }
+]
