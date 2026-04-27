@@ -237,4 +237,55 @@ curl validates the cert cleanly).
   device booted at approximately 2026-04-27 15:42 — consistent with the
   USB enumeration timestamp at 15:41:03).
 
+## 6. Addendum — bearer token storage and validation
+
+**Time:** 2026-04-27 16:23 local.
+
+**Action:** Bearer token issued by the device's `POST /api/v1/pair` flow
+(performed via the in-browser API Explorer between 16:13 and 16:16, see
+Section 5) was committed to local-only environment storage.
+
+**Storage:**
+
+- Path: `<repo-root>/.env` (relative to the CCF working tree).
+- Mode: `600` (owner read/write only).
+- Tracked by git: **no**. The repository's `.gitignore` already excludes
+  `.env` at line 31; `git status` confirms the file is invisible to commits.
+- Variables written:
+  - `COGNITUM_BASE_URL` — the device's HTTPS base URL on the link-local
+    USB interface.
+  - `COGNITUM_TOKEN` — the bearer token returned by `POST /api/v1/pair`.
+  - `TRACKER_DEVICE_ID` — the tracker device identifier supplied by the
+    operator for application-layer correlation.
+
+The token and device-ID values are **deliberately not reproduced in this
+audit log**, since the audit log is committed to a public GitHub
+repository (`Hulupeep/CCF`). Both values are recoverable from the
+local `.env` file by the operator.
+
+**Validation:** Immediately after writing `.env`, the token was exercised
+against an authenticated endpoint:
+
+```
+curl -H "Authorization: Bearer ${COGNITUM_TOKEN}" \
+     https://169.254.42.1:8443/api/v1/pair/status
+```
+
+Result: `HTTP 200`, `ssl_verify_result=0`, response body:
+
+```json
+{
+  "client_count": 1,
+  "paired": true,
+  "pairing_window_open": false,
+  "window_remaining_secs": 0
+}
+```
+
+This confirms (a) the token is accepted by the device for authenticated
+requests, (b) the device recognises exactly one paired client (this host),
+and (c) no further pairing window is currently open — i.e. no additional
+clients can pair without a fresh physical-button press or `POST /api/v1/pair/window`
+from localhost.
+
 *End of log.*
