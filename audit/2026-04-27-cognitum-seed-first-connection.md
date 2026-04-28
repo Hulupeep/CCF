@@ -288,4 +288,104 @@ and (c) no further pairing window is currently open — i.e. no additional
 clients can pair without a fresh physical-button press or `POST /api/v1/pair/window`
 from localhost.
 
+## 7. Addendum — MCP availability investigation (2026-04-28)
+
+**Trigger:** Operator asked whether the Cognitum Seed could be reached
+via the Model Context Protocol (MCP) using a config snippet of the form:
+
+```json
+{
+  "mcpServers": {
+    "cognitum-seed": {
+      "url": "http://169.254.42.1/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+attributed to "MCP Proxy ADR-047".
+
+**Black-box probe of the device.** Three URL variants tested with the
+rate-limit cool-down respected (≥1.2 s spacing):
+
+| URL | HTTP | Body |
+| --- | --- | --- |
+| `http://169.254.42.1/mcp` | 404 | `{"error":"not found"}` |
+| `https://169.254.42.1:8443/mcp` | 404 | `{"error":"not found"}` |
+| `https://169.254.42.1:8443/api/v1/mcp` | 404 | `{"error":"not found"}` |
+
+A grep of the cached API Explorer page (88 537 B) returned **zero
+matches** for `mcp`, `model[- ]context[- ]protocol`, or `streamable`.
+The 101-path endpoint catalog extracted from the page contains no
+`/mcp*` entry. **Conclusion: firmware 0.10.11 does not expose any MCP
+endpoint on either the HTTPS (8443) or HTTP (80) listener.**
+
+(Side-finding worth recording: the Seed serves the same API Explorer
+on plain HTTP port 80 in addition to HTTPS 8443. Routing any
+authenticated request over the port-80 listener bypasses the device
+CA chain and would expose the bearer token in cleartext on the USB
+link. Bridge code must always target `https://…:8443/`.)
+
+**Documentation review.** ADR-047 in `ruvnet/RuView` is titled
+*"Psychohistory Observatory Visualization"* — a dashboard ADR, not an
+MCP transport ADR. The cited number is therefore wrong. The actual MCP
+ADRs live in the `ruvnet/ruvector` repository:
+
+- ADR-066 — *SSE MCP transport.* Defines an MCP server at
+  `https://mcp.pi.ruv.io` reached via Server-Sent Events. CLI form:
+  `claude mcp add pi --url https://mcp.pi.ruv.io`. **The endpoint is
+  cloud-hosted, not on the local Seed.**
+- ADR-067 — *MCP gate permit system.* Auth is via SHAKE-256
+  pseudonym derivation from an API key (domain prefix
+  `ruvector-brain-pseudonym:`), with reputation-based gating and
+  per-identity rate limits (1 000 reads/h, 100 writes/h). **Not the
+  Cognitum device's pairing-flag bearer token.**
+
+The "Cognitum Seed exposes 114 MCP tools via JSON-RPC 2.0" claim seen
+in third-party search summaries appears to refer to the cloud
+shared-brain MCP server, conflated with the Seed by the summarizer.
+The cog-store catalog (66 cogs) shows no MCP-named cog as of the
+fetch.
+
+**Available firmware.** The OTA manifest at
+`https://storage.googleapis.com/cognitum-apps/firmware/latest.json`
+returns:
+
+```json
+{
+  "version": "0.20.1",
+  "url": "https://storage.googleapis.com/cognitum-apps/firmware/cognitum-agent-v0.20.1-arm",
+  "sha256": "d7c9bb0a19f70b7551734477ac3dee6bada8572068df2c15511a1a4bbd2afa6d",
+  "size": 4197684,
+  "date": "2026-04-22T18:56:30Z"
+}
+```
+
+The device is on 0.10.11; the manifest offers 0.20.1 (a 10-minor-version
+jump, six days old at probe time). Whether 0.20.1 introduces a local
+MCP listener is **not knowable from the manifest alone** — no public
+ADR confirms a local MCP service on the Seed.
+
+**Risk note for any later upgrade attempt.** `GET /api/v1/firmware/status`
+shows `slot_a_exists:true, slot_b_exists:false, dm_verity:false,
+squashfs_ota:false`. Slot-B does not exist, so a slot-OTA upgrade has
+no rollback target on this device. An upgrade was **not** attempted in
+this session; it requires its own change-control gate.
+
+**Decisions taken.**
+
+1. The original config snippet was **not** added to
+   `~/.config/Claude/claude_desktop_config.json` or
+   `~/.claude/settings.json` — it would silently fail.
+2. No firmware upgrade was triggered; Phase 0 stays read-only modulo
+   the documented ingest in §5–§7 of the connection log and the Phase 0
+   probe artifacts.
+3. Phase 1 architecture (per `audit/PHASE_0_REPORT.md`) continues to
+   target the Seed's HTTP API directly. MCP exposure is treated as
+   out-of-scope for the local bridge until either (a) firmware
+   ≥ 0.20.x ships a confirmed local MCP listener, or (b) the operator
+   chooses to proxy through the cloud `mcp.pi.ruv.io` server with a
+   separately-issued RuVector API key.
+
 *End of log.*
